@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="UTF-8"/><title>Tree Debug</title></head>
+<body>
+<h2>Family Tree Decoder Debug</h2>
+<pre id="out" style="font-family:monospace;font-size:13px;white-space:pre-wrap"></pre>
+<script>
+const DECODE_KEY = 137;
+const log = msg => { document.getElementById('out').textContent += msg + '\n'; console.log(msg); };
+
+function xorDecode(b64, key) {
+  const bin   = atob(b64);
+  const bytes = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+  const out = new Uint8Array(bytes.length);
+  const k   = key & 0xFF;
+  for (let i = 0; i < bytes.length; i++) {
+    const roll = ((k * 31 + i * 17) & 0xFF);
+    out[i] = bytes[i] ^ roll;
+  }
+  return new TextDecoder().decode(out);
+}
+
+async function run() {
+  log('=== Family Tree Decoder Debug ===');
+  log('DECODE_KEY = ' + DECODE_KEY);
+  log('');
+
+  // Step 1: fetch the file
+  log('Step 1: fetching data/family_tree.enc ...');
+  let res;
+  try {
+    res = await fetch('data/family_tree.enc');
+    log('  HTTP status: ' + res.status + ' ' + res.statusText);
+    if (!res.ok) { log('  FAIL: file not found or server error'); return; }
+  } catch(e) {
+    log('  FAIL fetch: ' + e.message); return;
+  }
+
+  // Step 2: read raw text first
+  const rawText = await res.text();
+  log('  Raw length: ' + rawText.length + ' chars');
+  log('  First 100 chars: ' + rawText.slice(0,100));
+  log('');
+
+  // Step 3: parse as JSON envelope
+  log('Step 2: parsing envelope JSON ...');
+  let envelope;
+  try {
+    envelope = JSON.parse(rawText);
+    log('  envelope.v = ' + envelope.v);
+    log('  envelope.k = ' + envelope.k);
+    log('  envelope.n = ' + envelope.n);
+    log('  envelope.d length = ' + (envelope.d || '').length + ' chars');
+  } catch(e) {
+    log('  FAIL JSON parse: ' + e.message);
+    log('  Raw content: ' + rawText.slice(0,200));
+    return;
+  }
+
+  // Step 4: key check
+  log('');
+  log('Step 3: checking key ...');
+  log('  file key byte:   ' + (envelope.k & 0xFF));
+  log('  viewer key byte: ' + (DECODE_KEY & 0xFF));
+  if ((envelope.k & 0xFF) !== (DECODE_KEY & 0xFF)) {
+    log('  FAIL: key mismatch!'); return;
+  }
+  log('  OK: keys match');
+
+  // Step 5: decode
+  log('');
+  log('Step 4: decoding ...');
+  let json_str;
+  try {
+    json_str = xorDecode(envelope.d, DECODE_KEY);
+    log('  Decoded string length: ' + json_str.length + ' chars');
+    const byteLen = new TextEncoder().encode(json_str).length;
+    log('  Decoded byte length:   ' + byteLen);
+    log('  Expected byte length:  ' + envelope.n);
+    if (byteLen !== envelope.n) {
+      log('  WARNING: byte length mismatch (integrity check would fail)');
+    } else {
+      log('  OK: byte lengths match');
+    }
+    log('  First 200 chars of decoded: ' + json_str.slice(0,200));
+  } catch(e) {
+    log('  FAIL decode: ' + e.message); return;
+  }
+
+  // Step 6: parse decoded JSON
+  log('');
+  log('Step 5: parsing decoded JSON ...');
+  try {
+    const data = JSON.parse(json_str);
+    const nodes = data.nodes || data.people || [];
+    const edges = data.links || data.edges || [];
+    log('  OK! nodes=' + nodes.length + ' edges=' + edges.length);
+    if (nodes.length > 0) {
+      log('  First node: ' + JSON.stringify(nodes[0]).slice(0,200));
+    }
+  } catch(e) {
+    log('  FAIL JSON parse of decoded data: ' + e.message);
+    log('  First 300 chars: ' + json_str.slice(0,300));
+  }
+}
+run();
+</script>
+</body>
+</html>
