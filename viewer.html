@@ -34,9 +34,8 @@ html,body{height:100%;overflow:hidden;font-family:'Inter',sans-serif;font-size:1
 .add-link:hover{text-decoration:underline}
 
 /* Canvas */
-#canvas{width:100%;height:calc(100vh - 54px);overflow:hidden;cursor:default;touch-action:none;position:relative}
+#canvas{width:100%;height:calc(100vh - 54px);overflow:hidden;cursor:grab;touch-action:none;position:relative}
 #canvas.grabbing{cursor:grabbing}
-#canvas.pannable{cursor:grab}
 svg#tree{width:100%;height:100%;display:block}
 
 /* Node styles */
@@ -150,7 +149,6 @@ svg#tree{width:100%;height:100%;display:block}
   <input type="range" id="genSlider" min="1" max="6" value="6" oninput="onGenSlider(this.value)"/>
   <span class="gen-label" id="genVal">All</span>
   <div class="topbar-sep"></div>
-  <button class="tb-btn active" id="btnLock" onclick="toggleLock()">🔒 Locked</button>
   <button class="tb-btn" onclick="exportSVG()">↓ SVG</button>
   <button class="tb-btn" onclick="exportPNG()">↓ PNG</button>
   <div class="tb-spacer"></div>
@@ -418,49 +416,16 @@ function shouldShowEdge(e) {
 
 // ── Zoom & pan — initialised once, preserved across redraws ──
 let zoom;
-let isLocked   = true;
-let needsCenter = true;   // true until first successful center
+let needsCenter = true;  // true until first successful center
 
 function initZoom() {
   zoom = d3.zoom()
     .scaleExtent([0.1, 4])
-    .filter(event => {
-      if (isLocked) {
-        if (event.type === 'wheel') return false;
-        if (event.type === 'mousedown') return false;
-        return event.touches && event.touches.length === 2;
-      }
-      return !event.ctrlKey || event.type === 'wheel';
-    })
     .on('zoom', e => {
       transform = e.transform;
       d3.select('#root').attr('transform', e.transform.toString());
     });
   d3.select('#tree').call(zoom);
-  updateLockBtn();
-}
-
-function updateLockBtn() {
-  const btn = document.getElementById('btnLock');
-  if (!btn) return;
-  btn.textContent = isLocked ? '🔒 Locked' : '🔓 Free';
-  btn.classList.toggle('active', isLocked);
-}
-
-function toggleLock() {
-  isLocked = !isLocked;
-  // Rebuild zoom filter
-  zoom.filter(event => {
-    if (isLocked) {
-      if (event.type === 'wheel') return false;
-      if (event.type === 'mousedown') return false;
-      return event.touches && event.touches.length === 2;
-    }
-    return !event.ctrlKey || event.type === 'wheel';
-  });
-  updateLockBtn();
-  const canvas = document.getElementById('canvas');
-  canvas.style.cursor = isLocked ? 'default' : 'grab';
 }
 
 function render() {
@@ -668,12 +633,12 @@ function centerGraph() {
   const gs = dGraph.graph();
   const gW = gs.width  || 800;
   const gH = gs.height || 600;
-  const scale = Math.min(0.85, Math.min(W / (gW + 80), H / (gH + 80)));
+  const scale = Math.min(0.85, Math.min(W / (gW + 60), H / (gH + 60)));
   const tx = (W - gW * scale) / 2;
   const ty = Math.max(20, (H - gH * scale) / 2);
   const t  = d3.zoomIdentity.translate(tx, ty).scale(scale);
-  transform    = t;
-  needsCenter  = false;
+  transform   = t;
+  needsCenter = false;
   d3.select('#tree').call(zoom.transform, t);
 }
 
@@ -885,6 +850,8 @@ function exportPNG() {
   };
   img.src = svgUrl;
 }
+
+function escSVG(str) {
   return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
