@@ -1,6 +1,8 @@
 data/people.json
 data/flagged.json
+data/family_tree.json
 data/family_tree.*
+!data/family_tree.enc
 !data/.gitkeep
 .DS_Store
 Thumbs.db
