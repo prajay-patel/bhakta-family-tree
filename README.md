@@ -4,7 +4,7 @@ A crowd-sourced family tree for our extended family. Fill in what you know about
 
 ## How to add a family member
 
-**Open the form:** [https://yourusername.github.io/family-tree-form](https://yourusername.github.io/family-tree-form)
+**Open the form:** [https://prajay-patel.github.io/family-tree-form](https://prajay-patel.github.io/family-tree-form)
 
 The form works on any phone, tablet, or computer — no account or app needed. Just open the link in a browser.
 
