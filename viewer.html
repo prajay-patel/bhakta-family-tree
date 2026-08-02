@@ -282,17 +282,20 @@ async function loadData() {
 
       let data;
       if (encoded) {
+        console.log(`Loading encoded tree from ${url}`);
         const envelope = await res.json();
-        if (envelope.v !== 1) { console.warn('Unknown envelope version'); continue; }
+        if (envelope.v !== 1) { console.warn('Unknown envelope version:', envelope.v); continue; }
         if ((envelope.k & 0xFF) !== (DECODE_KEY & 0xFF)) {
-          console.error('Key mismatch — check DECODE_KEY in viewer.html matches encode_tree.py');
+          console.error(`Key mismatch: file key=${envelope.k}, viewer key=${DECODE_KEY}`);
           continue;
         }
         const json_str = xorDecode(envelope.d, DECODE_KEY);
-        if (json_str.length !== envelope.n) {
-          console.error('Integrity check failed — encoded file may be corrupt');
+        const byteLen = new TextEncoder().encode(json_str).length;
+        if (byteLen !== envelope.n) {
+          console.error(`Integrity check failed: got ${byteLen} bytes, expected ${envelope.n}`);
           continue;
         }
+        console.log(`Decoded ${byteLen} bytes successfully`);
         data = JSON.parse(json_str);
       } else {
         data = await res.json();
