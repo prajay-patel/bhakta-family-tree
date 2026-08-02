@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>Bhakta Family History — Leuva Patidar Migration</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Inter:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --parchment:  #F5EFE0;
+      --parchment-d:#E8DFC8;
+      --ink:        #1C1A14;
+      --ink-soft:   #4A4438;
+      --forest:     #2D4A3E;
+      --forest-l:   #3D6254;
+      --rust:       #8B3A2A;
+      --gold:       #C8973A;
+      --mist:       #A8B8A0;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', sans-serif;
+      font-size: 16px;
+      line-height: 1.75;
+      color: var(--ink);
+      background: var(--parchment);
+    }
+
+    /* ── Header ── */
+    .site-header {
+      background: var(--forest);
+      padding: 2rem 1.5rem 1.8rem;
+    }
+    .header-inner {
+      max-width: 820px;
+      margin: 0 auto;
+      display: flex;
+      align-items: flex-start;
+      gap: 1.2rem;
+    }
+    .tree-glyph { font-size: 2.8rem; color: var(--gold); flex-shrink: 0; line-height: 1.1; }
+    .header-text h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.9rem;
+      font-weight: 600;
+      color: var(--parchment);
+      line-height: 1.2;
+    }
+    .header-sub { font-size: .88rem; color: var(--mist); margin-top: .4rem; }
+    .header-nav {
+      max-width: 820px;
+      margin: 0 auto;
+      padding: .7rem 0 0;
+      display: flex;
+      gap: 1.2rem;
+    }
+    .header-nav a {
+      font-size: .83rem;
+      color: var(--mist);
+      text-decoration: none;
+      border-bottom: 1px solid transparent;
+      transition: color .15s, border-color .15s;
+    }
+    .header-nav a:hover { color: var(--parchment); border-color: var(--gold); }
+
+    /* ── Layout ── */
+    .page-wrap {
+      max-width: 820px;
+      margin: 0 auto;
+      padding: 2.5rem 1.5rem 5rem;
+      display: grid;
+      grid-template-columns: 1fr 260px;
+      gap: 3rem;
+      align-items: start;
+    }
+    @media (max-width: 680px) {
+      .page-wrap { grid-template-columns: 1fr; gap: 2rem; }
+      .sidebar { order: -1; }
+    }
+
+    /* ── Article ── */
+    article h2 {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.5rem;
+      font-weight: 600;
+      color: var(--forest);
+      margin: 2.2rem 0 .7rem;
+      padding-bottom: .4rem;
+      border-bottom: 1.5px solid var(--parchment-d);
+    }
+    article h2:first-child { margin-top: 0; }
+    article h3 {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: var(--rust);
+      margin: 1.4rem 0 .4rem;
+    }
+    article p { margin-bottom: 1rem; color: var(--ink-soft); }
+    article p strong { color: var(--ink); font-weight: 500; }
+    article ul, article ol {
+      margin: .5rem 0 1rem 1.4rem;
+      color: var(--ink-soft);
+    }
+    article li { margin-bottom: .3rem; }
+
+    /* ── Timeline ── */
+    .timeline { list-style: none; margin: .8rem 0 1.2rem; padding: 0; }
+    .timeline li {
+      display: grid;
+      grid-template-columns: 140px 1fr;
+      gap: .8rem;
+      padding: .6rem 0;
+      border-bottom: .5px solid var(--parchment-d);
+      font-size: .9rem;
+    }
+    .timeline li:last-child { border-bottom: none; }
+    .tl-date {
+      font-weight: 500;
+      color: var(--forest);
+      font-size: .82rem;
+      padding-top: .05rem;
+    }
+    .tl-event { color: var(--ink-soft); }
+
+    /* ── Migration map graphic ── */
+    .migration-visual {
+      background: #fff;
+      border: 1px solid var(--parchment-d);
+      border-radius: 8px;
+      padding: 1.2rem;
+      margin: 1.2rem 0;
+    }
+    .migration-visual .mv-title {
+      font-size: .75rem;
+      font-weight: 500;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      color: var(--ink-soft);
+      margin-bottom: .8rem;
+    }
+    .migration-path {
+      display: flex;
+      align-items: center;
+      gap: .4rem;
+      flex-wrap: wrap;
+      font-size: .83rem;
+    }
+    .mp-node {
+      background: var(--parchment);
+      border: 1px solid var(--parchment-d);
+      border-radius: 4px;
+      padding: .25rem .6rem;
+      color: var(--ink);
+      white-space: nowrap;
+    }
+    .mp-node.origin { border-color: var(--forest); color: var(--forest); font-weight: 500; }
+    .mp-node.dest   { border-color: var(--rust);   color: var(--rust);   font-weight: 500; }
+    .mp-arrow { color: var(--mist); font-size: 1rem; }
+
+    /* ── Sub-groups table ── */
+    .subgroup-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: .88rem;
+      margin: .8rem 0 1.2rem;
+    }
+    .subgroup-table th {
+      text-align: left;
+      font-size: .75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: .05em;
+      color: var(--forest);
+      padding: .5rem .7rem;
+      background: rgba(45,74,62,.07);
+      border-bottom: 1px solid var(--parchment-d);
+    }
+    .subgroup-table td {
+      padding: .5rem .7rem;
+      border-bottom: .5px solid var(--parchment-d);
+      color: var(--ink-soft);
+      vertical-align: top;
+    }
+    .subgroup-table tr:last-child td { border-bottom: none; }
+    .subgroup-table td:first-child { font-weight: 500; color: var(--ink); }
+    .subgroup-table tr.highlight td { background: rgba(200,151,58,.08); }
+
+    /* ── District split diagram ── */
+    .district-tree {
+      font-family: 'Inter', sans-serif;
+      font-size: .85rem;
+      background: #fff;
+      border: 1px solid var(--parchment-d);
+      border-radius: 8px;
+      padding: 1rem 1.2rem;
+      color: var(--ink-soft);
+      line-height: 2;
+      margin: .8rem 0 1.2rem;
+    }
+    .district-tree .root { font-weight: 500; color: var(--forest); }
+    .district-tree .branch { padding-left: 1.5rem; }
+    .district-tree .leaf { color: var(--rust); }
+
+    /* ── Pull quote ── */
+    .pull-quote {
+      border-left: 3px solid var(--gold);
+      margin: 1.4rem 0;
+      padding: .7rem 1.1rem;
+      background: rgba(200,151,58,.07);
+      border-radius: 0 6px 6px 0;
+      font-style: italic;
+      color: var(--ink-soft);
+      font-size: .95rem;
+    }
+
+    /* ── Sidebar ── */
+    .sidebar { display: flex; flex-direction: column; gap: 1.2rem; }
+    .sidebar-card {
+      background: #fff;
+      border: 1px solid var(--parchment-d);
+      border-radius: 8px;
+      padding: 1.1rem 1.2rem;
+    }
+    .sidebar-card h4 {
+      font-family: 'Playfair Display', serif;
+      font-size: 1rem;
+      color: var(--forest);
+      margin-bottom: .7rem;
+    }
+    .sidebar-card p { font-size: .83rem; color: var(--ink-soft); line-height: 1.55; margin-bottom: .6rem; }
+    .sidebar-card p:last-child { margin-bottom: 0; }
+    .villages-count {
+      font-size: 2.2rem;
+      font-family: 'Playfair Display', serif;
+      color: var(--gold);
+      line-height: 1;
+      margin-bottom: .3rem;
+    }
+    .sidebar-link {
+      display: block;
+      background: var(--forest);
+      color: var(--parchment);
+      text-align: center;
+      text-decoration: none;
+      border-radius: 6px;
+      padding: .6rem .9rem;
+      font-size: .85rem;
+      font-weight: 500;
+      margin-top: .9rem;
+      transition: background .15s;
+    }
+    .sidebar-link:hover { background: var(--forest-l); }
+    .sidebar-link.rust { background: var(--rust); }
+    .sidebar-link.rust:hover { background: #b04e3a; }
+
+    .fact-row {
+      display: flex;
+      align-items: baseline;
+      gap: .5rem;
+      margin-bottom: .4rem;
+      font-size: .83rem;
+    }
+    .fact-label { color: var(--mist); flex-shrink: 0; }
+    .fact-val   { color: var(--ink); font-weight: 500; }
+
+    /* ── Source note ── */
+    .source-note {
+      margin-top: 2.5rem;
+      padding-top: 1rem;
+      border-top: 1px solid var(--parchment-d);
+      font-size: .78rem;
+      color: var(--mist);
+      font-style: italic;
+    }
+  </style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="header-inner">
+    <div class="tree-glyph">❧</div>
+    <div class="header-text">
+      <h1>Bhakta Family History</h1>
+      <p class="header-sub">The story of the Leuva Patidar — from ancient Gujarat to East Africa and beyond</p>
+    </div>
+  </div>
+  <nav class="header-nav">
+    <a href="index.html">← Add to the tree</a>
+    <a href="viewer.html">View the tree</a>
+  </nav>
+</header>
+
+<div class="page-wrap">
+
+  <!-- ── Main article ── -->
+  <article>
+
+    <h2>Origins</h2>
+    <p>The Patidar community traces its lineage through the <strong>Kshatriya</strong> (Ruler/Warrior) varna, specifically the <strong>Suryavanshi</strong> (Sun Dynasty) line. The broader story begins with the Aryan migration — a movement of peoples westward from Central Asia that eventually reached the Indian subcontinent and gave rise to the Sanskrit-speaking cultures of the Vedic period.</p>
+
+    <p>The Kurmis — the farming-warrior group from whom the Patidars descend — were part of the <strong>Patidar / Patlik lineage</strong> that ultimately settled in North Gujarat, adopting Gujarati as their language and farming as their primary identity.</p>
+
+    <h2>The journey to Gujarat</h2>
+
+    <ul class="timeline">
+      <li><span class="tl-date">Before 1500 BC</span><span class="tl-event">Aryans reach the banks of the Amu Darya, north of Afghanistan</span></li>
+      <li><span class="tl-date">~1500 BC</span><span class="tl-event">Aryans arrive on the banks of the Indus River (present-day Pakistan)</span></li>
+      <li><span class="tl-date">1000–1027 AD</span><span class="tl-event">Kurmis move east to the banks of the Ganga</span></li>
+      <li><span class="tl-date">1010–1055 AD</span><span class="tl-event">Kanbis (Kurmis) move to the kingdom of Raja Bhoj in Malwa</span></li>
+      <li><span class="tl-date">1093–1143 AD</span><span class="tl-event">Kanbis invited to Anhilwara (Gujarat) by the Solanki King Siddharaj — they settle in Adalaj, North Gujarat</span></li>
+      <li><span class="tl-date">~1200–1800 AD</span><span class="tl-event">Leuva Patidars spread through Charotar and South Gujarat</span></li>
+      <li><span class="tl-date">~1830 AD</span><span class="tl-event">Some Leuvas move to Surat (South Gujarat) via Champaner</span></li>
+      <li><span class="tl-date">Early 1900s</span><span class="tl-event">Patidars begin migrating to British East African colonies</span></li>
+    </ul>
+
+    <h2>Kadva and Leuva — the two main branches</h2>
+
+    <h3>Kadva Patel</h3>
+    <p>Chandravanshi Kurmi lineage, originally from Karad / Kasur. Spread to Ayodhya, Maharashtra, Andhra, Mysore, Chennai, Kota, Mandsor, Malwa, Siddhpur, Unjha, Mathura, and Saurashtra.</p>
+
+    <h3>Leuva Patel</h3>
+    <p>Suryavanshi Kurmi lineage, originally from Leava / Lahore. Came to Adalaj in North Gujarat via Uttar Pradesh and Marwar. The Bhakta family belongs to the <strong>Bhakta (Ramkabir)</strong> sub-group of the Leuva Patidars, whose heartland is the Surat, Navsari, and Raj areas of South Gujarat.</p>
+
+    <table class="subgroup-table">
+      <thead>
+        <tr><th>Sub-group</th><th>Primary region</th></tr>
+      </thead>
+      <tbody>
+        <tr class="highlight"><td>Bhakta (Ramkabir)</td><td>Surat, Navsari, Raj area — <strong>our branch</strong></td></tr>
+        <tr><td>Leuva (Surti)</td><td>Surat, Tapi, Navsari, Valsad</td></tr>
+        <tr><td>Amdavadi Leuva</td><td>Ahmedabad, Khambhat</td></tr>
+        <tr><td>Uttar Gujarati Leuva</td><td>Patan, Mehsana, North Gujarat</td></tr>
+        <tr><td>Charotar Leuva</td><td>Kheda, Anand, Champaner</td></tr>
+        <tr><td>Matiya (Piranapanthi)</td><td>Surat, Navsari, Mumbai</td></tr>
+        <tr><td>Kutchi Leuva</td><td>Kutch, Mumbai, UK</td></tr>
+        <tr><td>Sorathi Leuva</td><td>Saurashtra, South Gujarat, Mumbai, UK</td></tr>
+      </tbody>
+    </table>
+
+    <h2>South Gujarat — the heartland</h2>
+
+    <p>The Leuva Patidar heartland in South Gujarat was originally a single <strong>Surat district</strong>. As the region's population grew and administration expanded, the district was progressively subdivided:</p>
+
+    <div class="district-tree">
+      <div class="root">Surat district (original)</div>
+      <div class="branch">├── <span class="leaf">Surat</span> — remains</div>
+      <div class="branch">├── <span class="leaf">Valsad</span> — split from Surat (formerly known as Bulsar under British rule)</div>
+      <div class="branch">├── <span class="leaf">Tapi</span> — split from Surat</div>
+      <div class="branch">└── <span class="leaf">Navsari</span> — split from Valsad</div>
+    </div>
+
+    <p>This matters for the family tree: the district a village belongs to today may differ from the one it was in when an ancestor was born. The <strong>village name itself</strong> is the stable identifier across generations — district boundaries changed multiple times during the 20th century.</p>
+
+    <h2>A voyage to East Africa</h2>
+
+    <div class="migration-visual">
+      <div class="mv-title">The Patidar migration route</div>
+      <div class="migration-path">
+        <span class="mp-node origin">South Gujarat</span>
+        <span class="mp-arrow">→</span>
+        <span class="mp-node">Bombay</span>
+        <span class="mp-arrow">→</span>
+        <span class="mp-node">Arabian Sea</span>
+        <span class="mp-arrow">→</span>
+        <span class="mp-node dest">East Africa</span>
+        <span class="mp-arrow">→</span>
+        <span class="mp-node dest">UK / USA / Canada</span>
+      </div>
+    </div>
+
+    <p>Beginning in the <strong>early 1900s</strong>, Patidar families from South Gujarat began migrating to the East African colonies of the British Empire — primarily Kenya, Uganda, Tanzania, Zambia, Malawi, Zimbabwe, Mozambique, and South Africa. They came as farmers and traders, and over the following decades became a significant economic force across the region.</p>
+
+    <div class="pull-quote">
+      The British Empire's recognition of the Indian community's economic role is visible in the currency and postal history of the era: the East African Currency Board issued notes denominated in Indian monetary units (annas, rupees), and stamps were printed in both English and Gujarati for territories like British East Africa and Zanzibar.
+    </div>
+
+    <p>Many Bhakta family members followed this path — a generation born in Gujarat, one or two generations born in East Africa, and subsequent generations born in the UK, USA, Canada, or elsewhere. This is why the family tree asks for both <strong>village of origin in Gujarat</strong> and <strong>country emigrated to</strong>: together they let us connect branches that span three or four continents.</p>
+
+    <h2>Why village of origin matters</h2>
+
+    <p>Within the Patidar community, common surnames like Patel, Desai, and Amin appear across thousands of unrelated families. A birth year alone narrows very little. But knowing someone was born in <strong>Chikhli, Navsari district</strong> in 1932 narrows the population to dozens of families at most — villages in South Gujarat were small, close-knit communities where intermarriage was common and records were kept at the village level.</p>
+
+    <p>This is why the form asks for village of origin: it is the single strongest identifier for connecting records from different family members who submit separately. The tree covers all <strong>243 Leuva Patidar villages of South Gujarat</strong>, with autocomplete to handle the many spelling variations that arose from Gujarati names being romanised by different people over different eras.</p>
+
+    <p class="source-note">Source: <em>A Voyage to Africa — Pedigree of Patidars</em> presentation. Compiled for the Bhakta family tree. Historical content used for family reference purposes.</p>
+
+  </article>
+
+  <!-- ── Sidebar ── -->
+  <aside class="sidebar">
+
+    <div class="sidebar-card">
+      <h4>About this tree</h4>
+      <p>This family tree connects Bhakta family members across generations and continents — from the villages of South Gujarat to East Africa, UK, USA, Canada, and beyond.</p>
+      <a class="sidebar-link rust" href="index.html">Add your details →</a>
+      <a class="sidebar-link" style="margin-top:.5rem" href="viewer.html">Browse the tree →</a>
+    </div>
+
+    <div class="sidebar-card">
+      <h4>Our branch</h4>
+      <div class="fact-row"><span class="fact-label">Sub-group</span><span class="fact-val">Bhakta (Ramkabir)</span></div>
+      <div class="fact-row"><span class="fact-label">Lineage</span><span class="fact-val">Leuva Patel</span></div>
+      <div class="fact-row"><span class="fact-label">Heartland</span><span class="fact-val">Surat / Navsari, South Gujarat</span></div>
+      <div class="fact-row"><span class="fact-label">East Africa</span><span class="fact-val">Early 1900s onward</span></div>
+      <div class="fact-row"><span class="fact-label">Language</span><span class="fact-val">Gujarati</span></div>
+    </div>
+
+    <div class="sidebar-card">
+      <h4>South Gujarat villages</h4>
+      <div class="villages-count">243</div>
+      <p>Leuva Patidar villages across the Surat, Navsari, Valsad, and Tapi districts — all included in the family tree's village autocomplete.</p>
+      <p>If you know which village your family came from, entering it when you submit helps connect records from different relatives who may spell it differently.</p>
+    </div>
+
+    <div class="sidebar-card">
+      <h4>The East African chapter</h4>
+      <p>Countries where Patidar families settled from the early 1900s:</p>
+      <p><strong>Kenya · Uganda · Tanzania · Zambia · Malawi · Zimbabwe · Mozambique · South Africa</strong></p>
+      <p>Later waves: UK · USA · Canada · New Zealand · Panama</p>
+    </div>
+
+    <div class="sidebar-card">
+      <h4>Questions?</h4>
+      <p>Contact the tree curator at <a href="mailto:bhakta.family.tree@gmail.com" style="color:var(--forest)">bhakta.family.tree@gmail.com</a></p>
+    </div>
+
+  </aside>
+
+</div><!-- /page-wrap -->
+</body>
+</html>

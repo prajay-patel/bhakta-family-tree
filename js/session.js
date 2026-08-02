@@ -1,10 +1,11 @@
 /**
- * session.js v4
- * All form logic: anchor, multi-person session, draft autosave,
- * language toggle (EN/GU), stub quick-add, validation, submission.
+ * session.js v5
+ * Redesigned flow: anchor → YOUR details → add relatives
+ * Mother/Father are first-class relation cards.
+ * Draft saving fully fixed.
  */
 
-// ── Language ─────────────────────────────────────────────────
+// ── Language ──────────────────────────────────────────────────
 let currentLang = 'en';
 function toggleLang() {
   currentLang = currentLang === 'en' ? 'gu' : 'en';
@@ -18,35 +19,41 @@ function toggleLang() {
 
 // ── Session state ─────────────────────────────────────────────
 const session = {
-  submitterName: '', submitterEmail: '',
-  mode: 'self',
-  anchor: { firstName: '', lastName: '', nodeHint: null },
-  people: [],
-  currentPerson: null,
+  submitterName:  '',
+  submitterEmail: '',
+  mode:           'self',
+  anchor:         { firstName: '', lastName: '', nodeHint: null },
+  selfRecord:     null,   // the submitter's own person record (may be null if skipped)
+  people:         [],     // relatives added after self
+  currentPerson:  null,
 };
-let selectedRelKey = null;
-let spouseCount = 0, childCount = 0;
+
+let selectedRelKey  = null;
+let spouseCount     = 0;
+let childCount      = 0;
+let selfSpouseCount = 0;
+let selfChildCount  = 0;
 let shiftSelectedIdx = null;
-let relGridVisible = false;
+let relGridVisible   = false;
 
-const DRAFT_KEY = 'family_tree_draft_v4';
-const AUTOSAVE_INTERVAL = 30000;
+// ── Draft ─────────────────────────────────────────────────────
+const DRAFT_KEY = 'family_tree_draft_v5';
 
-// ── Draft autosave ────────────────────────────────────────────
 function saveDraft() {
-  // Only save if there's something worth saving
-  if (!session.submitterName && session.people.length === 0) return;
+  if (!session.submitterName && !session.selfRecord && session.people.length === 0) return;
   try {
-    // Deep-copy via JSON so no object references are shared
-    const snapshot = JSON.parse(JSON.stringify({
-      submitterName:  session.submitterName,
-      submitterEmail: session.submitterEmail,
-      mode:           session.mode,
-      anchor:         session.anchor,
-      people:         session.people,
+    localStorage.setItem(DRAFT_KEY, JSON.stringify({
+      session: JSON.parse(JSON.stringify({
+        submitterName:  session.submitterName,
+        submitterEmail: session.submitterEmail,
+        mode:           session.mode,
+        anchor:         session.anchor,
+        selfRecord:     session.selfRecord,
+        people:         session.people,
+      })),
+      ts: Date.now(),
     }));
-    localStorage.setItem(DRAFT_KEY, JSON.stringify({ session: snapshot, ts: Date.now() }));
-  } catch(e) { /* storage full or blocked — fail silently */ }
+  } catch(e) {}
 }
 
 function loadDraft() {
@@ -54,7 +61,6 @@ function loadDraft() {
     const raw = localStorage.getItem(DRAFT_KEY);
     if (!raw) return null;
     const d = JSON.parse(raw);
-    // Expire after 7 days
     if (Date.now() - d.ts > 7 * 24 * 60 * 60 * 1000) { clearDraft(); return null; }
     return d;
   } catch(e) { return null; }
@@ -67,15 +73,14 @@ function clearDraft() {
 function restoreDraft() {
   const d = loadDraft();
   if (!d) return;
-  // Deep-copy the saved snapshot into session — never share references
   const s = d.session;
   session.submitterName  = s.submitterName  || '';
   session.submitterEmail = s.submitterEmail || '';
   session.mode           = s.mode           || 'self';
   session.anchor         = { ...s.anchor };
+  session.selfRecord     = s.selfRecord ? JSON.parse(JSON.stringify(s.selfRecord)) : null;
   session.people         = JSON.parse(JSON.stringify(s.people || []));
   session.currentPerson  = null;
-
   document.getElementById('draftBanner').hidden = true;
   refreshSessionUI();
   showPhase('phase-session');
@@ -86,22 +91,7 @@ function discardDraft() {
   document.getElementById('draftBanner').hidden = true;
 }
 
-// Check on load
-window.addEventListener('DOMContentLoaded', () => {
-  const d = loadDraft();
-  if (d && d.session.people.length > 0) {
-    const banner = document.getElementById('draftBanner');
-    const name = d.session.anchor.firstName;
-    document.getElementById('draftMsg').textContent =
-      `You have a saved session for ${name || 'unknown'} with ${d.session.people.length} ${d.session.people.length === 1 ? 'person' : 'people'} added.`;
-    banner.hidden = false;
-  }
-  buildRelPickers();
-  populateStubRelSelect();
-  setInterval(saveDraft, AUTOSAVE_INTERVAL);
-});
-
-// ── Phase helpers ─────────────────────────────────────────────
+// ── Phase management ──────────────────────────────────────────
 function showPhase(id) {
   document.querySelectorAll('.phase').forEach(p => {
     p.hidden = true;
@@ -113,13 +103,37 @@ function showPhase(id) {
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-// ── Phase 0 ───────────────────────────────────────────────────
+// ── Init ──────────────────────────────────────────────────────
+window.addEventListener('DOMContentLoaded', () => {
+  const d = loadDraft();
+  if (d && (d.session.selfRecord || d.session.people.length > 0)) {
+    const n    = d.session.anchor?.firstName || '';
+    const cnt  = (d.session.people || []).length;
+    const self = d.session.selfRecord ? 1 : 0;
+    document.getElementById('draftMsg').textContent =
+      `Saved session for ${n || 'unknown'} — ${self + cnt} ${(self + cnt) === 1 ? 'entry' : 'entries'} saved.`;
+    document.getElementById('draftBanner').hidden = false;
+  }
+  buildRelPickers();
+  populateStubRelSelect();
+  // Village autocomplete on both forms
+  attachVillageHint('sVillageOrigin');
+  attachVillageHint('villageOrigin');
+  setInterval(saveDraft, 30000);
+});
+
+function attachVillageHint(inputId) {
+  const el = document.getElementById(inputId);
+  if (!el || typeof attachVillageAutocomplete !== 'function') return;
+  attachVillageAutocomplete(el);
+}
+
+// ── Phase 0: Anchor ───────────────────────────────────────────
 function setMode(mode) {
   session.mode = mode;
-  document.getElementById('pill-self').classList.toggle('active', mode === 'self');
+  document.getElementById('pill-self').classList.toggle('active',  mode === 'self');
   document.getElementById('pill-proxy').classList.toggle('active', mode === 'proxy');
   document.getElementById('proxy-panel').hidden = mode !== 'proxy';
-  document.getElementById('self-submit-panel').hidden = mode !== 'self';
 }
 
 function startSession() {
@@ -141,26 +155,118 @@ function startSession() {
     session.anchor.lastName  = last;
   }
 
-  const addSelf = session.mode === 'self'
-    && document.getElementById('addSelfToTree')?.checked;
+  // Pre-fill self form with submitter's name
+  const sf = document.getElementById('sFirst');
+  const sl = document.getElementById('sLast');
+  if (sf && !sf.value) sf.value = session.anchor.firstName;
+  if (sl && !sl.value) sl.value = session.anchor.lastName;
 
-  refreshSessionUI();
+  showSelfSub(1);
+  showPhase('phase-self');
   saveDraft();
-
-  if (addSelf) {
-    // Open the person form pre-filled with the submitter's own name,
-    // with no relationship term (they are the reference point, not a relative)
-    openPersonForm(null, {
-      firstName: first,
-      lastName:  last,
-      isSelf:    true,
-    });
-  } else {
-    showPhase('phase-session');
-  }
 }
 
-// ── Phase 1 ───────────────────────────────────────────────────
+// ── Phase 1: Self form ────────────────────────────────────────
+const SELF_SUBS = 3;
+
+function showSelfSub(n) {
+  document.querySelectorAll('#selfForm .sub').forEach(s => s.classList.remove('active'));
+  const el = document.getElementById(`self-sub-${n}`);
+  if (el) el.classList.add('active');
+  const pct = (n / SELF_SUBS) * 100;
+  const bar = document.getElementById('selfProgressFill');
+  if (bar) bar.style.width = pct + '%';
+}
+
+function nextSelfSub(n) { showSelfSub(n + 1); }
+function prevSelfSub(n) { showSelfSub(n - 1); }
+
+function addSelfSpouse() {
+  selfSpouseCount++;
+  appendDynRow('selfSpouseList', `ssp-${selfSpouseCount}`, 'Spouse name', 'selfSpouseName', 'selfSpouseDOB');
+}
+
+function addSelfChild() {
+  selfChildCount++;
+  appendDynRow('selfChildList', `sch-${selfChildCount}`, "Child's name", 'selfChildName', 'selfChildDOB');
+}
+
+function collectSelfRecord() {
+  const spouses = Array.from(document.querySelectorAll('[name="selfSpouseName[]"]'))
+    .map((el, i) => ({
+      name: el.value.trim() || null,
+      dob:  document.querySelectorAll('[name="selfSpouseDOB[]"]')[i]?.value.trim() || null,
+    })).filter(s => s.name || s.dob);
+
+  const children = Array.from(document.querySelectorAll('[name="selfChildName[]"]'))
+    .map((el, i) => ({
+      name: el.value.trim() || null,
+      dob:  document.querySelectorAll('[name="selfChildDOB[]"]')[i]?.value.trim() || null,
+    })).filter(c => c.name || c.dob);
+
+  return {
+    firstName:        v('sFirst')          || session.anchor.firstName || null,
+    alias:            v('sAlias')          || null,
+    middleName:       v('sMiddle')         || null,
+    lastName:         v('sLast')           || session.anchor.lastName  || null,
+    maidenName:       v('sMaiden')         || null,
+    gotra:            v('sGotra')          || null,
+    gender:           v('sGender')         || null,
+    relationKey:      'self',
+    customRelation:   'Self',
+    relationBranch:   'direct',
+    relationGeneration: 0,
+    isSelf:           true,
+    anchorFirstName:  session.anchor.firstName,
+    anchorLastName:   session.anchor.lastName,
+    dob:              document.getElementById('sDobUnknown')?.checked
+                        ? null
+                        : buildDate(v('sDobDay'), v('sDobMonth'), v('sDobYear')) || null,
+    dobUnknown:       document.getElementById('sDobUnknown')?.checked || false,
+    approxAge:        v('sApproxAge')      || null,
+    birthPlace:       v('sBirthPlace')     || null,
+    villageOrigin:    v('sVillageOrigin')  || null,
+    countryEmigrated: v('sCountryEmigrated') || null,
+    dod:              document.getElementById('sDodUnknown')?.checked
+                        ? null
+                        : buildDate(v('sDodDay'), v('sDodMonth'), v('sDodYear')) || null,
+    dodUnknown:       document.getElementById('sDodUnknown')?.checked || false,
+    father: {
+      firstName: v('sFatherFirst')  || null,
+      lastName:  v('sFatherLast')   || null,
+      dob:       v('sFatherDOB')    || null,
+      village:   v('sFatherVillage')|| null,
+    },
+    mother: {
+      firstName:  v('sMotherFirst')  || null,
+      lastName:   v('sMotherLast')   || null,
+      maidenName: v('sMotherMaiden') || null,
+      dob:        v('sMotherDOB')    || null,
+    },
+    spouses,
+    children,
+    notes:           v('sNotes') || null,
+    submitterName:   session.submitterName,
+    submitterEmail:  session.submitterEmail,
+    submittedAt:     new Date().toISOString(),
+    isStub:          false,
+  };
+}
+
+function saveSelfAndContinue() {
+  session.selfRecord = collectSelfRecord();
+  refreshSessionUI();
+  saveDraft();
+  showPhase('phase-session');
+}
+
+function skipSelfAndContinue() {
+  session.selfRecord = null;
+  refreshSessionUI();
+  showPhase('phase-session');
+}
+
+// ── Phase 2: Session dashboard ────────────────────────────────
 function refreshSessionUI() {
   const anchorFull = `${session.anchor.firstName} ${session.anchor.lastName}`.trim();
   document.getElementById('sessionTitle').textContent =
@@ -172,20 +278,35 @@ function refreshSessionUI() {
 
   const list = document.getElementById('addedList');
   list.innerHTML = '';
-  if (session.people.length > 0) {
+
+  // Build full list: selfRecord first, then people
+  const allEntries = [];
+  if (session.selfRecord) allEntries.push({ p: session.selfRecord, idx: 'self' });
+  session.people.forEach((p, i) => allEntries.push({ p, idx: i }));
+
+  if (allEntries.length > 0) {
     document.getElementById('addedTray').hidden = false;
-    session.people.forEach((p, i) => {
+    allEntries.forEach(({ p, idx }) => {
       const chip = document.createElement('div');
       chip.className = 'person-chip' + (p.isStub ? ' is-stub' : '');
+
       const nameEl = document.createElement('span');
       nameEl.className = 'chip-name';
       nameEl.textContent = displayName(p) || (p.isStub ? '[Stub]' : '(unnamed)');
+
       const relEl = document.createElement('span');
       relEl.className = 'chip-rel';
       relEl.textContent = chipRelLabel(p);
+
       const editBtn = document.createElement('button');
-      editBtn.className = 'chip-edit'; editBtn.title = 'Edit';
-      editBtn.innerHTML = '✎'; editBtn.onclick = () => editPerson(i);
+      editBtn.className = 'chip-edit';
+      editBtn.title = 'Edit';
+      editBtn.innerHTML = '✎';
+      editBtn.onclick = () => {
+        if (idx === 'self') { showSelfSub(1); showPhase('phase-self'); }
+        else editPerson(idx);
+      };
+
       chip.appendChild(nameEl);
       chip.appendChild(relEl);
       chip.appendChild(editBtn);
@@ -195,18 +316,19 @@ function refreshSessionUI() {
     document.getElementById('addedTray').hidden = true;
   }
 
+  const total = (session.selfRecord ? 1 : 0) + session.people.length;
   const finBtn = document.getElementById('finishBtn');
-  const n = session.people.length;
-  finBtn.disabled = n === 0;
-  document.getElementById('submitCount').textContent = n > 0 ? `(${n})` : '';
+  finBtn.disabled = total === 0;
+  document.getElementById('submitCount').textContent = total > 0 ? `(${total})` : '';
 }
 
 function chipRelLabel(p) {
-  if (p.isStub) return 'stub';
-  if (p.isSelf) return 'you';
+  if (p.isSelf)  return 'you';
+  if (p.isStub)  return 'stub';
   if (p.relationKey && RELATION_MAP[p.relationKey]) return RELATION_MAP[p.relationKey].terms[0];
   return p.customRelation || '—';
 }
+
 function displayName(p) {
   return [p.firstName, p.lastName].filter(Boolean).join(' ');
 }
@@ -214,6 +336,7 @@ function displayName(p) {
 // Stub quick-add
 function populateStubRelSelect() {
   const sel = document.getElementById('stubRelKey');
+  if (!sel) return;
   RELATION_GROUPS.forEach(g => {
     const og = document.createElement('optgroup');
     og.label = g.group;
@@ -228,22 +351,18 @@ function populateStubRelSelect() {
 }
 
 function addStubPerson() {
-  const name    = v('stubName');
-  const relKey  = document.getElementById('stubRelKey').value;
-  const rel     = RELATION_MAP[relKey];
+  const name   = v('stubName');
+  const relKey = document.getElementById('stubRelKey').value;
+  const rel    = RELATION_MAP[relKey];
   session.people.push({
-    firstName: name || null, lastName: null, middleName: null,
-    alias: null, maidenName: null, gotra: null, gender: rel?.gender || null,
+    firstName: name || null, lastName: null, isStub: true, isSelf: false,
     relationKey: relKey || null, customRelation: null,
     relationBranch: rel?.branch || null, relationGeneration: rel?.generation ?? null,
+    gender: rel?.gender || null,
     anchorFirstName: session.anchor.firstName, anchorLastName: session.anchor.lastName,
-    dob: null, dobUnknown: false, approxAge: null, birthPlace: null,
-    villageOrigin: null, countryEmigrated: null,
-    dod: null, dodUnknown: false,
-    spouses: [], children: [], parent1: {}, parent2: {},
-    notes: null, submitterName: session.submitterName,
-    submitterEmail: session.submitterEmail,
-    submittedAt: new Date().toISOString(), isStub: true,
+    dob: null, dod: null, spouses: [], children: [], father: {}, mother: {},
+    submitterName: session.submitterName, submitterEmail: session.submitterEmail,
+    submittedAt: new Date().toISOString(),
   });
   document.getElementById('stubName').value = '';
   document.getElementById('stubRelKey').value = '';
@@ -251,44 +370,27 @@ function addStubPerson() {
   saveDraft();
 }
 
-// ── Phase 2: Person form ──────────────────────────────────────
-function openPersonForm(editIndex = null, prefill = null) {
+// ── Phase 3: Person form (relatives) ─────────────────────────
+const SUB_TOTAL = 5;
+
+function openPersonForm(editIndex = null) {
   selectedRelKey = null; spouseCount = 0; childCount = 0;
   clearPersonForm();
-
   session.currentPerson = editIndex !== null
     ? { ...session.people[editIndex], _editIndex: editIndex }
     : { _editIndex: null };
-
-  if (editIndex !== null) {
-    prefillPersonForm(session.currentPerson);
-  } else if (prefill) {
-    // Pre-fill from explicit data (e.g. self-submit)
-    const set = (id, val) => { const el = document.getElementById(id); if (el && val) el.value = val; };
-    set('pFirst', prefill.firstName);
-    set('pLast',  prefill.lastName);
-    set('pAlias', prefill.alias);
-  }
+  if (editIndex !== null) prefillPersonForm(session.currentPerson);
 
   const anchorFull = `${session.anchor.firstName} ${session.anchor.lastName}`.trim();
   document.getElementById('relAnchorName').textContent = anchorFull;
-
-  // For self-submit, update the sub-1 label to reflect that no relation term is needed
-  const isSelf = prefill?.isSelf || false;
   document.getElementById('personEyebrow').textContent =
     editIndex !== null
       ? `Editing — ${displayName(session.currentPerson) || 'person'}`
-      : isSelf ? 'About you' : 'New family member';
-  document.getElementById('personTitle').textContent =
-    isSelf ? 'Your own details' : 'About this person';
+      : 'New family member';
+  document.getElementById('personTitle').textContent = 'About this person';
 
-  // For self-submit, skip the relationship sub-section and go straight to identity
   buildRelPickers();
-  showSubSection(isSelf ? 2 : 1);
-
-  // Store isSelf flag on currentPerson for collectPerson to use
-  session.currentPerson._isSelf = isSelf;
-
+  showSubSection(1);
   showPhase('phase-person');
 }
 
@@ -300,8 +402,7 @@ function clearPersonForm() {
    'fatherFirst','fatherLast','fatherDOB','fatherVillage',
    'motherFirst','motherLast','motherMaiden','motherDOB',
    'dobDay','dobMonth','dobYear','approxAge','birthPlace','villageOrigin',
-   'countryEmigrated','dodDay','dodMonth','dodYear','pNotes','customRelation',
-   'parent1Name','parent1DOB','parent2Name','parent2DOB'].forEach(id => {
+   'countryEmigrated','dodDay','dodMonth','dodYear','pNotes','customRelation'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.value = '';
   });
@@ -309,26 +410,24 @@ function clearPersonForm() {
     const el = document.getElementById(id);
     if (el) el.checked = false;
   });
-  ['dobFields','dodFields'].forEach(id => {
-    const el = document.getElementById(id);
-    if (el) el.hidden = false;
-  });
+  toggleHide('dobFields', false);
+  toggleHide('dodFields', false);
   document.getElementById('pFirstErr').textContent = '';
   document.getElementById('inferredBox').hidden = true;
   document.querySelectorAll('.rel-card').forEach(c => c.classList.remove('selected'));
   document.getElementById('spouseList').innerHTML = '';
-  document.getElementById('childList').innerHTML = '';
-  document.getElementById('villageOrigin-hint').hidden = true;
+  document.getElementById('childList').innerHTML  = '';
+  const vh = document.getElementById('villageOrigin-hint');
+  if (vh) vh.hidden = true;
 }
 
-// Sub-section navigation
-const SUB_TOTAL = 5;
 function showSubSection(n) {
-  document.querySelectorAll('.sub').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('#personForm .sub').forEach(s => s.classList.remove('active'));
   document.getElementById(`sub-${n}`).classList.add('active');
-  document.getElementById('progressFill').style.width = `${(n/SUB_TOTAL)*100}%`;
+  document.getElementById('progressFill').style.width = `${(n / SUB_TOTAL) * 100}%`;
   if (n === SUB_TOTAL) buildPersonSummary();
 }
+
 function nextSub(n) {
   if (n === 2 && !validateIdentity()) return;
   showSubSection(n + 1);
@@ -347,16 +446,14 @@ function validateIdentity() {
   return true;
 }
 
-// Unknown toggles
-function toggleDOBUnknown(cb) {
-  document.getElementById('dobFields').hidden = cb.checked;
-}
-function toggleDODUnknown(cb) {
-  document.getElementById('dodFields').hidden = cb.checked;
+function toggleHide(containerId, hide) {
+  const el = document.getElementById(containerId);
+  if (el) el.hidden = hide;
 }
 
 // ── Relation picker ───────────────────────────────────────────
-const FAST_PATH_KEYS = ['dada','dadi','mama','masi','bhai','bhen'];
+// Mother and Father added as top-level fast-path cards
+const FAST_PATH_KEYS = ['baap','maa','dada','dadi','mama','masi','bhai','bhen'];
 
 function buildRelPickers() {
   buildFastPath();
@@ -365,24 +462,35 @@ function buildRelPickers() {
 
 function buildFastPath() {
   const fp = document.getElementById('relFastPath');
+  if (!fp) return;
   fp.innerHTML = '';
-  FAST_PATH_KEYS.forEach(key => {
-    const rel = RELATION_MAP[key];
-    if (!rel) return;
-    fp.appendChild(makeRelCard(rel));
-  });
+
+  // Mother and Father are special — not in RELATION_MAP, handled separately
+  const PARENT_CARDS = [
+    { key: 'baap', terms: ['Baap / Father'], gujaratiTerm: 'બાપ', label: 'Your father', gender: 'm', branch: 'direct', generation: -1 },
+    { key: 'maa',  terms: ['Maa / Mother'],  gujaratiTerm: 'માં',  label: 'Your mother',  gender: 'f', branch: 'direct', generation: -1 },
+  ];
+
+  // Register parent cards in RELATION_MAP if not present
+  PARENT_CARDS.forEach(r => { if (!RELATION_MAP[r.key]) RELATION_MAP[r.key] = r; });
+
+  [...PARENT_CARDS, ...FAST_PATH_KEYS
+    .filter(k => !['baap','maa'].includes(k))
+    .map(k => RELATION_MAP[k])
+    .filter(Boolean)
+  ].forEach(rel => fp.appendChild(makeRelCard(rel)));
 }
 
 function buildFullGrid() {
   const grid = document.getElementById('relGridFull');
+  if (!grid) return;
   grid.innerHTML = '';
   const DOT = { maternal:'dot-m', paternal:'dot-p', inlaw:'dot-i', direct:'dot-d' };
   RELATION_GROUPS.forEach(group => {
     const wrap = document.createElement('div');
     const head = document.createElement('div');
     head.className = 'rel-group-head';
-    head.innerHTML = group.group +
-      (group.subtitle ? `<span class="rel-group-sub">${group.subtitle}</span>` : '');
+    head.innerHTML = group.group + (group.subtitle ? `<span class="rel-group-sub">${group.subtitle}</span>` : '');
     wrap.appendChild(head);
     const cards = document.createElement('div');
     cards.className = 'rel-group-cards';
@@ -417,9 +525,9 @@ function selectRelation(key) {
     c.classList.toggle('selected', c.dataset.key === key));
   const rel = RELATION_MAP[key];
   if (rel) {
-    const g = rel.gender === 'f' ? 'Female' : rel.gender === 'm' ? 'Male' : 'Unknown gender';
-    const b = { maternal:'maternal side', paternal:'paternal side', inlaw:'in-law side', direct:'direct family' }[rel.branch] || '';
-    const gen = {'-2':'grandparent generation','-1':'parent generation','0':'same generation','1':'child generation','2':'grandchild generation'}[String(rel.generation)] || '';
+    const g   = rel.gender === 'f' ? 'Female' : rel.gender === 'm' ? 'Male' : 'Unknown gender';
+    const b   = { maternal:'maternal side', paternal:'paternal side', inlaw:'in-law side', direct:'direct family' }[rel.branch] || '';
+    const gen = { '-2':'grandparent','-1':'parent generation','0':'same generation','1':'child generation','2':'grandchild generation' }[String(rel.generation)] || '';
     document.getElementById('inferredText').textContent = `Inferred: ${g} · ${b} · ${gen}`;
     document.getElementById('inferredBox').hidden = false;
     const gEl = document.getElementById('pGender');
@@ -435,7 +543,6 @@ function toggleRelGrid() {
     relGridVisible ? 'Show fewer ▴' : 'Show all relationships ▾';
 }
 
-// Clear card selection when custom text typed
 document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('customRelation')?.addEventListener('input', function() {
     if (this.value.trim()) {
@@ -444,31 +551,12 @@ document.addEventListener('DOMContentLoaded', () => {
       document.getElementById('inferredBox').hidden = true;
     }
   });
-  // Village hint
-  document.getElementById('villageOrigin')?.addEventListener('blur', function() {
-    const match = typeof findVillage === 'function' ? findVillage(this.value) : null;
-    const hint = document.getElementById('villageOrigin-hint');
-    if (match) {
-      hint.textContent = `${match.district} district${match.note ? ' · ' + match.note : ''}`;
-      hint.hidden = false;
-    } else if (this.value.trim()) {
-      hint.textContent = 'Not in South Gujarat list — that\'s fine';
-      hint.hidden = false;
-    } else {
-      hint.hidden = true;
-    }
-  });
 });
 
 // ── Dynamic rows ──────────────────────────────────────────────
-function addSpouse() {
-  spouseCount++;
-  appendDynRow('spouseList', `sp-${spouseCount}`, 'Spouse name', 'spouseName', 'spouseDOB');
-}
-function addChild() {
-  childCount++;
-  appendDynRow('childList', `ch-${childCount}`, "Child's name", 'childName', 'childDOB');
-}
+function addSpouse() { spouseCount++; appendDynRow('spouseList', `sp-${spouseCount}`, 'Spouse name', 'spouseName', 'spouseDOB'); }
+function addChild()  { childCount++;  appendDynRow('childList',  `ch-${childCount}`,  "Child's name", 'childName', 'childDOB'); }
+
 function appendDynRow(listId, rowId, placeholder, nameField, dobField) {
   const row = document.createElement('div');
   row.className = 'dyn-row'; row.id = rowId;
@@ -477,46 +565,36 @@ function appendDynRow(listId, rowId, placeholder, nameField, dobField) {
       <input type="text" name="${nameField}[]" placeholder="${placeholder}"/></div>
     <div class="field-group"><label>Birth year</label>
       <input type="number" name="${dobField}[]" min="1800" max="2025" placeholder="YYYY"/></div>
-    <button type="button" class="btn-remove-rel" onclick="document.getElementById('${rowId}').remove()" aria-label="Remove">✕</button>`;
+    <button type="button" class="btn-remove-rel"
+      onclick="document.getElementById('${rowId}').remove()" aria-label="Remove">✕</button>`;
   document.getElementById(listId).appendChild(row);
 }
 
 // ── Person summary ────────────────────────────────────────────
 function buildPersonSummary() {
   const lines = [];
-  const fn = v('pFirst'), ln = v('pLast'), alias = v('pAlias'), gotra = v('pGotra');
-  const fullName = [fn, ln].filter(Boolean).join(' ');
-  if (fullName) lines.push(`<strong>Name:</strong> ${fullName}`);
-  if (alias)    lines.push(`<strong>Also known as:</strong> ${alias}`);
-  if (gotra)    lines.push(`<strong>Gotra:</strong> ${gotra}`);
-  const rel = selectedRelKey
-    ? (RELATION_MAP[selectedRelKey]?.terms[0] || selectedRelKey)
-    : v('customRelation');
-  if (rel) lines.push(`<strong>Relationship:</strong> ${rel}`);
-  const dob = buildDate(v('dobDay'),v('dobMonth'),v('dobYear'));
-  const age = v('approxAge');
-  const dobUnknown = document.getElementById('dobUnknown')?.checked;
-  if (dobUnknown)   lines.push(`<strong>Born:</strong> unknown`);
-  else if (dob)     lines.push(`<strong>Born:</strong> ${dob}`);
-  else if (age)     lines.push(`<strong>Approx age:</strong> ${age}`);
-  const village = v('villageOrigin'), country = v('countryEmigrated');
-  if (village) lines.push(`<strong>Village:</strong> ${village}`);
-  if (country) lines.push(`<strong>Emigrated to:</strong> ${country}`);
-  const dodUnknown = document.getElementById('dodUnknown')?.checked;
-  if (dodUnknown) lines.push(`<strong>Deceased:</strong> date unknown`);
-  const fatherName = [v('fatherFirst'), v('fatherLast')].filter(Boolean).join(' ');
-  const motherName = [v('motherFirst'), v('motherLast')].filter(Boolean).join(' ');
-  if (fatherName) lines.push(`<strong>Father:</strong> ${fatherName}${v('fatherDOB') ? ' (b. '+v('fatherDOB')+')' : ''}`);
-  if (motherName) {
-    const maiden = v('motherMaiden') ? ` née ${v('motherMaiden')}` : '';
-    lines.push(`<strong>Mother:</strong> ${motherName}${maiden}${v('motherDOB') ? ' (b. '+v('motherDOB')+')' : ''}`);
-  }
-  const spouseNames = Array.from(document.querySelectorAll('[name="spouseName[]"]'))
-    .map(el => el.value.trim()).filter(Boolean);
-  if (spouseNames.length) lines.push(`<strong>Spouse(s):</strong> ${spouseNames.join(', ')}`);
-  const childNames = Array.from(document.querySelectorAll('[name="childName[]"]'))
-    .map(el => el.value.trim()).filter(Boolean);
-  if (childNames.length) lines.push(`<strong>Children:</strong> ${childNames.join(', ')}`);
+  const fn = v('pFirst'), ln = v('pLast');
+  const name = [fn, ln].filter(Boolean).join(' ');
+  if (name)                 lines.push(`<strong>Name:</strong> ${name}`);
+  if (v('pAlias'))          lines.push(`<strong>Also known as:</strong> ${v('pAlias')}`);
+  if (v('pGotra'))          lines.push(`<strong>Gotra:</strong> ${v('pGotra')}`);
+  const rel = selectedRelKey ? (RELATION_MAP[selectedRelKey]?.terms[0] || selectedRelKey) : v('customRelation');
+  if (rel)                  lines.push(`<strong>Relationship:</strong> ${rel}`);
+  const dob = buildDate(v('dobDay'), v('dobMonth'), v('dobYear'));
+  if (document.getElementById('dobUnknown')?.checked) lines.push(`<strong>Born:</strong> unknown`);
+  else if (dob)             lines.push(`<strong>Born:</strong> ${dob}`);
+  else if (v('approxAge'))  lines.push(`<strong>Approx age:</strong> ${v('approxAge')}`);
+  if (v('villageOrigin'))   lines.push(`<strong>Village:</strong> ${v('villageOrigin')}`);
+  if (v('countryEmigrated'))lines.push(`<strong>Emigrated to:</strong> ${v('countryEmigrated')}`);
+  if (document.getElementById('dodUnknown')?.checked) lines.push(`<strong>Deceased:</strong> date unknown`);
+  const fName = [v('fatherFirst'), v('fatherLast')].filter(Boolean).join(' ');
+  const mName = [v('motherFirst'), v('motherLast')].filter(Boolean).join(' ');
+  if (fName) lines.push(`<strong>Father:</strong> ${fName}${v('fatherDOB') ? ' (b. '+v('fatherDOB')+')' : ''}`);
+  if (mName) lines.push(`<strong>Mother:</strong> ${mName}${v('motherMaiden') ? ' née '+v('motherMaiden') : ''}${v('motherDOB') ? ' (b. '+v('motherDOB')+')' : ''}`);
+  const spouseNames = Array.from(document.querySelectorAll('[name="spouseName[]"]')).map(el => el.value.trim()).filter(Boolean);
+  if (spouseNames.length)   lines.push(`<strong>Spouse(s):</strong> ${spouseNames.join(', ')}`);
+  const childNames  = Array.from(document.querySelectorAll('[name="childName[]"]')).map(el => el.value.trim()).filter(Boolean);
+  if (childNames.length)    lines.push(`<strong>Children:</strong> ${childNames.join(', ')}`);
   document.getElementById('personSummary').innerHTML = lines.join('<br>');
 }
 
@@ -527,75 +605,61 @@ function buildDate(day, month, year) {
   return year;
 }
 
-// ── Collect & save ────────────────────────────────────────────
+// ── Collect & save relative ───────────────────────────────────
 function collectPerson() {
-  const spouses = Array.from(document.querySelectorAll('[name="spouseName[]"]'))
-    .map((el,i) => ({ name: el.value.trim()||null, dob: document.querySelectorAll('[name="spouseDOB[]"]')[i]?.value.trim()||null }))
+  const spouses  = Array.from(document.querySelectorAll('[name="spouseName[]"]'))
+    .map((el, i) => ({ name: el.value.trim()||null, dob: document.querySelectorAll('[name="spouseDOB[]"]')[i]?.value.trim()||null }))
     .filter(s => s.name || s.dob);
   const children = Array.from(document.querySelectorAll('[name="childName[]"]'))
-    .map((el,i) => ({ name: el.value.trim()||null, dob: document.querySelectorAll('[name="childDOB[]"]')[i]?.value.trim()||null }))
+    .map((el, i) => ({ name: el.value.trim()||null, dob: document.querySelectorAll('[name="childDOB[]"]')[i]?.value.trim()||null }))
     .filter(c => c.name || c.dob);
   const rel = RELATION_MAP[selectedRelKey];
-  const isSelf = session.currentPerson?._isSelf || false;
   return {
-    firstName: v('pFirst')||null, alias: v('pAlias')||null,
-    middleName: v('pMiddle')||null, lastName: v('pLast')||null,
-    maidenName: v('pMaiden')||null, gotra: v('pGotra')||null,
-    gender: v('pGender')||null,
-    relationKey: isSelf ? 'self' : (selectedRelKey||null),
-    customRelation: isSelf ? 'Self' : (v('customRelation')||null),
-    relationBranch: isSelf ? 'direct' : (rel?.branch||null),
-    relationGeneration: isSelf ? 0 : (rel?.generation??null),
-    isSelf,
-    anchorFirstName: session.anchor.firstName, anchorLastName: session.anchor.lastName,
-    anchorNodeHint: session.anchor.nodeHint||null,
-    dob: document.getElementById('dobUnknown')?.checked ? null : buildDate(v('dobDay'),v('dobMonth'),v('dobYear'))||null,
-    dobUnknown: document.getElementById('dobUnknown')?.checked||false,
-    approxAge: v('approxAge')||null, birthPlace: v('birthPlace')||null,
-    villageOrigin: v('villageOrigin')||null, countryEmigrated: v('countryEmigrated')||null,
-    dod: document.getElementById('dodUnknown')?.checked ? null : buildDate(v('dodDay'),v('dodMonth'),v('dodYear'))||null,
-    dodUnknown: document.getElementById('dodUnknown')?.checked||false,
-    father: {
-      firstName: v('fatherFirst')||null, lastName: v('fatherLast')||null,
-      dob: v('fatherDOB')||null, village: v('fatherVillage')||null,
-    },
-    mother: {
-      firstName: v('motherFirst')||null, lastName: v('motherLast')||null,
-      maidenName: v('motherMaiden')||null, dob: v('motherDOB')||null,
-    },
-    parent1: { name: v('parent1Name')||null, dob: v('parent1DOB')||null },
-    parent2: { name: v('parent2Name')||null, dob: v('parent2DOB')||null },
+    firstName:        v('pFirst')||null,  alias: v('pAlias')||null,
+    middleName:       v('pMiddle')||null, lastName: v('pLast')||null,
+    maidenName:       v('pMaiden')||null, gotra: v('pGotra')||null,
+    gender:           v('pGender')||null,
+    relationKey:      selectedRelKey||null, customRelation: v('customRelation')||null,
+    relationBranch:   rel?.branch||null,   relationGeneration: rel?.generation??null,
+    isSelf:           false,
+    anchorFirstName:  session.anchor.firstName, anchorLastName: session.anchor.lastName,
+    dob:              document.getElementById('dobUnknown')?.checked ? null : buildDate(v('dobDay'),v('dobMonth'),v('dobYear'))||null,
+    dobUnknown:       document.getElementById('dobUnknown')?.checked||false,
+    approxAge:        v('approxAge')||null, birthPlace: v('birthPlace')||null,
+    villageOrigin:    v('villageOrigin')||null, countryEmigrated: v('countryEmigrated')||null,
+    dod:              document.getElementById('dodUnknown')?.checked ? null : buildDate(v('dodDay'),v('dodMonth'),v('dodYear'))||null,
+    dodUnknown:       document.getElementById('dodUnknown')?.checked||false,
+    father: { firstName: v('fatherFirst')||null, lastName: v('fatherLast')||null, dob: v('fatherDOB')||null, village: v('fatherVillage')||null },
+    mother: { firstName: v('motherFirst')||null, lastName: v('motherLast')||null, maidenName: v('motherMaiden')||null, dob: v('motherDOB')||null },
     spouses, children, notes: v('pNotes')||null,
-    submitterName: session.submitterName, submitterEmail: session.submitterEmail,
-    submittedAt: new Date().toISOString(), isStub: false,
+    submitterName:    session.submitterName, submitterEmail: session.submitterEmail,
+    submittedAt:      new Date().toISOString(), isStub: false,
   };
 }
 
 function prefillPersonForm(p) {
-  const set = (id,val) => { const el=document.getElementById(id); if(el&&val!=null) el.value=val; };
-  set('pFirst',p.firstName); set('pAlias',p.alias); set('pMiddle',p.middleName);
-  set('pLast',p.lastName); set('pMaiden',p.maidenName); set('pGotra',p.gotra);
-  set('pGender',p.gender); set('approxAge',p.approxAge);
-  set('birthPlace',p.birthPlace); set('villageOrigin',p.villageOrigin);
-  set('countryEmigrated',p.countryEmigrated); set('pNotes',p.notes);
-  set('customRelation',p.customRelation);
-  set('fatherFirst',  p.father?.firstName);  set('fatherLast', p.father?.lastName);
-  set('fatherDOB',    p.father?.dob);        set('fatherVillage', p.father?.village);
-  set('motherFirst',  p.mother?.firstName);  set('motherLast', p.mother?.lastName);
-  set('motherMaiden', p.mother?.maidenName); set('motherDOB',  p.mother?.dob);
-  set('parent1Name',  p.parent1?.name);      set('parent1DOB', p.parent1?.dob);
-  set('parent2Name',  p.parent2?.name);      set('parent2DOB', p.parent2?.dob);
-  if (p.dobUnknown) { document.getElementById('dobUnknown').checked=true; document.getElementById('dobFields').hidden=true; }
+  const set = (id, val) => { const el = document.getElementById(id); if (el && val != null) el.value = val; };
+  set('pFirst', p.firstName); set('pAlias',  p.alias);   set('pMiddle', p.middleName);
+  set('pLast',  p.lastName);  set('pMaiden', p.maidenName); set('pGotra', p.gotra);
+  set('pGender', p.gender);   set('approxAge', p.approxAge);
+  set('birthPlace', p.birthPlace); set('villageOrigin', p.villageOrigin);
+  set('countryEmigrated', p.countryEmigrated); set('pNotes', p.notes);
+  set('customRelation', p.customRelation);
+  set('fatherFirst',  p.father?.firstName); set('fatherLast',  p.father?.lastName);
+  set('fatherDOB',    p.father?.dob);       set('fatherVillage', p.father?.village);
+  set('motherFirst',  p.mother?.firstName); set('motherLast',  p.mother?.lastName);
+  set('motherMaiden', p.mother?.maidenName); set('motherDOB', p.mother?.dob);
+  if (p.dobUnknown) { document.getElementById('dobUnknown').checked = true; toggleHide('dobFields', true); }
   else if (p.dob) {
     const pts = p.dob.split('/');
-    if (pts.length===3){set('dobDay',pts[0]);set('dobMonth',pts[1]);set('dobYear',pts[2]);}
-    else if (pts.length===2){set('dobMonth',pts[0]);set('dobYear',pts[1]);}
-    else set('dobYear',pts[0]);
+    if (pts.length === 3) { set('dobDay', pts[0]); set('dobMonth', pts[1]); set('dobYear', pts[2]); }
+    else if (pts.length === 2) { set('dobMonth', pts[0]); set('dobYear', pts[1]); }
+    else set('dobYear', pts[0]);
   }
-  if (p.dodUnknown) { document.getElementById('dodUnknown').checked=true; document.getElementById('dodFields').hidden=true; }
-  if (p.relationKey) { selectedRelKey=p.relationKey; }
+  if (p.dodUnknown) { document.getElementById('dodUnknown').checked = true; toggleHide('dodFields', true); }
+  if (p.relationKey) selectedRelKey = p.relationKey;
   p.spouses?.forEach(s => { spouseCount++; const id=`sp-${spouseCount}`; appendDynRow('spouseList',id,'Spouse name','spouseName','spouseDOB'); const r=document.getElementById(id); if(r){r.querySelector('[name="spouseName[]"]').value=s.name||'';r.querySelector('[name="spouseDOB[]"]').value=s.dob||'';} });
-  p.children?.forEach(c => { childCount++; const id=`ch-${childCount}`; appendDynRow('childList',id,"Child's name",'childName','childDOB'); const r=document.getElementById(id); if(r){r.querySelector('[name="childName[]"]').value=c.name||'';r.querySelector('[name="childDOB[]"]').value=c.dob||'';} });
+  p.children?.forEach(c => { childCount++;  const id=`ch-${childCount}`;  appendDynRow('childList', id,"Child's name",'childName','childDOB');   const r=document.getElementById(id); if(r){r.querySelector('[name="childName[]"]').value=c.name||'';r.querySelector('[name="childDOB[]"]').value=c.dob||'';} });
 }
 
 function savePerson() {
@@ -604,30 +668,35 @@ function savePerson() {
   if (idx !== null && idx !== undefined) session.people[idx] = p;
   else session.people.push(p);
 }
+
 function saveAndReturn() {
   if (!validateIdentity()) { showSubSection(2); return; }
   savePerson(); refreshSessionUI(); saveDraft(); showPhase('phase-session');
 }
+
 function saveAndAnother() {
   if (!validateIdentity()) { showSubSection(2); return; }
   savePerson(); refreshSessionUI(); saveDraft(); openPersonForm();
 }
 
-// ── Shift anchor ──────────────────────────────────────────────
+// ── Phase 4: Shift anchor ─────────────────────────────────────
 function shiftAnchor() {
   shiftSelectedIdx = null;
   const list = document.getElementById('shiftList');
   list.innerHTML = '';
-  session.people.forEach((p, i) => {
+  const all = [];
+  if (session.selfRecord) all.push({ p: session.selfRecord, idx: 'self' });
+  session.people.forEach((p, i) => all.push({ p, idx: i }));
+  all.forEach(({ p }) => {
     const name = displayName(p); if (!name) return;
     const card = document.createElement('div');
     card.className = 'shift-card';
     card.innerHTML = `<span class="shift-card-name">${name}</span><span class="shift-card-meta">${chipRelLabel(p)}</span>`;
     card.addEventListener('click', () => {
       document.querySelectorAll('.shift-card').forEach(c => c.classList.remove('selected'));
-      card.classList.add('selected'); shiftSelectedIdx = i;
-      document.getElementById('shiftFirst').value = p.firstName||'';
-      document.getElementById('shiftLast').value  = p.lastName||'';
+      card.classList.add('selected');
+      document.getElementById('shiftFirst').value = p.firstName || '';
+      document.getElementById('shiftLast').value  = p.lastName  || '';
     });
     list.appendChild(card);
   });
@@ -637,22 +706,28 @@ function shiftAnchor() {
 function confirmShift() {
   const first = v('shiftFirst'), last = v('shiftLast');
   if (!first) return;
-  session.anchor.firstName = first; session.anchor.lastName = last;
-  session.anchor.nodeHint = shiftSelectedIdx !== null ? shiftSelectedIdx : null;
-  refreshSessionUI(); showPhase('phase-session');
+  session.anchor.firstName = first;
+  session.anchor.lastName  = last;
+  refreshSessionUI();
+  showPhase('phase-session');
 }
 
-// ── Submit session ────────────────────────────────────────────
+// ── Submit ────────────────────────────────────────────────────
 async function finishSession() {
-  if (!session.people.length) return;
+  const allPeople = [];
+  if (session.selfRecord) allPeople.push(session.selfRecord);
+  allPeople.push(...session.people);
+  if (!allPeople.length) return;
+
   document.getElementById('submittingMsg').textContent =
-    `Sending ${session.people.length} ${session.people.length===1?'person':'people'}…`;
+    `Sending ${allPeople.length} ${allPeople.length === 1 ? 'entry' : 'entries'}…`;
   showPhase('phase-submitting');
+
   try {
-    for (const person of session.people) await submitToSheets(person);
+    for (const person of allPeople) await submitToSheets(person);
     clearDraft();
     document.getElementById('successMsg').textContent =
-      `${session.people.length} ${session.people.length===1?'entry':'entries'} recorded. Thank you!`;
+      `${allPeople.length} ${allPeople.length === 1 ? 'entry' : 'entries'} recorded. Thank you!`;
     showPhase('phase-success');
   } catch(e) {
     alert('Something went wrong. Please try again.\n\n' + e.message);
@@ -661,15 +736,14 @@ async function finishSession() {
 }
 
 function startOver() {
-  session.people=[]; session.currentPerson=null;
-  session.submitterName=''; session.submitterEmail='';
-  session.anchor={firstName:'',lastName:'',nodeHint:null};
-  const cb = document.getElementById('addSelfToTree');
-  if (cb) cb.checked = true;
-  clearDraft(); showPhase('phase-anchor');
+  session.people = []; session.selfRecord = null; session.currentPerson = null;
+  session.submitterName = ''; session.submitterEmail = '';
+  session.anchor = { firstName: '', lastName: '', nodeHint: null };
+  clearDraft();
+  showPhase('phase-anchor');
 }
 
 // ── Helpers ───────────────────────────────────────────────────
-function v(id) { return (document.getElementById(id)?.value||'').trim(); }
-function err(id,msg) { const el=document.getElementById(id); if(el) el.textContent=msg; }
-function clearErr(id) { err(id,''); }
+function v(id)           { return (document.getElementById(id)?.value || '').trim(); }
+function err(id, msg)    { const el = document.getElementById(id); if (el) el.textContent = msg; }
+function clearErr(id)    { err(id, ''); }

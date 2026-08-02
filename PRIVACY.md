@@ -10,7 +10,7 @@ how it is stored, who can see it, and what your rights are.
 ## Who is the data controller
 
 This family tree project is run by **[Your Name]**, reachable at
-**[your-email@example.com]**. There is no company or organisation involved —
+**[bhakta.family.tree@gmail.com]**. There is no company or organisation involved —
 this is a personal project for family use.
 
 ---
@@ -87,7 +87,7 @@ viewer tree) and confirm when done.
 **Object to processing** — if you have concerns about how your information
 is being used, contact the curator to discuss.
 
-To exercise any of these rights, email **[your-email@example.com]**. Requests
+To exercise any of these rights, email **[bhakta.family.tree@gmail.com]**. Requests
 will be responded to within 30 days.
 
 ---
@@ -121,4 +121,4 @@ address.
 ## Contact
 
 Questions about this notice or your data:
-**[your-email@example.com]**
+**[bhakta.family.tree@gmail.com]**
