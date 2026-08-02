@@ -352,6 +352,10 @@ function findVillage(input) {
  * Also attaches an onblur handler that canonicalises the typed value.
  */
 function attachVillageAutocomplete(inputEl) {
+  // Avoid double-attaching if already wired
+  if (inputEl.dataset.villageWired) return;
+  inputEl.dataset.villageWired = '1';
+
   const listId = 'village-list-' + Math.random().toString(36).slice(2);
   const dl = document.createElement('datalist');
   dl.id = listId;
@@ -364,26 +368,20 @@ function attachVillageAutocomplete(inputEl) {
   inputEl.setAttribute('list', listId);
   inputEl.setAttribute('autocomplete', 'off');
 
-  // On blur, show district hint if recognised
+  // On blur, show district hint using hidden attribute (not style.display)
   inputEl.addEventListener('blur', function () {
-    const match = findVillage(this.value);
+    const match  = findVillage(this.value);
     const hintEl = document.getElementById(inputEl.id + '-hint');
-    if (hintEl) {
-      if (match) {
-        hintEl.textContent = `${match.district} district${match.note ? ' · ' + match.note : ''}`;
-        hintEl.style.display = 'block';
-      } else if (this.value.trim()) {
-        hintEl.textContent = 'Village not in South Gujarat list — that\'s fine, type whatever you know';
-        hintEl.style.display = 'block';
-      } else {
-        hintEl.style.display = 'none';
-      }
+    if (!hintEl) return;
+    if (match) {
+      hintEl.textContent = `${match.district} district${match.note ? ' · ' + match.note : ''}`;
+      hintEl.hidden = false;
+    } else if (this.value.trim()) {
+      hintEl.textContent = "Village not in South Gujarat list — that's fine, type whatever you know";
+      hintEl.hidden = false;
+    } else {
+      hintEl.hidden = true;
     }
   });
 }
-
-// Auto-attach to villageOrigin field when DOM is ready
-document.addEventListener('DOMContentLoaded', () => {
-  const el = document.getElementById('villageOrigin');
-  if (el) attachVillageAutocomplete(el);
-});
+// Note: attachment is handled by session.js DOMContentLoaded — no duplicate needed here

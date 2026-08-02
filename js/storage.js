@@ -1,4 +1,4 @@
-const SHEET_ENDPOINT = 'https://script.google.com/macros/library/d/1CT3UE0a8eJoO155C5EfQSVPhgAl9zMC7PWU9bXDgMaPTsnZuGagOlkNx/1';
+const SHEET_ENDPOINT = 'https://script.google.com/macros/s/AKfycbwoGZRuIQafbjYNhMdnHiANgGVhVwwfzFDJCGwT5lhk82KH3DHpiLHOh6rjhzV80Xru3g/exec';
 function flattenForSheet(data) {
   return {
     submitted_at: data.submittedAt||'', first_name: data.firstName||'',

@@ -36,88 +36,6 @@ let selfChildCount  = 0;
 let shiftSelectedIdx = null;
 let relGridVisible   = false;
 
-// ── Draft ─────────────────────────────────────────────────────
-const DRAFT_KEY = 'family_tree_draft_v5';
-
-function saveDraft() {
-  if (!session.submitterName && !session.selfRecord && session.people.length === 0) return;
-  try {
-    localStorage.setItem(DRAFT_KEY, JSON.stringify({
-      session: JSON.parse(JSON.stringify({
-        submitterName:  session.submitterName,
-        submitterEmail: session.submitterEmail,
-        mode:           session.mode,
-        anchor:         session.anchor,
-        selfRecord:     session.selfRecord,
-        people:         session.people,
-      })),
-      ts: Date.now(),
-    }));
-  } catch(e) {}
-}
-
-function loadDraft() {
-  try {
-    const raw = localStorage.getItem(DRAFT_KEY);
-    if (!raw) return null;
-    const d = JSON.parse(raw);
-    if (Date.now() - d.ts > 7 * 24 * 60 * 60 * 1000) { clearDraft(); return null; }
-    return d;
-  } catch(e) { return null; }
-}
-
-function clearDraft() {
-  try { localStorage.removeItem(DRAFT_KEY); } catch(e) {}
-}
-
-function restoreDraft() {
-  const d = loadDraft();
-  if (!d) return;
-  const s = d.session;
-  session.submitterName  = s.submitterName  || '';
-  session.submitterEmail = s.submitterEmail || '';
-  session.mode           = s.mode           || 'self';
-  session.anchor         = { ...(s.anchor || {}) };
-  session.selfRecord     = s.selfRecord ? JSON.parse(JSON.stringify(s.selfRecord)) : null;
-  session.people         = JSON.parse(JSON.stringify(s.people || []));
-  session.currentPerson  = null;
-  hideBanner();
-  refreshSessionUI();
-  showPhase('phase-session');
-}
-
-function discardDraft() {
-  clearDraft();
-  hideBanner();
-  // Reset all anchor inputs so the form is visibly clean
-  ['anchorFirst','anchorLast','anchorEmail','proxyFirst','proxyLast'].forEach(id => {
-    const el = document.getElementById(id);
-    if (el) el.value = '';
-  });
-  // Reset session state
-  session.submitterName  = '';
-  session.submitterEmail = '';
-  session.mode           = 'self';
-  session.anchor         = { firstName: '', lastName: '', nodeHint: null };
-  session.selfRecord     = null;
-  session.people         = [];
-  session.currentPerson  = null;
-  // Return to anchor phase so user sees a clean form
-  showPhase('phase-anchor');
-}
-
-function showBanner(msg) {
-  const banner = document.getElementById('draftBanner');
-  const msgEl  = document.getElementById('draftMsg');
-  if (msgEl) msgEl.textContent = msg;
-  if (banner) banner.hidden = false;
-}
-
-function hideBanner() {
-  const banner = document.getElementById('draftBanner');
-  if (banner) banner.hidden = true;
-}
-
 // ── Phase management ──────────────────────────────────────────
 function showPhase(id) {
   document.querySelectorAll('.phase').forEach(p => {
@@ -132,21 +50,10 @@ function showPhase(id) {
 
 // ── Init ──────────────────────────────────────────────────────
 window.addEventListener('DOMContentLoaded', () => {
-  const d = loadDraft();
-  if (d && (d.session.selfRecord || (d.session.people || []).length > 0)) {
-    const n    = d.session.anchor?.firstName || '';
-    const cnt  = (d.session.people || []).length;
-    const self = d.session.selfRecord ? 1 : 0;
-    const total = self + cnt;
-    showBanner(
-      `Saved session for ${n || 'someone'} — ${total} ${total === 1 ? 'entry' : 'entries'} saved.`
-    );
-  }
   buildRelPickers();
   populateStubRelSelect();
   attachVillageHint('sVillageOrigin');
   attachVillageHint('villageOrigin');
-  setInterval(saveDraft, 30000);
 });
 
 function attachVillageHint(inputId) {
@@ -190,7 +97,6 @@ function startSession() {
 
   showSelfSub(1);
   showPhase('phase-self');
-  saveDraft();
 }
 
 // ── Phase 1: Self form ────────────────────────────────────────
@@ -283,7 +189,6 @@ function collectSelfRecord() {
 function saveSelfAndContinue() {
   session.selfRecord = collectSelfRecord();
   refreshSessionUI();
-  saveDraft();
   showPhase('phase-session');
 }
 
@@ -394,7 +299,6 @@ function addStubPerson() {
   document.getElementById('stubName').value = '';
   document.getElementById('stubRelKey').value = '';
   refreshSessionUI();
-  saveDraft();
 }
 
 // ── Phase 3: Person form (relatives) ─────────────────────────
@@ -417,6 +321,7 @@ function openPersonForm(editIndex = null) {
   document.getElementById('personTitle').textContent = 'About this person';
 
   buildRelPickers();
+  attachVillageHint('villageOrigin');  // re-attach in case form was cleared
   showSubSection(1);
   showPhase('phase-person');
 }
@@ -698,12 +603,12 @@ function savePerson() {
 
 function saveAndReturn() {
   if (!validateIdentity()) { showSubSection(2); return; }
-  savePerson(); refreshSessionUI(); saveDraft(); showPhase('phase-session');
+  savePerson(); refreshSessionUI(); showPhase('phase-session');
 }
 
 function saveAndAnother() {
   if (!validateIdentity()) { showSubSection(2); return; }
-  savePerson(); refreshSessionUI(); saveDraft(); openPersonForm();
+  savePerson(); refreshSessionUI(); openPersonForm();
 }
 
 // ── Phase 4: Shift anchor ─────────────────────────────────────
@@ -752,7 +657,6 @@ async function finishSession() {
 
   try {
     for (const person of allPeople) await submitToSheets(person);
-    clearDraft();
     document.getElementById('successMsg').textContent =
       `${allPeople.length} ${allPeople.length === 1 ? 'entry' : 'entries'} recorded. Thank you!`;
     showPhase('phase-success');
@@ -770,8 +674,6 @@ function startOver() {
     const el = document.getElementById(id);
     if (el) el.value = '';
   });
-  clearDraft();
-  hideBanner();
   showPhase('phase-anchor');
 }
 

@@ -22,14 +22,6 @@
   </div>
 </header>
 
-<div id="draftBanner" class="draft-banner" hidden>
-  <span id="draftMsg">You have a saved session from earlier.</span>
-  <div class="draft-actions">
-    <button class="btn-draft-restore" onclick="restoreDraft()">Resume it</button>
-    <button class="btn-draft-discard" onclick="discardDraft()">Start fresh</button>
-  </div>
-</div>
-
 <main>
 <div class="form-shell">
 
@@ -200,7 +192,45 @@
                 <input type="text" id="sVillageOrigin" placeholder="e.g. Chikhli, Bardoli…" autocomplete="off"/>
                 <span id="sVillageOrigin-hint" class="village-hint" hidden></span>
               </div>
-              <div class="field-group"><label data-en="Country emigrated to" data-gu="સ્થળાંતર દેશ">Country emigrated to</label><input type="text" id="sCountryEmigrated" placeholder="e.g. Kenya, UK, Canada"/></div>
+              <div class="field-group">
+                <label data-en="Country emigrated to" data-gu="સ્થળાંતર દેશ">Country emigrated to</label>
+                <select id="sCountryEmigrated">
+                  <option value="">— select or type below —</option>
+                  <optgroup label="Bhakta family countries">
+                    <option value="India">India (stayed / returned)</option>
+                    <option value="Kenya">Kenya</option>
+                    <option value="Uganda">Uganda</option>
+                    <option value="Tanzania">Tanzania</option>
+                    <option value="Zambia">Zambia</option>
+                    <option value="Malawi">Malawi</option>
+                    <option value="Zimbabwe">Zimbabwe</option>
+                    <option value="Mozambique">Mozambique</option>
+                    <option value="South Africa">South Africa</option>
+                    <option value="United Kingdom">United Kingdom</option>
+                    <option value="United States">United States</option>
+                    <option value="Canada">Canada</option>
+                    <option value="Australia">Australia</option>
+                    <option value="New Zealand">New Zealand</option>
+                  </optgroup>
+                  <optgroup label="Other">
+                    <option value="Myanmar">Myanmar (Burma)</option>
+                    <option value="Fiji">Fiji</option>
+                    <option value="Trinidad and Tobago">Trinidad and Tobago</option>
+                    <option value="Guyana">Guyana</option>
+                    <option value="Panama">Panama</option>
+                    <option value="Portugal">Portugal</option>
+                    <option value="Netherlands">Netherlands</option>
+                    <option value="Germany">Germany</option>
+                    <option value="France">France</option>
+                    <option value="Belgium">Belgium</option>
+                    <option value="Switzerland">Switzerland</option>
+                    <option value="UAE">UAE</option>
+                    <option value="Singapore">Singapore</option>
+                    <option value="Malaysia">Malaysia</option>
+                    <option value="Other">Other (add in notes)</option>
+                  </optgroup>
+                </select>
+              </div>
             </div>
           </div>
         </fieldset>
@@ -465,7 +495,45 @@
                 <input type="text" id="villageOrigin" placeholder="e.g. Chikhli, Bardoli…" autocomplete="off"/>
                 <span id="villageOrigin-hint" class="village-hint" hidden></span>
               </div>
-              <div class="field-group"><label data-en="Country emigrated to" data-gu="સ્થળાંતર">Country emigrated to</label><input type="text" id="countryEmigrated" placeholder="e.g. Kenya, UK"/></div>
+              <div class="field-group">
+                <label data-en="Country emigrated to" data-gu="સ્થળાંતર">Country emigrated to</label>
+                <select id="countryEmigrated">
+                  <option value="">— select or type below —</option>
+                  <optgroup label="Bhakta family countries">
+                    <option value="India">India (stayed / returned)</option>
+                    <option value="Kenya">Kenya</option>
+                    <option value="Uganda">Uganda</option>
+                    <option value="Tanzania">Tanzania</option>
+                    <option value="Zambia">Zambia</option>
+                    <option value="Malawi">Malawi</option>
+                    <option value="Zimbabwe">Zimbabwe</option>
+                    <option value="Mozambique">Mozambique</option>
+                    <option value="South Africa">South Africa</option>
+                    <option value="United Kingdom">United Kingdom</option>
+                    <option value="United States">United States</option>
+                    <option value="Canada">Canada</option>
+                    <option value="Australia">Australia</option>
+                    <option value="New Zealand">New Zealand</option>
+                  </optgroup>
+                  <optgroup label="Other">
+                    <option value="Myanmar">Myanmar (Burma)</option>
+                    <option value="Fiji">Fiji</option>
+                    <option value="Trinidad and Tobago">Trinidad and Tobago</option>
+                    <option value="Guyana">Guyana</option>
+                    <option value="Panama">Panama</option>
+                    <option value="Portugal">Portugal</option>
+                    <option value="Netherlands">Netherlands</option>
+                    <option value="Germany">Germany</option>
+                    <option value="France">France</option>
+                    <option value="Belgium">Belgium</option>
+                    <option value="Switzerland">Switzerland</option>
+                    <option value="UAE">UAE</option>
+                    <option value="Singapore">Singapore</option>
+                    <option value="Malaysia">Malaysia</option>
+                    <option value="Other">Other (add in notes)</option>
+                  </optgroup>
+                </select>
+              </div>
             </div>
           </div>
         </fieldset>
