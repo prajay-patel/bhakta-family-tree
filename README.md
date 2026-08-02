@@ -1,56 +1,71 @@
-# Family Tree — Submission Form
+# Bhakta Family Tree
 
-A crowd-sourced family tree for our extended family. Fill in what you know about your relatives and we'll weave it all together.
+A crowd-sourced family tree for the Bhakta family — Leuva Patidar from
+South Gujarat, with branches across East Africa, the UK, USA, Canada, and beyond.
+Fill in what you know about your relatives and we'll weave it all together.
 
-## How to add a family member
+## Add a family member
 
 **Open the form:** [https://prajay-patel.github.io/bhakta-family-tree](https://prajay-patel.github.io/bhakta-family-tree)
 
-The form works on any phone, tablet, or computer — no account or app needed. Just open the link in a browser.
+The form works on any phone, tablet, or computer — no account or app needed.
 
 ### What to expect
 
-1. **Tell us who you are** — your name anchors the relationship terms (Masi, Kaka, etc.)
-2. **Add as many relatives as you like** in one session — you don't have to submit one at a time
-3. **Fill in only what you know** — every field is optional except your own name. A name and a rough birth year is enough to get someone into the tree.
-4. **Switch the reference point** mid-session if you want to enter relatives of a relative (e.g. your Dadi's siblings)
+1. **Start with yourself** — fill in your own details first (DOB, village, parents, spouse, children)
+2. **Add relatives** — use the relationship picker to add Dada, Dadi, Masi, Kaka, Bhai, Bhen and more
+3. **Fill in only what you know** — every field is optional except your name. A name and a rough birth year is enough.
+4. **Switch the reference point** mid-session to add relatives of a relative (e.g. your Dadi's siblings)
 
 ### Tips
 
-- If you know someone exists but not their name, use the "stub" quick-add — it reserves a spot in the tree for other relatives to fill in later
-- The village of origin field has autocomplete for all 243 Leuva Patidar villages of South Gujarat — start typing and it will suggest matches
-- The Gujarati language toggle (top right) switches all labels to Gujarati script
-- Your draft is saved automatically — if you close the tab and come back, you can resume where you left off
-- You'll receive a confirmation email with a summary of what you submitted
+- **Village autocomplete** — start typing and it will suggest from all 243 Leuva Patidar villages of South Gujarat, with district shown on selection
+- **Country of emigration** — a dropdown with all known Bhakta family destinations (Kenya, Uganda, Zambia, UK, USA, Canada…)
+- **Gujarati toggle** — the ગુ / EN button in the top right switches all labels to Gujarati script
+- **Stub quick-add** — if you know someone exists but not their details, add a placeholder so other relatives can fill it in later
+- **Confirmation email** — you'll receive a summary of what you submitted
 
 ### What happens to your submission
 
-Your entry goes directly to a private Google Sheet that only the tree curator can access. It never touches this GitHub repository. The curator periodically runs a pipeline that deduplicates entries, resolves relationships, and updates the tree.
+Your entry goes directly to a private Google Sheet that only the tree curator
+can access. It never touches this GitHub repository. The curator periodically
+runs a pipeline that deduplicates entries, builds the relationship graph, and
+updates the tree viewer.
 
 ---
 
 ## View the tree
 
-Once the curator has processed submissions, the interactive tree is available at:
+The interactive tree is at:
 
 [https://prajay-patel.github.io/bhakta-family-tree/viewer.html](https://prajay-patel.github.io/bhakta-family-tree/viewer.html)
 
 In the viewer you can:
 - Search by name
 - Filter by branch (maternal / paternal / in-law)
-- Adjust how many generations to show
-- Click any person to see their details
-- Download a PNG or GEDCOM file
+- Adjust how many generations to show with the slider
+- Click any person to see their details and add more information
+- Lock or unlock panning and zooming (locked by default)
+- Download the tree as SVG or PNG
 
-Dashed nodes are people who have been mentioned but haven't submitted their own entry yet — if you know them, consider filling in their details.
+**Dashed nodes** are people who have been mentioned in someone else's submission
+but haven't submitted their own entry yet. Click them and use the
+"Fill in details" button to add what you know.
+
+---
+
+## Family history
+
+Learn about the Leuva Patidar migration from Gujarat to East Africa and beyond:
+
+[https://prajay-patel.github.io/bhakta-family-tree/history.html](https://prajay-patel.github.io/bhakta-family-tree/history.html)
 
 ---
 
 ## Questions or corrections
 
-If you notice an error, a missing person, or a misplaced relationship, contact the curator at **[bhakta.family.tree@gmail.com]** or use the "Add / update info" button on any person's detail panel in the viewer.
-
----
+Contact the tree curator at **bhakta.family.tree@gmail.com** or use the
+"Add / update info" button on any person's detail panel in the viewer.
 
 ---
 
@@ -59,10 +74,12 @@ If you notice an error, a missing person, or a misplaced relationship, contact t
 The code in this repository is released under the [MIT License](LICENSE).
 
 Family data submitted through this form is stored privately in the curator's
-Google Sheet and is not included in this repository at any point.
+Google Sheet and is not included in this repository at any point. The tree
+data visible in the viewer is encoded before being committed here.
 
 See the [Privacy Notice](PRIVACY.md) for full details on what is collected,
-how it is stored, and your rights regarding your information — including how
-to request access, correction, or deletion of anything you have submitted.
+how it is stored, and your rights — including how to request access,
+correction, or deletion of anything you have submitted.
 
-*This project uses a GitHub Pages form connected to a private Google Sheet. No family data is stored in this public repository.*
+*This project uses GitHub Pages, a private Google Sheet, and a local Python
+pipeline. No raw family data is stored in this public repository.*

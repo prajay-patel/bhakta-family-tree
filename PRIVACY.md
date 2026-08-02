@@ -1,6 +1,6 @@
 # Privacy Notice
 
-*Last updated: 2025*
+*Last updated: 2026*
 
 This notice explains what information is collected when you use this form,
 how it is stored, who can see it, and what your rights are.
@@ -9,7 +9,7 @@ how it is stored, who can see it, and what your rights are.
 
 ## Who is the data controller
 
-This family tree project is run by **[Your Name]**, reachable at
+This family tree project is run by Prajay Patel, reachable at
 **[bhakta.family.tree@gmail.com]**. There is no company or organisation involved —
 this is a personal project for family use.
 
@@ -53,7 +53,7 @@ Google Sheet described above.
 
 ## Who can see your information
 
-Only the tree curator (**[Your Name]**) can access the raw submissions.
+Only the tree curator (Prajay Patel) can access the raw submissions.
 
 The processed family tree — which shows names, approximate dates, and
 relationships — may be shared with other family members via the viewer page
