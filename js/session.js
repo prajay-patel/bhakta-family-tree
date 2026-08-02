@@ -119,6 +119,7 @@ function setMode(mode) {
   document.getElementById('pill-self').classList.toggle('active', mode === 'self');
   document.getElementById('pill-proxy').classList.toggle('active', mode === 'proxy');
   document.getElementById('proxy-panel').hidden = mode !== 'proxy';
+  document.getElementById('self-submit-panel').hidden = mode !== 'self';
 }
 
 function startSession() {
@@ -128,8 +129,10 @@ function startSession() {
   if (!last)  { err('anchorLastErr','Required');  document.getElementById('anchorLast').classList.add('invalid');  ok=false; }
   if (!ok) return;
   clearErr('anchorFirstErr'); clearErr('anchorLastErr');
+
   session.submitterName  = `${first} ${last}`.trim();
   session.submitterEmail = v('anchorEmail');
+
   if (session.mode === 'proxy') {
     session.anchor.firstName = v('proxyFirst') || first;
     session.anchor.lastName  = v('proxyLast')  || last;
@@ -137,9 +140,24 @@ function startSession() {
     session.anchor.firstName = first;
     session.anchor.lastName  = last;
   }
+
+  const addSelf = session.mode === 'self'
+    && document.getElementById('addSelfToTree')?.checked;
+
   refreshSessionUI();
-  showPhase('phase-session');
   saveDraft();
+
+  if (addSelf) {
+    // Open the person form pre-filled with the submitter's own name,
+    // with no relationship term (they are the reference point, not a relative)
+    openPersonForm(null, {
+      firstName: first,
+      lastName:  last,
+      isSelf:    true,
+    });
+  } else {
+    showPhase('phase-session');
+  }
 }
 
 // ── Phase 1 ───────────────────────────────────────────────────
@@ -185,6 +203,7 @@ function refreshSessionUI() {
 
 function chipRelLabel(p) {
   if (p.isStub) return 'stub';
+  if (p.isSelf) return 'you';
   if (p.relationKey && RELATION_MAP[p.relationKey]) return RELATION_MAP[p.relationKey].terms[0];
   return p.customRelation || '—';
 }
@@ -233,19 +252,43 @@ function addStubPerson() {
 }
 
 // ── Phase 2: Person form ──────────────────────────────────────
-function openPersonForm(editIndex = null) {
+function openPersonForm(editIndex = null, prefill = null) {
   selectedRelKey = null; spouseCount = 0; childCount = 0;
   clearPersonForm();
+
   session.currentPerson = editIndex !== null
     ? { ...session.people[editIndex], _editIndex: editIndex }
     : { _editIndex: null };
-  if (editIndex !== null) prefillPersonForm(session.currentPerson);
+
+  if (editIndex !== null) {
+    prefillPersonForm(session.currentPerson);
+  } else if (prefill) {
+    // Pre-fill from explicit data (e.g. self-submit)
+    const set = (id, val) => { const el = document.getElementById(id); if (el && val) el.value = val; };
+    set('pFirst', prefill.firstName);
+    set('pLast',  prefill.lastName);
+    set('pAlias', prefill.alias);
+  }
+
   const anchorFull = `${session.anchor.firstName} ${session.anchor.lastName}`.trim();
   document.getElementById('relAnchorName').textContent = anchorFull;
+
+  // For self-submit, update the sub-1 label to reflect that no relation term is needed
+  const isSelf = prefill?.isSelf || false;
   document.getElementById('personEyebrow').textContent =
-    editIndex !== null ? `Editing — ${displayName(session.currentPerson) || 'person'}` : 'New family member';
+    editIndex !== null
+      ? `Editing — ${displayName(session.currentPerson) || 'person'}`
+      : isSelf ? 'About you' : 'New family member';
+  document.getElementById('personTitle').textContent =
+    isSelf ? 'Your own details' : 'About this person';
+
+  // For self-submit, skip the relationship sub-section and go straight to identity
   buildRelPickers();
-  showSubSection(1);
+  showSubSection(isSelf ? 2 : 1);
+
+  // Store isSelf flag on currentPerson for collectPerson to use
+  session.currentPerson._isSelf = isSelf;
+
   showPhase('phase-person');
 }
 
@@ -493,13 +536,17 @@ function collectPerson() {
     .map((el,i) => ({ name: el.value.trim()||null, dob: document.querySelectorAll('[name="childDOB[]"]')[i]?.value.trim()||null }))
     .filter(c => c.name || c.dob);
   const rel = RELATION_MAP[selectedRelKey];
+  const isSelf = session.currentPerson?._isSelf || false;
   return {
     firstName: v('pFirst')||null, alias: v('pAlias')||null,
     middleName: v('pMiddle')||null, lastName: v('pLast')||null,
     maidenName: v('pMaiden')||null, gotra: v('pGotra')||null,
     gender: v('pGender')||null,
-    relationKey: selectedRelKey||null, customRelation: v('customRelation')||null,
-    relationBranch: rel?.branch||null, relationGeneration: rel?.generation??null,
+    relationKey: isSelf ? 'self' : (selectedRelKey||null),
+    customRelation: isSelf ? 'Self' : (v('customRelation')||null),
+    relationBranch: isSelf ? 'direct' : (rel?.branch||null),
+    relationGeneration: isSelf ? 0 : (rel?.generation??null),
+    isSelf,
     anchorFirstName: session.anchor.firstName, anchorLastName: session.anchor.lastName,
     anchorNodeHint: session.anchor.nodeHint||null,
     dob: document.getElementById('dobUnknown')?.checked ? null : buildDate(v('dobDay'),v('dobMonth'),v('dobYear'))||null,
@@ -617,6 +664,8 @@ function startOver() {
   session.people=[]; session.currentPerson=null;
   session.submitterName=''; session.submitterEmail='';
   session.anchor={firstName:'',lastName:'',nodeHint:null};
+  const cb = document.getElementById('addSelfToTree');
+  if (cb) cb.checked = true;
   clearDraft(); showPhase('phase-anchor');
 }
 
