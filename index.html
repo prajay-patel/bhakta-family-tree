@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>Family Tree — Add Members</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600&family=Inter:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="css/style.css"/>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="header-inner">
+    <div class="tree-glyph" aria-hidden="true">❧</div>
+    <div class="header-text">
+      <h1>Our Family Tree</h1>
+      <p class="header-sub">Add what you know — every detail helps, nothing is required.</p>
+    </div>
+    <button class="btn-lang" id="langToggle" onclick="toggleLang()" title="Switch to Gujarati" aria-label="Switch language">ગુ / EN</button>
+  </div>
+</header>
+
+<!-- Draft restore banner -->
+<div id="draftBanner" class="draft-banner" hidden>
+  <span id="draftMsg">You have a saved session from earlier.</span>
+  <div class="draft-actions">
+    <button class="btn-draft-restore" onclick="restoreDraft()">Resume it</button>
+    <button class="btn-draft-discard" onclick="discardDraft()">Start fresh</button>
+  </div>
+</div>
+
+<main>
+<div class="form-shell">
+
+  <!-- ══ PHASE 0: Anchor ══════════════════════════════════════ -->
+  <div id="phase-anchor" class="phase active">
+    <div class="phase-header">
+      <div class="phase-eyebrow" data-en="Before you start" data-gu="શરૂ કરતા પહેલા">Before you start</div>
+      <h2 class="phase-title" data-en="Tell us who you are" data-gu="તમારી ઓળખ આપો">Tell us who you are</h2>
+      <p class="phase-desc" data-en="This anchors all the relationships you'll add. You can enter as many family members as you like in one session." data-gu="તમે ઉમેરો એ સૌ સંબંધોનો આધાર આ છે. એક સત્રમાં ઘણા સભ્યો ઉમેરી શકો છો.">This anchors all the relationships you'll add. You can enter as many family members as you like in one session.</p>
+    </div>
+
+    <div class="anchor-card">
+      <div class="field-row">
+        <div class="field-group">
+          <label for="anchorFirst"><span data-en="Your first name" data-gu="તમારું પ્રથમ નામ">Your first name</span> <span class="req">*</span></label>
+          <input type="text" id="anchorFirst" autocomplete="given-name"/>
+          <span class="field-error" id="anchorFirstErr"></span>
+        </div>
+        <div class="field-group">
+          <label for="anchorLast"><span data-en="Your last name" data-gu="અટક">Your last name</span> <span class="req">*</span></label>
+          <input type="text" id="anchorLast" autocomplete="family-name"/>
+          <span class="field-error" id="anchorLastErr"></span>
+        </div>
+      </div>
+      <div class="field-group">
+        <label for="anchorEmail"><span data-en="Your email" data-gu="તમારું ઈ-મેઈલ">Your email</span> <span class="hint-label" data-en="(for confirmation)" data-gu="(પુષ્ટિ માટે)">(for confirmation)</span></label>
+        <input type="email" id="anchorEmail" autocomplete="email"/>
+      </div>
+
+      <div class="mode-toggle">
+        <p class="toggle-label" data-en="Are you adding info about yourself and your relatives?" data-gu="શું તમે તમારા પોતાના અને સ્વજનો વિશે માહિતી ઉમેરી રહ્યા છો?">Are you adding info about yourself and your relatives?</p>
+        <div class="mode-pills">
+          <button class="mode-pill active" id="pill-self" onclick="setMode('self')" data-en="Yes — I'm the reference point" data-gu="હા — હું સંદર્ભ છું">Yes — I'm the reference point</button>
+          <button class="mode-pill" id="pill-proxy" onclick="setMode('proxy')" data-en="No — entering for someone else" data-gu="ના — બીજા વ્યક્તિ માટે ભરું છું">No — entering for someone else</button>
+        </div>
+      </div>
+
+      <div id="proxy-panel" hidden>
+        <p class="proxy-hint" data-en="Who are you entering info on behalf of? Their name becomes the relationship reference point." data-gu="તમે કોના વતી માહિતી ભરી રહ્યા છો? તેઓ સંબંધ-સંદર્ભ બનશે.">Who are you entering info on behalf of? Their name becomes the relationship reference point.</p>
+        <div class="field-row">
+          <div class="field-group">
+            <label for="proxyFirst" data-en="Their first name" data-gu="તેઓનું નામ">Their first name</label>
+            <input type="text" id="proxyFirst"/>
+          </div>
+          <div class="field-group">
+            <label for="proxyLast" data-en="Their last name" data-gu="તેઓની અટક">Their last name</label>
+            <input type="text" id="proxyLast"/>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="phase-nav">
+      <div></div>
+      <button class="btn-primary" onclick="startSession()" data-en="Start adding members →" data-gu="સભ્યો ઉમેરવા શરૂ કરો →">Start adding members →</button>
+    </div>
+  </div>
+
+  <!-- ══ PHASE 1: Session dashboard ═══════════════════════════ -->
+  <div id="phase-session" class="phase" hidden>
+    <div class="session-header">
+      <div>
+        <div class="phase-eyebrow" data-en="Session in progress" data-gu="સત્ર ચાલુ છે">Session in progress</div>
+        <h2 class="phase-title" id="sessionTitle">Adding relatives of…</h2>
+      </div>
+      <div class="session-header-actions">
+        <button class="btn-ghost btn-sm" onclick="shiftAnchor()" data-en="Change reference" data-gu="સંદર્ભ બદલો">Change reference</button>
+      </div>
+    </div>
+
+    <div id="addedTray" class="added-tray" hidden>
+      <div class="tray-label" data-en="Added this session" data-gu="આ સત્રમાં ઉમેર્યા">Added this session</div>
+      <div id="addedList" class="added-list"></div>
+    </div>
+
+    <!-- Quick stub add -->
+    <div class="stub-quick" id="stubQuickArea">
+      <details class="stub-details">
+        <summary class="stub-summary" data-en="Know someone exists but don't have their details yet?" data-gu="કોઈ છે એ ખ્યાલ છે, પણ વિગત ખબર નથી?">Know someone exists but don't have their details yet?</summary>
+        <div class="stub-body">
+          <p class="stub-hint" data-en="Add a placeholder — other relatives can fill in their details later." data-gu="પ્લેસહોલ્ડર ઉમેરો — બીજા સ્વજન પછી વિગત ભરશે.">Add a placeholder — other relatives can fill in their details later.</p>
+          <div class="stub-row">
+            <div class="field-group" style="flex:1;margin:0">
+              <label data-en="Name (if known)" data-gu="નામ (ખ્યાલ હોય તો)">Name (if known)</label>
+              <input type="text" id="stubName" placeholder="e.g. Dada's brother (name unknown)"/>
+            </div>
+            <div class="field-group" style="flex:1;margin:0">
+              <label data-en="Their relation to you" data-gu="તમારી સાથે સંબંધ">Their relation to you</label>
+              <select id="stubRelKey">
+                <option value="">— select —</option>
+              </select>
+            </div>
+            <button class="btn-secondary btn-sm" onclick="addStubPerson()" data-en="Add stub" data-gu="ઉમેરો">Add stub</button>
+          </div>
+        </div>
+      </details>
+    </div>
+
+    <div class="add-prompt">
+      <p class="add-prompt-text" id="addPromptText" data-en="Who would you like to add?" data-gu="કોને ઉમેરવા છે?">Who would you like to add?</p>
+      <button class="btn-add-person" onclick="openPersonForm()">
+        + <span data-en="Add a family member" data-gu="સ્વજન ઉમેરો">Add a family member</span>
+      </button>
+    </div>
+
+    <div class="phase-nav">
+      <button class="btn-ghost" onclick="showPhase('phase-anchor')" data-en="← Back" data-gu="← પાછળ">← Back</button>
+      <button class="btn-primary" id="finishBtn" onclick="finishSession()" disabled>
+        <span data-en="Submit all" data-gu="બધું સબમિટ કરો">Submit all</span> <span id="submitCount"></span>
+      </button>
+    </div>
+  </div>
+
+  <!-- ══ PHASE 2: Person form ══════════════════════════════════ -->
+  <div id="phase-person" class="phase" hidden>
+    <div class="person-form-header">
+      <button class="btn-ghost btn-sm back-btn" onclick="cancelPersonForm()">← <span data-en="Back to session" data-gu="સત્ર પર પાછા">Back to session</span></button>
+      <div class="phase-eyebrow" id="personEyebrow">New family member</div>
+      <h2 class="phase-title" id="personTitle" data-en="About this person" data-gu="આ વ્યક્તિ વિશે">About this person</h2>
+    </div>
+
+    <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+
+    <form id="personForm" novalidate>
+
+      <!-- Sub 1: Relationship -->
+      <div class="sub" id="sub-1">
+        <div class="sub-label">
+          <span data-en="Relationship to" data-gu="સંબંધ">Relationship to</span>
+          <span class="anchor-inline" id="relAnchorName"></span>
+        </div>
+        <p class="sub-hint" data-en="Pick the term you'd call them. We'll infer their gender, branch, and generation automatically." data-gu="તેઓને તમે કઈ રીતે બોલાવો? ઓળખ આપમેળે ભરાઈ જશે.">Pick the term you'd call them. We'll infer their gender, branch, and generation automatically.</p>
+
+        <!-- Fast-path top 6 -->
+        <div class="rel-fastpath" id="relFastPath"></div>
+        <button type="button" class="btn-show-more" id="showMoreBtn" onclick="toggleRelGrid()">
+          <span id="showMoreLabel" data-en="Show all relationships ▾" data-gu="બધા સંબંધ દર્શાવો ▾">Show all relationships ▾</span>
+        </button>
+        <div class="rel-grid-full" id="relGridFull" hidden></div>
+
+        <div class="field-group" style="margin-top:.9rem">
+          <label for="customRelation" data-en="Or describe in your own words" data-gu="અથવા પોતાના શબ્દોમાં વર્ણવો">Or describe in your own words</label>
+          <input type="text" id="customRelation" placeholder="e.g. step-sister, half-brother, Mama-ji's wife…"/>
+        </div>
+
+        <div class="inferred-box" id="inferredBox" hidden>
+          <span class="inferred-icon">ℹ</span>
+          <span id="inferredText"></span>
+        </div>
+
+        <div class="sub-nav"><div></div><button type="button" class="btn-primary" onclick="nextSub(1)"><span data-en="Continue →" data-gu="આગળ →">Continue →</span></button></div>
+      </div>
+
+      <!-- Sub 2: Identity -->
+      <div class="sub" id="sub-2">
+        <div class="sub-label" data-en="Their name" data-gu="નામ">Their name</div>
+
+        <div class="field-row">
+          <div class="field-group">
+            <label for="pFirst"><span data-en="First name" data-gu="પ્રથમ નામ">First name</span> <span class="req">*</span></label>
+            <input type="text" id="pFirst" autocomplete="off"/>
+            <span class="field-error" id="pFirstErr"></span>
+          </div>
+          <div class="field-group">
+            <label for="pAlias" data-en="Also known as / home name" data-gu="ઘરનું નામ / ઉપનામ">Also known as / home name</label>
+            <input type="text" id="pAlias" placeholder="e.g. Ramaben, Kantu, Bobby" autocomplete="off"/>
+            <span class="field-hint" data-en="Bhai / Ben suffixes are honorifics — don't include them here" data-gu="ભાઈ / બેન પ્રત્યયો ઉપાધિ છે — અહીં ન ઉમેરો">Bhai / Ben suffixes are honorifics — don't include them in the first name field</span>
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field-group">
+            <label for="pMiddle" data-en="Middle name" data-gu="મધ્ય નામ">Middle name</label>
+            <input type="text" id="pMiddle" autocomplete="off"/>
+          </div>
+          <div class="field-group">
+            <label for="pLast" data-en="Last name / surname" data-gu="અટક">Last name / surname</label>
+            <input type="text" id="pLast" autocomplete="off"/>
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field-group">
+            <label for="pMaiden" data-en="Maiden / birth name" data-gu="જન્મ નામ / કુંવારીવ્હારનું નામ">Maiden / birth name</label>
+            <input type="text" id="pMaiden" placeholder="If different" autocomplete="off"/>
+          </div>
+          <div class="field-group">
+            <label for="pGotra" data-en="Gotra" data-gu="ગોત્ર">Gotra</label>
+            <input type="text" id="pGotra" placeholder="e.g. Kashyap, Vasishtha, Bharadwaj" autocomplete="off" list="gotra-list"/>
+            <datalist id="gotra-list">
+              <option value="Kashyap"/><option value="Vasishtha"/><option value="Bharadwaj"/>
+              <option value="Atri"/><option value="Vishwamitra"/><option value="Jamadagni"/>
+              <option value="Gautama"/><option value="Agastya"/><option value="Gargya"/>
+              <option value="Kaundinya"/><option value="Shrivatsa"/><option value="Sandilya"/>
+              <option value="Mudgala"/><option value="Shandilya"/><option value="Kapila"/>
+            </datalist>
+            <span class="field-hint" data-en="Patrilineal clan — a strong identifier. Different gotras = definitely different families." data-gu="પિત્રૃ-વંશ — ગોત્ર ભિન્ન હોય તો ચોક્કસ ભિન્ન કુટુંબ.">Patrilineal clan — different gotras = definitely different families.</span>
+          </div>
+        </div>
+        <div class="field-group">
+          <label for="pGender" data-en="Gender" data-gu="જાતિ">Gender</label>
+          <select id="pGender">
+            <option value="" data-en="— unknown / prefer not to say —" data-gu="— અજ્ઞાત / જણાવવા ઈચ્છતા નથી —">— unknown / prefer not to say —</option>
+            <option value="female" data-en="Female" data-gu="સ્ત્રી">Female</option>
+            <option value="male" data-en="Male" data-gu="પુરુષ">Male</option>
+            <option value="nonbinary">Non-binary</option>
+            <option value="other" data-en="Other" data-gu="અન્ય">Other</option>
+          </select>
+        </div>
+
+        <div class="sub-nav">
+          <button type="button" class="btn-ghost" onclick="prevSub(2)">←</button>
+          <button type="button" class="btn-primary" onclick="nextSub(2)"><span data-en="Continue →" data-gu="આગળ →">Continue →</span></button>
+        </div>
+      </div>
+
+      <!-- Sub 3: Dates & places -->
+      <div class="sub" id="sub-3">
+        <div class="sub-label" data-en="Dates &amp; places" data-gu="તારીખ અને સ્થળ">Dates &amp; places</div>
+        <p class="sub-hint" data-en="Fill in whatever you know — a year alone is fine. Use the 'unknown' checkbox if the date genuinely isn't known." data-gu="જે ખ્યાલ હોય તે ભરો — માત્ર વર્ષ પૂરતું છે.">Fill in whatever you know — a year alone is fine.</p>
+
+        <fieldset class="date-fieldset">
+          <legend data-en="Birth" data-gu="જન્મ">Birth</legend>
+          <div class="unknown-row">
+            <label class="unknown-check">
+              <input type="checkbox" id="dobUnknown" onchange="toggleDOBUnknown(this)"/>
+              <span data-en="Date of birth unknown" data-gu="જન્મ તારીખ અજ્ઞાત">Date of birth unknown</span>
+            </label>
+          </div>
+          <div id="dobFields">
+            <div class="field-row triple">
+              <div class="field-group">
+                <label for="dobDay" data-en="Day" data-gu="દિ.">Day</label>
+                <input type="number" id="dobDay" min="1" max="31" placeholder="DD"/>
+              </div>
+              <div class="field-group">
+                <label for="dobMonth" data-en="Month" data-gu="મહિનો">Month</label>
+                <select id="dobMonth">
+                  <option value="">Month</option>
+                  <option value="01">January</option><option value="02">February</option>
+                  <option value="03">March</option><option value="04">April</option>
+                  <option value="05">May</option><option value="06">June</option>
+                  <option value="07">July</option><option value="08">August</option>
+                  <option value="09">September</option><option value="10">October</option>
+                  <option value="11">November</option><option value="12">December</option>
+                </select>
+              </div>
+              <div class="field-group">
+                <label for="dobYear" data-en="Year" data-gu="વર્ષ">Year</label>
+                <input type="number" id="dobYear" min="1800" max="2025" placeholder="YYYY"/>
+              </div>
+            </div>
+            <div class="field-row" style="margin-top:.5rem">
+              <div class="field-group">
+                <label for="approxAge" data-en="— or approximate current age" data-gu="— અથવા આશરે વર્તમાન ઉંમર">— or approximate current age</label>
+                <input type="number" id="approxAge" min="0" max="130" placeholder="e.g. 72"/>
+              </div>
+              <div class="field-group">
+                <label for="birthPlace" data-en="Place of birth" data-gu="જન્મ સ્થળ">Place of birth</label>
+                <input type="text" id="birthPlace" placeholder="City, Country"/>
+              </div>
+            </div>
+            <div class="field-row" style="margin-top:.5rem">
+              <div class="field-group">
+                <label for="villageOrigin" data-en="Village / ancestral origin" data-gu="ગ્રામ / મૂળ સ્થળ">Village / ancestral origin</label>
+                <input type="text" id="villageOrigin" placeholder="e.g. Chikhli, Bardoli…" autocomplete="off"/>
+                <span id="villageOrigin-hint" class="village-hint" hidden></span>
+              </div>
+              <div class="field-group">
+                <label for="countryEmigrated" data-en="Country emigrated to (if applicable)" data-gu="સ્થળાંતર દેશ (લાગુ હોય તો)">Country emigrated to</label>
+                <input type="text" id="countryEmigrated" placeholder="e.g. Kenya, UK, Canada"/>
+              </div>
+            </div>
+          </div>
+        </fieldset>
+
+        <fieldset class="date-fieldset">
+          <legend data-en="Death" data-gu="અવસાન">Death <span class="legend-hint" data-en="(leave blank if living)" data-gu="(જીવિત હોય તો ખાલી છોડો)">(leave blank if living)</span></legend>
+          <div class="unknown-row">
+            <label class="unknown-check">
+              <input type="checkbox" id="dodUnknown" onchange="toggleDODUnknown(this)"/>
+              <span data-en="Deceased but date unknown" data-gu="અવસાન થયું, પરંતુ તારીખ અજ્ઞાત">Deceased but date unknown</span>
+            </label>
+          </div>
+          <div id="dodFields">
+            <div class="field-row triple">
+              <div class="field-group">
+                <label for="dodDay" data-en="Day" data-gu="દિ.">Day</label>
+                <input type="number" id="dodDay" min="1" max="31" placeholder="DD"/>
+              </div>
+              <div class="field-group">
+                <label for="dodMonth" data-en="Month" data-gu="મહિનો">Month</label>
+                <select id="dodMonth">
+                  <option value="">Month</option>
+                  <option value="01">January</option><option value="02">February</option>
+                  <option value="03">March</option><option value="04">April</option>
+                  <option value="05">May</option><option value="06">June</option>
+                  <option value="07">July</option><option value="08">August</option>
+                  <option value="09">September</option><option value="10">October</option>
+                  <option value="11">November</option><option value="12">December</option>
+                </select>
+              </div>
+              <div class="field-group">
+                <label for="dodYear" data-en="Year" data-gu="વર્ષ">Year</label>
+                <input type="number" id="dodYear" min="1800" max="2025" placeholder="YYYY"/>
+              </div>
+            </div>
+          </div>
+        </fieldset>
+
+        <div class="sub-nav">
+          <button type="button" class="btn-ghost" onclick="prevSub(3)">←</button>
+          <button type="button" class="btn-primary" onclick="nextSub(3)"><span data-en="Continue →" data-gu="આગળ →">Continue →</span></button>
+        </div>
+      </div>
+
+      <!-- Sub 4: Their family -->
+      <div class="sub" id="sub-4">
+        <div class="sub-label" data-en="Their immediate family" data-gu="તેઓના તાત્કાલિક કુટુંબ">Their immediate family</div>
+        <p class="sub-hint" data-en="Add what you know about their spouse or children — helps us connect branches." data-gu="તેઓના જીવનસાથી અને બાળકો વિશે ખ્યાલ હોય તે ઉમેરો.">Add what you know about their spouse or children — connects branches.</p>
+
+        <fieldset class="rel-fieldset">
+          <legend data-en="Spouse(s) / partner(s)" data-gu="જીવનસાથી">Spouse(s) / partner(s)</legend>
+          <div id="spouseList"></div>
+          <button type="button" class="btn-add-rel" onclick="addSpouse()">+ <span data-en="Add spouse" data-gu="ઉમેરો">Add spouse</span></button>
+        </fieldset>
+
+        <fieldset class="rel-fieldset">
+          <legend data-en="Children" data-gu="બાળકો">Children</legend>
+          <div id="childList"></div>
+          <button type="button" class="btn-add-rel" onclick="addChild()">+ <span data-en="Add child" data-gu="ઉમેરો">Add child</span></button>
+        </fieldset>
+
+        <fieldset class="rel-fieldset">
+          <legend data-en="Parents (if known)" data-gu="માતા-પિતા (ખ્યાલ હોય તો)">Parents (if known)</legend>
+          <div class="field-row">
+            <div class="field-group">
+              <label for="parent1Name" data-en="Parent 1 name" data-gu="માતા/પિતા ૧ નામ">Parent 1 name</label>
+              <input type="text" id="parent1Name" placeholder="Full name"/>
+            </div>
+            <div class="field-group">
+              <label for="parent1DOB" data-en="Birth year" data-gu="જન્મ વર્ષ">Birth year</label>
+              <input type="number" id="parent1DOB" min="1800" max="2010" placeholder="YYYY"/>
+            </div>
+          </div>
+          <div class="field-row">
+            <div class="field-group">
+              <label for="parent2Name" data-en="Parent 2 name" data-gu="માતા/પિતા ૨ નામ">Parent 2 name</label>
+              <input type="text" id="parent2Name" placeholder="Full name"/>
+            </div>
+            <div class="field-group">
+              <label for="parent2DOB" data-en="Birth year" data-gu="જન્મ વર્ષ">Birth year</label>
+              <input type="number" id="parent2DOB" min="1800" max="2010" placeholder="YYYY"/>
+            </div>
+          </div>
+        </fieldset>
+
+        <div class="sub-nav">
+          <button type="button" class="btn-ghost" onclick="prevSub(4)">←</button>
+          <button type="button" class="btn-primary" onclick="nextSub(4)"><span data-en="Continue →" data-gu="આગળ →">Continue →</span></button>
+        </div>
+      </div>
+
+      <!-- Sub 5: Review & save -->
+      <div class="sub" id="sub-5">
+        <div class="sub-label" data-en="Review &amp; save" data-gu="ચકાસો અને સેવ કરો">Review &amp; save</div>
+
+        <div class="field-group">
+          <label for="pNotes" data-en="Notes, stories, nicknames, occupation…" data-gu="નોંધ, વાર્તા, ઉપનામ, વ્યવસાય…">Notes, stories, nicknames, occupation…</label>
+          <textarea id="pNotes" rows="3" placeholder="Anything extra you remember…"></textarea>
+        </div>
+
+        <div class="person-summary" id="personSummary"></div>
+
+        <div class="sub-nav save-nav">
+          <button type="button" class="btn-ghost" onclick="prevSub(5)">←</button>
+          <div class="save-btns">
+            <button type="button" class="btn-secondary" onclick="saveAndAnother()"><span data-en="Save &amp; add another" data-gu="સેવ કરો અને બીજું ઉમેરો">Save &amp; add another</span></button>
+            <button type="button" class="btn-primary" onclick="saveAndReturn()"><span data-en="Save &amp; return" data-gu="સેવ કરો અને પાછળ">Save &amp; return</span></button>
+          </div>
+        </div>
+      </div>
+
+    </form>
+  </div>
+
+  <!-- ══ PHASE 3: Shift anchor ═════════════════════════════════ -->
+  <div id="phase-shift" class="phase" hidden>
+    <div class="phase-header">
+      <div class="phase-eyebrow" data-en="Change reference person" data-gu="સંદર્ભ વ્યક્તિ બદલો">Change reference person</div>
+      <h2 class="phase-title" data-en="Whose relatives are you adding next?" data-gu="હવે કોના સ્વજન ઉમેરો છો?">Whose relatives are you adding next?</h2>
+    </div>
+    <div id="shiftList" class="shift-list"></div>
+    <div class="shift-or" data-en="or type a new name" data-gu="અથવા નવું નામ ટાઈપ કરો">or type a new name</div>
+    <div class="field-row">
+      <div class="field-group">
+        <label for="shiftFirst" data-en="First name" data-gu="પ્રથમ નામ">First name</label>
+        <input type="text" id="shiftFirst"/>
+      </div>
+      <div class="field-group">
+        <label for="shiftLast" data-en="Last name" data-gu="અટક">Last name</label>
+        <input type="text" id="shiftLast"/>
+      </div>
+    </div>
+    <div class="phase-nav">
+      <button class="btn-ghost" onclick="showPhase('phase-session')"><span data-en="← Cancel" data-gu="← રદ">← Cancel</span></button>
+      <button class="btn-primary" onclick="confirmShift()"><span data-en="Use this person →" data-gu="આ વ્યક્તિ વાપરો →">Use this person →</span></button>
+    </div>
+  </div>
+
+  <!-- ══ PHASE 4: Submitting ═══════════════════════════════════ -->
+  <div id="phase-submitting" class="phase" hidden>
+    <div class="submitting-inner">
+      <div class="spinner"></div>
+      <p id="submittingMsg">Sending entries…</p>
+    </div>
+  </div>
+
+  <!-- ══ PHASE 5: Success ══════════════════════════════════════ -->
+  <div id="phase-success" class="phase" hidden>
+    <div class="success-panel">
+      <div class="success-glyph">✦</div>
+      <h2 data-en="Added to the tree" data-gu="ઝાડ સાથે જોડ્યા">Added to the tree</h2>
+      <p id="successMsg"></p>
+      <button class="btn-primary" onclick="startOver()" data-en="Start a new session" data-gu="નવું સત્ર શરૂ કરો">Start a new session</button>
+    </div>
+  </div>
+
+</div><!-- /form-shell -->
+</main>
+
+<script src="js/relations.js"></script>
+<script src="js/villages.js"></script>
+<script src="js/storage.js"></script>
+<script src="js/session.js"></script>
+
+<footer class="site-footer">
+  <p>Your information is stored privately and used only for this family tree.
+  <a href="PRIVACY.md" target="_blank" rel="noopener">Privacy notice</a> ·
+  <a href="mailto:your-email@example.com">Contact curator</a></p>
+</footer>
+
+</body>
+</html>

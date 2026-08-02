@@ -1,6 +1,6 @@
 MIT License
 
-Copyright (c) 2026 Prajay Patel, Ph.D.
+Copyright (c) 2025 [Your Name]
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -19,3 +19,32 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+
+---
+
+Third-party components used in this project:
+
+D3.js (https://d3js.org)
+  License: ISC
+  Copyright 2010-2023 Mike Bostock
+
+Dagre (https://github.com/dagrejs/dagre)
+  License: MIT
+  Copyright 2012-2014 Chris Pettitt
+
+Google Fonts — Playfair Display, Inter
+  License: SIL Open Font License 1.1
+  These fonts are loaded from Google's CDN and subject to Google's terms of service.
+
+Python packages (gspread, networkx, thefuzz, et al.)
+  Each package retains its own license. See each package's repository for details.
+  All packages used are MIT, BSD, or Apache 2.0 licensed.
+
+---
+
+Note on family data:
+
+This repository contains only code and form structure. No personal family data
+(names, dates, places, relationships) is stored in this repository at any point.
+All submitted family information is routed directly to a private Google Sheet
+controlled by the project curator and is subject to the project's Privacy Notice.

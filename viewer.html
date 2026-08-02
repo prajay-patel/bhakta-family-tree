@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=5"/>
+<title>Family Tree — Viewer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&family=Inter:wght@400;500&display=swap" rel="stylesheet"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/dagre/0.8.5/dagre.min.js"></script>
+<style>
+:root{--forest:#2D4A3E;--forest-l:#3D6254;--rust:#8B3A2A;--gold:#C8973A;
+  --parchment:#F5EFE0;--parchment-d:#E8DFC8;--ink:#1C1A14;--ink-soft:#4A4438;
+  --mist:#A8B8A0;--radius:6px;--t:.15s ease}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden;font-family:'Inter',sans-serif;font-size:14px;color:var(--ink);background:var(--parchment)}
+
+/* Top bar */
+.topbar{height:54px;background:var(--forest);display:flex;align-items:center;gap:.6rem;padding:0 1rem;flex-shrink:0;position:relative;z-index:20}
+.topbar-title{font-family:'Playfair Display',serif;font-size:1.1rem;color:var(--parchment);flex-shrink:0}
+.topbar-sep{width:1px;height:22px;background:rgba(255,255,255,.2);flex-shrink:0}
+.search-wrap{position:relative;flex:0 0 200px}
+.search-wrap input{width:100%;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);border-radius:var(--radius);color:var(--parchment);font-size:.82rem;padding:.3rem .7rem .3rem 1.8rem;outline:none}
+.search-wrap input::placeholder{color:rgba(255,255,255,.5)}
+.search-wrap input:focus{background:rgba(255,255,255,.2)}
+.search-icon{position:absolute;left:.5rem;top:50%;transform:translateY(-50%);font-size:.85rem;color:rgba(255,255,255,.6);pointer-events:none}
+.tb-btn{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);color:var(--parchment);border-radius:var(--radius);padding:.28rem .7rem;font-size:.78rem;cursor:pointer;white-space:nowrap;transition:background var(--t)}
+.tb-btn:hover{background:rgba(255,255,255,.2)}
+.tb-btn.active{background:rgba(200,151,58,.35);border-color:var(--gold)}
+.tb-spacer{flex:1}
+.gen-label{font-size:.75rem;color:var(--mist);white-space:nowrap}
+#genSlider{width:90px;accent-color:var(--gold)}
+.add-link{font-size:.78rem;color:var(--gold);text-decoration:none;white-space:nowrap}
+.add-link:hover{text-decoration:underline}
+
+/* Canvas */
+#canvas{width:100%;height:calc(100vh - 54px);overflow:hidden;cursor:grab;touch-action:none;position:relative}
+#canvas.grabbing{cursor:grabbing}
+svg#tree{width:100%;height:100%;display:block}
+
+/* Node styles */
+.node-g{cursor:pointer}
+.node-g rect{rx:7;stroke-width:.8}
+.node-g.confirmed rect{fill:#fff;stroke:var(--forest)}
+.node-g.stub rect{fill:var(--parchment);stroke:#aaa;stroke-dasharray:5 3}
+.node-g.deceased rect{fill:var(--parchment-d);stroke:var(--rust)}
+.node-g.focused rect{stroke:var(--gold);stroke-width:2}
+.node-g.dimmed{opacity:.2}
+.node-name{font-family:'Inter',sans-serif;font-size:11.5px;font-weight:500;fill:var(--ink);pointer-events:none}
+.node-sub{font-family:'Inter',sans-serif;font-size:9.5px;fill:var(--ink-soft);pointer-events:none}
+.node-stub-label{font-size:9px;fill:#aaa;font-style:italic;pointer-events:none}
+.stub-cta{font-size:8.5px;fill:var(--forest);text-decoration:underline;cursor:pointer}
+
+/* Edges */
+.edge-parent{stroke:var(--ink-soft);stroke-width:1;fill:none;opacity:.5}
+.edge-spouse{stroke:var(--gold);stroke-width:1;fill:none;stroke-dasharray:4 3;opacity:.6}
+.edge-sibling{stroke:var(--mist);stroke-width:.7;fill:none;stroke-dasharray:2 2;opacity:.5}
+.edge.dimmed{opacity:.06}
+
+/* Detail panel */
+#panel{position:absolute;top:12px;right:12px;width:220px;background:#fff;border:1px solid var(--parchment-d);border-radius:10px;padding:14px 16px;font-size:12.5px;color:var(--ink-soft);z-index:10;box-shadow:0 2px 12px rgba(0,0,0,.09);transition:opacity var(--t)}
+#panel.hidden{opacity:0;pointer-events:none}
+#panel h3{font-family:'Playfair Display',serif;font-size:15px;color:var(--ink);margin-bottom:8px;line-height:1.2}
+.pd-row{display:flex;justify-content:space-between;margin-top:5px;gap:6px}
+.pd-label{color:var(--ink-soft);white-space:nowrap}
+.pd-val{color:var(--ink);font-weight:500;text-align:right}
+.pd-badge{font-size:10px;padding:2px 7px;border-radius:10px;margin-top:6px;display:inline-block}
+.pd-stub{background:var(--parchment-d);color:var(--ink-soft)}
+.pd-deceased{background:#f5e8e6;color:var(--rust)}
+.pd-living{background:#e1f5ee;color:var(--forest)}
+#panelClose{float:right;background:none;border:none;cursor:pointer;color:var(--ink-soft);font-size:14px;line-height:1;margin:-2px -4px 0 0}
+.pd-add-btn{display:block;margin-top:10px;text-align:center;font-size:11px;color:var(--forest);border:1px dashed var(--forest);border-radius:var(--radius);padding:4px;text-decoration:none;cursor:pointer}
+.pd-add-btn:hover{background:rgba(45,74,62,.06)}
+
+/* Zoom controls */
+.zoom-btns{position:absolute;bottom:16px;right:16px;display:flex;flex-direction:column;gap:4px;z-index:10}
+.zoom-btn{width:32px;height:32px;background:#fff;border:1px solid var(--parchment-d);border-radius:var(--radius);cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;color:var(--ink-soft)}
+.zoom-btn:hover{border-color:var(--forest);color:var(--forest)}
+
+/* Legend */
+.legend{position:absolute;bottom:16px;left:16px;background:#fff;border:1px solid var(--parchment-d);border-radius:var(--radius);padding:8px 12px;font-size:11px;color:var(--ink-soft);z-index:10}
+.leg-row{display:flex;align-items:center;gap:6px;margin-top:4px}
+.leg-swatch{width:18px;height:10px;border-radius:2px}
+.leg-line{width:18px;height:0;border-bottom:2px solid}
+
+/* Toast */
+#toast{position:absolute;top:70px;left:50%;transform:translateX(-50%);background:rgba(45,74,62,.92);color:var(--parchment);padding:6px 14px;border-radius:20px;font-size:12px;z-index:30;opacity:0;transition:opacity .25s;pointer-events:none}
+#toast.show{opacity:1}
+
+/* Empty state */
+#emptyState{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;color:var(--ink-soft);text-align:center;padding:2rem}
+#emptyState h2{font-family:'Playfair Display',serif;font-size:1.5rem;color:var(--forest)}
+
+/* Mobile */
+@media(max-width:600px){
+  .topbar{flex-wrap:wrap;height:auto;padding:.5rem .7rem;gap:.4rem}
+  .topbar-title{font-size:.95rem}
+  .search-wrap{flex:1 1 140px}
+  #panel{width:calc(100vw - 24px);right:12px}
+  .gen-label,.topbar-sep{display:none}
+}
+</style>
+</head>
+<body>
+
+<!-- Top bar -->
+<div class="topbar">
+  <span class="topbar-title">❧ Family Tree</span>
+  <div class="topbar-sep"></div>
+  <div class="search-wrap">
+    <span class="search-icon">⌕</span>
+    <input type="text" id="searchInput" placeholder="Search name…" oninput="onSearch(this.value)"/>
+  </div>
+  <div class="topbar-sep"></div>
+  <button class="tb-btn active" id="btnAll"       onclick="setFilter('all',this)">All</button>
+  <button class="tb-btn"        id="btnMaternal"  onclick="setFilter('maternal',this)">Maternal</button>
+  <button class="tb-btn"        id="btnPaternal"  onclick="setFilter('paternal',this)">Paternal</button>
+  <button class="tb-btn"        id="btnInlaw"     onclick="setFilter('inlaw',this)">In-law</button>
+  <div class="topbar-sep"></div>
+  <span class="gen-label">Generations</span>
+  <input type="range" id="genSlider" min="1" max="6" value="6" oninput="onGenSlider(this.value)"/>
+  <span class="gen-label" id="genVal">All</span>
+  <div class="topbar-sep"></div>
+  <button class="tb-btn" onclick="exportPNG()">↓ PNG</button>
+  <button class="tb-btn" onclick="exportGEDCOM()">↓ GEDCOM</button>
+  <div class="tb-spacer"></div>
+  <a class="add-link" href="index.html">+ Add member</a>
+  <a class="add-link" href="PRIVACY.md" target="_blank" rel="noopener" style="opacity:.7">Privacy</a>
+</div>
+
+<!-- Canvas -->
+<div id="canvas">
+  <svg id="tree"><g id="root"></g></svg>
+  <div id="panel" class="hidden">
+    <button id="panelClose" onclick="closePanel()" aria-label="Close">✕</button>
+    <h3 id="pdName"></h3>
+    <div id="pdBadge"></div>
+    <div class="pd-row"><span class="pd-label">Born</span><span class="pd-val" id="pdBorn">—</span></div>
+    <div class="pd-row"><span class="pd-label">Died</span><span class="pd-val" id="pdDied">—</span></div>
+    <div class="pd-row"><span class="pd-label">Village</span><span class="pd-val" id="pdVillage">—</span></div>
+    <div class="pd-row"><span class="pd-label">Country</span><span class="pd-val" id="pdCountry">—</span></div>
+    <div class="pd-row"><span class="pd-label">Gotra</span><span class="pd-val" id="pdGotra">—</span></div>
+    <div class="pd-row"><span class="pd-label">Branch</span><span class="pd-val" id="pdBranch">—</span></div>
+    <div class="pd-row"><span class="pd-label">Sources</span><span class="pd-val" id="pdSources">—</span></div>
+    <a class="pd-add-btn" id="pdAddBtn" href="index.html">+ Add / update info for this person</a>
+  </div>
+  <div class="zoom-btns">
+    <button class="zoom-btn" onclick="zoomBy(1.25)" title="Zoom in">+</button>
+    <button class="zoom-btn" onclick="zoomBy(0.8)"  title="Zoom out">−</button>
+    <button class="zoom-btn" onclick="resetView()"  title="Reset">⌖</button>
+  </div>
+  <div class="legend">
+    <div class="leg-row"><div class="leg-swatch" style="background:#fff;border:1px solid var(--forest)"></div>Living</div>
+    <div class="leg-row"><div class="leg-swatch" style="background:var(--parchment-d);border:1px solid var(--rust)"></div>Deceased</div>
+    <div class="leg-row"><div class="leg-swatch" style="background:var(--parchment);border:1px dashed #aaa"></div>Stub (inferred)</div>
+    <div class="leg-row"><div class="leg-line" style="border-color:var(--ink-soft)"></div>Parent–child</div>
+    <div class="leg-row"><div class="leg-line" style="border-color:var(--gold);border-style:dashed"></div>Spouse</div>
+  </div>
+  <div id="emptyState">
+    <h2>No tree data yet</h2>
+    <p>Run <code>tree.py --export json</code> to generate<br/><code>data/family_tree.json</code>, then reload this page.</p>
+    <a href="index.html" style="color:var(--forest);font-weight:500">Or start adding family members →</a>
+  </div>
+</div>
+<div id="toast"></div>
+
+<script>
+// ── Data loading ──────────────────────────────────────────────
+let G = { nodes: [], edges: [] };
+let nodeMap = {};          // id → node
+let currentFilter = 'all';
+let currentGenDepth = 6;
+let focusNodeId = null;
+let searchTerm = '';
+let transform = { x: 0, y: 0, k: 1 };
+
+async function loadData() {
+  try {
+    const res = await fetch('data/family_tree.json');
+    if (!res.ok) throw new Error('not found');
+    const data = await res.json();
+    // Support both node-link format (D3) and custom format
+    G.nodes = data.nodes || data.people || [];
+    G.edges = data.links || data.edges || [];
+    nodeMap = {};
+    G.nodes.forEach(n => { nodeMap[n.id || n.node_id] = n; n.id = n.id || n.node_id; });
+    document.getElementById('emptyState').style.display = 'none';
+    buildLayout();
+  } catch(e) {
+    // Keep empty state visible
+    console.warn('No tree data:', e.message);
+  }
+}
+
+// ── Dagre layout ──────────────────────────────────────────────
+const NODE_W = 140, NODE_H = 46;
+let layoutNodes = [], layoutEdges = [], dGraph;
+
+function buildLayout() {
+  // Filter nodes by branch and generation depth
+  const visibleIds = getVisibleIds();
+
+  dGraph = new dagre.graphlib.Graph({ multigraph: true });
+  dGraph.setGraph({
+    rankdir: 'TB', nodesep: 28, ranksep: 60, edgesep: 10,
+  });
+  dGraph.setDefaultEdgeLabel(() => ({}));
+
+  layoutNodes = G.nodes.filter(n => visibleIds.has(n.id));
+  layoutEdges = G.edges.filter(e => {
+    const src = e.source || e.from;
+    const tgt = e.target || e.to;
+    return visibleIds.has(src) && visibleIds.has(tgt) && shouldShowEdge(e);
+  });
+
+  layoutNodes.forEach(n => {
+    dGraph.setNode(n.id, { width: NODE_W, height: NODE_H, label: n.id });
+  });
+  layoutEdges.forEach((e, i) => {
+    const src = e.source || e.from;
+    const tgt = e.target || e.to;
+    const type = e.type || 'parent_of';
+    // Only add parent_of to Dagre for ranking; render others as overlays
+    if (type === 'parent_of') {
+      dGraph.setEdge(src, tgt, {}, `e${i}`);
+    }
+  });
+
+  dagre.layout(dGraph);
+  render();
+}
+
+function getVisibleIds() {
+  const ids = new Set();
+  let candidates = G.nodes;
+
+  // Branch filter
+  if (currentFilter !== 'all') {
+    candidates = candidates.filter(n => {
+      const b = n.relation_branch || n.branch;
+      return !b || b === currentFilter || b === 'direct';
+    });
+  }
+
+  // Search filter
+  if (searchTerm) {
+    const q = searchTerm.toLowerCase();
+    candidates = candidates.filter(n => {
+      const name = (n.display_name || n.first_name || '').toLowerCase();
+      const alias = (n.alias || '').toLowerCase();
+      return name.includes(q) || alias.includes(q);
+    });
+    // When searching, also include direct relatives of matches
+    const matchIds = new Set(candidates.map(n => n.id));
+    G.edges.forEach(e => {
+      const src = e.source || e.from, tgt = e.target || e.to;
+      if (matchIds.has(src)) ids.add(tgt);
+      if (matchIds.has(tgt)) ids.add(src);
+    });
+  }
+
+  // Generation depth from focused node
+  if (focusNodeId && currentGenDepth < 6) {
+    const reachable = getGenerationReachable(focusNodeId, currentGenDepth);
+    candidates = candidates.filter(n => reachable.has(n.id));
+  }
+
+  candidates.forEach(n => ids.add(n.id));
+  return ids;
+}
+
+function getGenerationReachable(centerId, depth) {
+  const visited = new Set([centerId]);
+  const queue = [[centerId, 0]];
+  while (queue.length) {
+    const [id, d] = queue.shift();
+    if (d >= depth) continue;
+    G.edges.forEach(e => {
+      const src = e.source || e.from, tgt = e.target || e.to;
+      const type = e.type || '';
+      if (src === id && !visited.has(tgt)) { visited.add(tgt); queue.push([tgt, d+1]); }
+      if (tgt === id && !visited.has(src) && type !== 'parent_of') { visited.add(src); queue.push([src, d+1]); }
+    });
+  }
+  return visited;
+}
+
+function shouldShowEdge(e) {
+  const type = e.type || '';
+  return ['parent_of','spouse_of','sibling_of'].some(t => type.includes(t));
+}
+
+// ── Render ────────────────────────────────────────────────────
+const FORM_URL = 'index.html';
+let svg, rootG, zoom;
+
+function render() {
+  const svgEl = document.getElementById('tree');
+  svgEl.innerHTML = '';
+
+  // Zoom behaviour
+  zoom = d3.zoom().scaleExtent([0.1, 4]).on('zoom', e => {
+    transform = e.transform;
+    d3.select('#root').attr('transform', e.transform.toString());
+  });
+  d3.select(svgEl).call(zoom);
+  const root = d3.select(svgEl).append('g').attr('id','root');
+
+  // Arrow marker
+  const defs = root.append('defs');
+  defs.append('marker').attr('id','arr').attr('viewBox','0 0 10 10').attr('refX',8).attr('refY',5)
+    .attr('markerWidth',5).attr('markerHeight',5).attr('orient','auto-start-reverse')
+    .append('path').attr('d','M2 1L8 5L2 9').attr('fill','none').attr('stroke','#888').attr('stroke-width',1.5).attr('stroke-linecap','round');
+
+  // Compute focused neighbours
+  const focusedNeighbours = getFocusNeighbours(focusNodeId);
+
+  // Draw edges
+  const edgeGroup = root.append('g').attr('class','edges');
+  layoutEdges.forEach(e => {
+    const src = e.source || e.from;
+    const tgt = e.target || e.to;
+    const type = e.type || '';
+    const sn = dGraph.node(src), tn = dGraph.node(tgt);
+    if (!sn || !tn) return;
+    const isDim = focusNodeId && !focusedNeighbours.has(src) && !focusedNeighbours.has(tgt);
+    const cls = type.includes('spouse') ? 'edge-spouse' : type.includes('sibling') ? 'edge-sibling' : 'edge-parent';
+    // Simple line; Dagre provides points for parent edges
+    const pts = dGraph.edge(src, tgt) || {};
+    let pathD;
+    if (pts.points && pts.points.length > 1) {
+      pathD = `M${pts.points.map(p=>`${p.x},${p.y}`).join('L')}`;
+    } else {
+      const mx = (sn.x + tn.x)/2;
+      pathD = `M${sn.x},${sn.y+NODE_H/2} C${sn.x},${mx} ${tn.x},${mx} ${tn.x},${tn.y-NODE_H/2}`;
+    }
+    edgeGroup.append('path').attr('class', `edge ${cls}${isDim?' dimmed':''}`)
+      .attr('d', pathD)
+      .attr('marker-end', type.includes('parent') ? 'url(#arr)' : null);
+  });
+
+  // Draw nodes
+  const nodeGroup = root.append('g').attr('class','nodes');
+  layoutNodes.forEach(n => {
+    const dn = dGraph.node(n.id);
+    if (!dn) return;
+    const { x, y } = dn;
+    const isStub    = n.is_stub || false;
+    const isDeceased= !!(n.dod || n.dod_unknown);
+    const isFocused = n.id === focusNodeId;
+    const isDimmed  = focusNodeId && !focusedNeighbours.has(n.id);
+
+    const cls = `node-g ${isStub ? 'stub' : isDeceased ? 'deceased' : 'confirmed'}${isFocused ? ' focused' : ''}${isDimmed ? ' dimmed' : ''}`;
+    const g = nodeGroup.append('g').attr('class', cls)
+      .attr('transform', `translate(${x - NODE_W/2},${y - NODE_H/2})`)
+      .on('click', ev => { ev.stopPropagation(); onNodeClick(n); });
+
+    g.append('rect').attr('width', NODE_W).attr('height', NODE_H);
+
+    const shortName = shortDisplayName(n);
+    const hasTwo = !isStub;
+    const y1 = hasTwo ? NODE_H/2 - 7 : NODE_H/2;
+    const y2 = NODE_H/2 + 8;
+
+    g.append('text').attr('class','node-name').attr('x',NODE_W/2).attr('y',y1)
+      .attr('text-anchor','middle').attr('dominant-baseline','central').text(shortName);
+
+    if (!isStub) {
+      const sub = subLabel(n);
+      if (sub) g.append('text').attr('class','node-sub').attr('x',NODE_W/2).attr('y',y2)
+        .attr('text-anchor','middle').attr('dominant-baseline','central').text(sub);
+    } else {
+      g.append('text').attr('class','node-stub-label').attr('x',NODE_W/2).attr('y',y2)
+        .attr('text-anchor','middle').attr('dominant-baseline','central').text('stub — add info');
+    }
+  });
+
+  // Click on canvas to defocus
+  d3.select(svgEl).on('click', () => { focusNodeId = null; render(); });
+  centerGraph();
+}
+
+function shortDisplayName(n) {
+  const name = n.display_name || [n.first_name, n.last_name].filter(Boolean).join(' ') || '?';
+  const parts = name.split(' ');
+  if (parts.length <= 2) return name;
+  return `${parts[0]} ${parts[parts.length-1][0]}.`;
+}
+
+function subLabel(n) {
+  const dob = n.dob || (n.birth_year ? String(n.birth_year) : '');
+  const dod = n.dod || '';
+  if (dob && dod) return `${dob.slice(-4)} – ${dod.slice(-4)}`;
+  if (dob) return `b. ${dob.slice(-4)}`;
+  if (n.dob_unknown) return 'DOB unknown';
+  if (n.village_origin) return n.village_origin.split(',')[0];
+  return '';
+}
+
+function getFocusNeighbours(id) {
+  const set = new Set([id]);
+  if (!id) return set;
+  G.edges.forEach(e => {
+    const src = e.source || e.from, tgt = e.target || e.to;
+    if (src === id) set.add(tgt);
+    if (tgt === id) set.add(src);
+  });
+  return set;
+}
+
+// ── Node click → detail panel ─────────────────────────────────
+function onNodeClick(n) {
+  focusNodeId = focusNodeId === n.id ? null : n.id;
+  render();
+  if (focusNodeId) openPanel(n);
+  else closePanel();
+}
+
+function openPanel(n) {
+  const isStub = n.is_stub;
+  const isDeceased = !!(n.dod || n.dod_unknown);
+  document.getElementById('pdName').textContent =
+    n.display_name || [n.first_name, n.last_name].filter(Boolean).join(' ') || 'Unknown';
+  document.getElementById('pdBadge').innerHTML =
+    `<span class="pd-badge ${isStub ? 'pd-stub' : isDeceased ? 'pd-deceased' : 'pd-living'}">${isStub ? 'Stub / inferred' : isDeceased ? 'Deceased' : 'Living'}</span>`;
+  const set = (id,val) => { document.getElementById(id).textContent = val || '—'; };
+  const dob = n.dob || (n.birth_year ? String(n.birth_year) : '') || (n.dob_unknown ? 'unknown' : null);
+  const dod = n.dod || (n.dod_unknown ? 'unknown (deceased)' : null);
+  set('pdBorn',    dob);
+  set('pdDied',    dod);
+  set('pdVillage', n.village_origin || n.village_of_origin);
+  set('pdCountry', n.country_emigrated);
+  set('pdGotra',   n.gotra);
+  set('pdBranch',  n.relation_branch || n.branch);
+  set('pdSources', n._submission_count ? `${n._submission_count} submission${n._submission_count>1?'s':''}` : '1 submission');
+  document.getElementById('pdAddBtn').href = `index.html?prefill=${encodeURIComponent(n.display_name || '')}`;
+  document.getElementById('panel').classList.remove('hidden');
+}
+
+function closePanel() {
+  focusNodeId = null;
+  document.getElementById('panel').classList.add('hidden');
+  render();
+}
+
+// ── Controls ──────────────────────────────────────────────────
+function setFilter(f, btn) {
+  currentFilter = f;
+  document.querySelectorAll('.tb-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  buildLayout();
+}
+
+function onGenSlider(v) {
+  currentGenDepth = parseInt(v);
+  document.getElementById('genVal').textContent = v >= 6 ? 'All' : `±${v}`;
+  buildLayout();
+}
+
+function onSearch(q) {
+  searchTerm = q;
+  if (!q) { buildLayout(); return; }
+  buildLayout();
+  if (layoutNodes.length > 0) toast(`Found ${layoutNodes.length} match${layoutNodes.length!==1?'es':''}`);
+}
+
+// ── Zoom & pan ────────────────────────────────────────────────
+function zoomBy(factor) {
+  d3.select('#tree').transition().duration(250).call(zoom.scaleBy, factor);
+}
+
+function resetView() {
+  d3.select('#tree').transition().duration(400).call(zoom.transform, d3.zoomIdentity);
+}
+
+function centerGraph() {
+  if (!dGraph || !layoutNodes.length) return;
+  const svgEl = document.getElementById('tree');
+  const W = svgEl.clientWidth, H = svgEl.clientHeight;
+  const gs = dGraph.graph();
+  const gW = gs.width || 800, gH = gs.height || 600;
+  const scale = Math.min(0.9, Math.min(W/gW, H/gH));
+  const tx = (W - gW*scale)/2, ty = (H - gH*scale)/2;
+  d3.select('#tree').call(zoom.transform, d3.zoomIdentity.translate(tx,ty).scale(scale));
+}
+
+// ── Export ────────────────────────────────────────────────────
+function exportPNG() {
+  const svgEl = document.getElementById('tree');
+  const xml = new XMLSerializer().serializeToString(svgEl);
+  const blob = new Blob([xml], {type:'image/svg+xml'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href=url; a.download='family_tree.svg'; a.click();
+  URL.revokeObjectURL(url);
+  toast('Exported as SVG');
+}
+
+function exportGEDCOM() {
+  let out = '0 HEAD\n1 GEDC\n2 VERS 5.5.1\n1 CHAR UTF-8\n';
+  G.nodes.forEach((n,i) => {
+    const id = `@I${i+1}@`;
+    n._ged_id = id;
+    out += `0 ${id} INDI\n`;
+    const fn = n.first_name || '', ln = n.last_name || '';
+    out += `1 NAME ${fn} /${ln}/\n`;
+    if (n.gender === 'male')   out += '1 SEX M\n';
+    if (n.gender === 'female') out += '1 SEX F\n';
+    if (n.dob) out += `1 BIRT\n2 DATE ${n.dob}\n`;
+    if (n.birth_place) out += `2 PLAC ${n.birth_place}\n`;
+    if (n.dod) out += `1 DEAT\n2 DATE ${n.dod}\n`;
+    if (n.notes) out += `1 NOTE ${n.notes.replace(/\n/g,' ')}\n`;
+  });
+  // Families from parent-child edges
+  const families = {};
+  G.edges.forEach(e => {
+    if ((e.type||'').includes('parent_of')) {
+      const pId = e.source||e.from, cId = e.target||e.to;
+      if (!families[pId]) families[pId] = { parents: [pId], children: [] };
+      families[pId].children.push(cId);
+    }
+  });
+  let fi = 1;
+  Object.entries(families).forEach(([pId, fam]) => {
+    const pNode = nodeMap[pId];
+    if (!pNode?._ged_id) return;
+    const fRef = `@F${fi++}@`;
+    out += `0 ${fRef} FAM\n1 HUSB ${pNode._ged_id}\n`;
+    fam.children.forEach(cId => {
+      const cn = nodeMap[cId];
+      if (cn?._ged_id) out += `1 CHIL ${cn._ged_id}\n`;
+    });
+  });
+  out += '0 TRLR\n';
+  const blob = new Blob([out], {type:'text/plain'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href=url; a.download='family_tree.ged'; a.click();
+  URL.revokeObjectURL(url);
+  toast('Exported as GEDCOM (.ged)');
+}
+
+// ── Touch / pinch zoom ────────────────────────────────────────
+let touchStart = null;
+document.getElementById('canvas').addEventListener('touchstart', e => {
+  if (e.touches.length === 2) touchStart = getTouchDist(e);
+}, { passive: true });
+document.getElementById('canvas').addEventListener('touchmove', e => {
+  if (e.touches.length === 2 && touchStart) {
+    const dist = getTouchDist(e);
+    const factor = dist / touchStart;
+    touchStart = dist;
+    d3.select('#tree').call(zoom.scaleBy, factor);
+  }
+}, { passive: true });
+document.getElementById('canvas').addEventListener('touchend', () => { touchStart = null; });
+function getTouchDist(e) {
+  const dx = e.touches[0].clientX - e.touches[1].clientX;
+  const dy = e.touches[0].clientY - e.touches[1].clientY;
+  return Math.sqrt(dx*dx + dy*dy);
+}
+
+// ── Toast ─────────────────────────────────────────────────────
+let toastTimer;
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg; el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('show'), 2500);
+}
+
+// ── Init ──────────────────────────────────────────────────────
+loadData();
+</script>
+</body>
+</html>
