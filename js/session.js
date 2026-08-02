@@ -30,16 +30,23 @@ let shiftSelectedIdx = null;
 let relGridVisible = false;
 
 const DRAFT_KEY = 'family_tree_draft_v4';
-const AUTOSAVE_INTERVAL = 30000; // 30s
+const AUTOSAVE_INTERVAL = 30000;
 
 // ── Draft autosave ────────────────────────────────────────────
 function saveDraft() {
+  // Only save if there's something worth saving
+  if (!session.submitterName && session.people.length === 0) return;
   try {
-    localStorage.setItem(DRAFT_KEY, JSON.stringify({
-      session: { ...session, currentPerson: null },
-      ts: Date.now(),
+    // Deep-copy via JSON so no object references are shared
+    const snapshot = JSON.parse(JSON.stringify({
+      submitterName:  session.submitterName,
+      submitterEmail: session.submitterEmail,
+      mode:           session.mode,
+      anchor:         session.anchor,
+      people:         session.people,
     }));
-  } catch(e) { /* storage full or blocked */ }
+    localStorage.setItem(DRAFT_KEY, JSON.stringify({ session: snapshot, ts: Date.now() }));
+  } catch(e) { /* storage full or blocked — fail silently */ }
 }
 
 function loadDraft() {
@@ -47,6 +54,7 @@ function loadDraft() {
     const raw = localStorage.getItem(DRAFT_KEY);
     if (!raw) return null;
     const d = JSON.parse(raw);
+    // Expire after 7 days
     if (Date.now() - d.ts > 7 * 24 * 60 * 60 * 1000) { clearDraft(); return null; }
     return d;
   } catch(e) { return null; }
@@ -59,7 +67,15 @@ function clearDraft() {
 function restoreDraft() {
   const d = loadDraft();
   if (!d) return;
-  Object.assign(session, d.session);
+  // Deep-copy the saved snapshot into session — never share references
+  const s = d.session;
+  session.submitterName  = s.submitterName  || '';
+  session.submitterEmail = s.submitterEmail || '';
+  session.mode           = s.mode           || 'self';
+  session.anchor         = { ...s.anchor };
+  session.people         = JSON.parse(JSON.stringify(s.people || []));
+  session.currentPerson  = null;
+
   document.getElementById('draftBanner').hidden = true;
   refreshSessionUI();
   showPhase('phase-session');
@@ -88,10 +104,12 @@ window.addEventListener('DOMContentLoaded', () => {
 // ── Phase helpers ─────────────────────────────────────────────
 function showPhase(id) {
   document.querySelectorAll('.phase').forEach(p => {
-    p.style.display = 'none'; p.classList.remove('active');
+    p.hidden = true;
+    p.classList.remove('active');
   });
   const el = document.getElementById(id);
-  el.style.display = 'block'; el.classList.add('active');
+  el.hidden = false;
+  el.classList.add('active');
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 

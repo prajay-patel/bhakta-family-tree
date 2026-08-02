@@ -34,6 +34,7 @@ main{max-width:720px;margin:1.5rem auto 4rem;padding:0 1rem}
 /* Phases */
 .phase{display:none;padding:1.8rem 2rem 1.5rem;animation:fadeIn .2s ease}
 .phase.active{display:block}
+.phase[hidden]{display:none !important}
 @keyframes fadeIn{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
 .phase-eyebrow{font-size:.7rem;font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:var(--forest);margin-bottom:.3rem}
 .phase-title{font-family:'Playfair Display',serif;font-size:1.35rem;font-weight:600;color:var(--ink);margin-bottom:.45rem}
