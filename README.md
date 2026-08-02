@@ -48,7 +48,7 @@ Dashed nodes are people who have been mentioned but haven't submitted their own 
 
 ## Questions or corrections
 
-If you notice an error, a missing person, or a misplaced relationship, contact the curator at **[bhakta-family-tree@gmail.com]** or use the "Add / update info" button on any person's detail panel in the viewer.
+If you notice an error, a missing person, or a misplaced relationship, contact the curator at **[bhakta.family.tree@gmail.com]** or use the "Add / update info" button on any person's detail panel in the viewer.
 
 ---
 
