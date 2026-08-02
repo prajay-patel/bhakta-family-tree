@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>Add Information — Bhakta Family Tree</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600&family=Inter:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="css/style.css"/>
+  <style>
+    /* ── Add page overrides ── */
+    .node-card {
+      background: var(--parchment);
+      border: 1px solid var(--parchment-d);
+      border-radius: 8px;
+      padding: 1rem 1.2rem;
+      margin-bottom: 1.4rem;
+      display: flex;
+      align-items: flex-start;
+      gap: 1rem;
+    }
+    .node-card-icon { font-size: 1.6rem; color: var(--gold); flex-shrink: 0; }
+    .node-card-name {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.15rem;
+      font-weight: 600;
+      color: var(--forest);
+      margin-bottom: .25rem;
+    }
+    .node-card-meta { font-size: .8rem; color: var(--ink-soft); line-height: 1.6; }
+    .node-card-badge {
+      display: inline-block;
+      font-size: .7rem;
+      font-weight: 600;
+      letter-spacing: .05em;
+      text-transform: uppercase;
+      padding: .15rem .55rem;
+      border-radius: 10px;
+      margin-bottom: .3rem;
+    }
+    .badge-stub     { background: var(--parchment-d); color: var(--ink-soft); }
+    .badge-confirmed{ background: rgba(45,74,62,.12); color: var(--forest); }
+    .section-intro {
+      font-size: .85rem;
+      color: var(--ink-soft);
+      margin-bottom: 1.2rem;
+      line-height: 1.65;
+      font-style: italic;
+    }
+    .section-intro strong { color: var(--ink); font-style: normal; }
+    .already-known {
+      background: rgba(45,74,62,.05);
+      border: 1px solid rgba(45,74,62,.15);
+      border-radius: var(--radius);
+      padding: .7rem .9rem;
+      margin-bottom: 1.2rem;
+      font-size: .8rem;
+      color: var(--ink-soft);
+    }
+    .already-known .ak-title {
+      font-size: .7rem;
+      font-weight: 600;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      color: var(--forest);
+      margin-bottom: .4rem;
+    }
+    .ak-row { display: flex; gap: .5rem; margin-top: .2rem; }
+    .ak-label { color: var(--mist); flex-shrink: 0; min-width: 80px; }
+    .ak-val { color: var(--ink); }
+    .submitter-section {
+      border-top: 1px solid var(--parchment-d);
+      margin-top: 1.4rem;
+      padding-top: 1.2rem;
+    }
+    .section-divider {
+      font-size: .7rem;
+      font-weight: 600;
+      letter-spacing: .07em;
+      text-transform: uppercase;
+      color: var(--forest);
+      margin: 1.2rem 0 .7rem;
+      padding-bottom: .35rem;
+      border-bottom: 1px solid var(--parchment-d);
+    }
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: .4rem;
+      font-size: .82rem;
+      color: var(--ink-soft);
+      text-decoration: none;
+      margin-bottom: 1rem;
+    }
+    .back-link:hover { color: var(--forest); }
+    .success-panel { text-align: center; padding: 3rem 1.5rem; }
+    .success-glyph { font-size: 2.5rem; color: var(--gold); margin-bottom: .7rem; }
+    .success-panel h2 { font-family: 'Playfair Display', serif; font-size: 1.4rem; color: var(--forest); margin-bottom: .6rem; }
+    .success-panel p { color: var(--ink-soft); margin-bottom: 1.4rem; }
+  </style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="header-inner">
+    <div class="tree-glyph" aria-hidden="true">❧</div>
+    <div class="header-text">
+      <h1>Bhakta Family Tree</h1>
+      <p class="header-sub">Add or update information about a family member</p>
+    </div>
+    <a class="btn-history" href="viewer.html">← Back to tree</a>
+  </div>
+</header>
+
+<main>
+<div class="form-shell">
+
+  <!-- ── Main form ── -->
+  <div id="phase-form" class="phase active">
+    <a class="back-link" href="viewer.html">← Back to tree</a>
+
+    <!-- Node being updated -->
+    <div class="node-card" id="nodeCard">
+      <div class="node-card-icon">👤</div>
+      <div>
+        <div id="nodeBadge" class="node-card-badge badge-stub">Stub / inferred</div>
+        <div class="node-card-name" id="nodeName">Loading…</div>
+        <div class="node-card-meta" id="nodeMeta"></div>
+      </div>
+    </div>
+
+    <p class="section-intro" id="formIntro">
+      Fill in whatever you know. Every field is optional.
+      Your submission will be <strong>merged with what's already known</strong> about this person.
+    </p>
+
+    <!-- What's already known -->
+    <div class="already-known" id="alreadyKnown" hidden>
+      <div class="ak-title">Already in the tree</div>
+      <div id="akRows"></div>
+    </div>
+
+    <form id="addForm" novalidate>
+
+      <!-- Hidden fields carrying node identity -->
+      <input type="hidden" id="mergeTargetNodeId"/>
+      <input type="hidden" id="mergeTargetName"/>
+      <input type="hidden" id="mergeRelKey"/>
+      <input type="hidden" id="mergeRelBranch"/>
+      <input type="hidden" id="mergeRelGeneration"/>
+
+      <!-- ── Name ── -->
+      <div class="section-divider">Name</div>
+      <div class="field-row">
+        <div class="field-group">
+          <label for="aFirst">First name</label>
+          <input type="text" id="aFirst" autocomplete="off"/>
+        </div>
+        <div class="field-group">
+          <label for="aAlias">Home / nickname</label>
+          <input type="text" id="aAlias" placeholder="e.g. Kantu, Bobby" autocomplete="off"/>
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="field-group">
+          <label for="aMiddle">Middle name</label>
+          <input type="text" id="aMiddle" autocomplete="off"/>
+        </div>
+        <div class="field-group">
+          <label for="aLast">Last name</label>
+          <input type="text" id="aLast" autocomplete="off"/>
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="field-group">
+          <label for="aMaiden">Maiden / birth name</label>
+          <input type="text" id="aMaiden" placeholder="If different" autocomplete="off"/>
+        </div>
+        <div class="field-group">
+          <label for="aGotra">Gotra</label>
+          <input type="text" id="aGotra" placeholder="e.g. Kashyap" list="gotra-list-add"/>
+          <datalist id="gotra-list-add">
+            <option value="Kashyap"/><option value="Vasishtha"/><option value="Bharadwaj"/>
+            <option value="Atri"/><option value="Vishwamitra"/><option value="Jamadagni"/>
+            <option value="Gautama"/><option value="Agastya"/><option value="Gargya"/>
+            <option value="Kaundinya"/><option value="Shrivatsa"/><option value="Sandilya"/>
+            <option value="Mudgala"/><option value="Shandilya"/><option value="Kapila"/>
+          </datalist>
+        </div>
+      </div>
+      <div class="field-group">
+        <label for="aGender">Gender</label>
+        <select id="aGender">
+          <option value="">— unknown —</option>
+          <option value="female">Female</option>
+          <option value="male">Male</option>
+          <option value="nonbinary">Non-binary</option>
+          <option value="other">Other</option>
+        </select>
+      </div>
+
+      <!-- ── Dates & places ── -->
+      <div class="section-divider">Dates &amp; places</div>
+
+      <fieldset class="date-fieldset">
+        <legend>Birth</legend>
+        <div class="unknown-row">
+          <label class="unknown-check">
+            <input type="checkbox" id="aDobUnknown" onchange="document.getElementById('aDobFields').hidden=this.checked"/>
+            Date unknown
+          </label>
+        </div>
+        <div id="aDobFields">
+          <div class="field-row triple">
+            <div class="field-group"><label>Day</label><input type="number" id="aDobDay" min="1" max="31" placeholder="DD"/></div>
+            <div class="field-group"><label>Month</label>
+              <select id="aDobMonth"><option value="">Month</option>
+                <option value="01">January</option><option value="02">February</option>
+                <option value="03">March</option><option value="04">April</option>
+                <option value="05">May</option><option value="06">June</option>
+                <option value="07">July</option><option value="08">August</option>
+                <option value="09">September</option><option value="10">October</option>
+                <option value="11">November</option><option value="12">December</option>
+              </select>
+            </div>
+            <div class="field-group"><label>Year</label><input type="number" id="aDobYear" min="1800" max="2025" placeholder="YYYY"/></div>
+          </div>
+          <div class="field-row" style="margin-top:.5rem">
+            <div class="field-group">
+              <label>Place of birth</label>
+              <input type="text" id="aBirthPlace" placeholder="City, Country"/>
+            </div>
+            <div class="field-group">
+              <label>Village / ancestral origin</label>
+              <input type="text" id="aVillageOrigin" placeholder="e.g. Chikhli, Bardoli…" autocomplete="off"/>
+              <span id="aVillageOrigin-hint" class="village-hint" hidden></span>
+            </div>
+          </div>
+          <div class="field-group" style="margin-top:.5rem">
+            <label>Country emigrated to</label>
+            <select id="aCountryEmigrated">
+              <option value="">— select —</option>
+              <optgroup label="Bhakta family countries">
+                <option value="India">India (stayed / returned)</option>
+                <option value="Kenya">Kenya</option>
+                <option value="Uganda">Uganda</option>
+                <option value="Tanzania">Tanzania</option>
+                <option value="Zambia">Zambia</option>
+                <option value="Malawi">Malawi</option>
+                <option value="Zimbabwe">Zimbabwe</option>
+                <option value="Mozambique">Mozambique</option>
+                <option value="South Africa">South Africa</option>
+                <option value="United Kingdom">United Kingdom</option>
+                <option value="United States">United States</option>
+                <option value="Canada">Canada</option>
+                <option value="Australia">Australia</option>
+                <option value="New Zealand">New Zealand</option>
+              </optgroup>
+              <optgroup label="Other">
+                <option value="Myanmar">Myanmar (Burma)</option>
+                <option value="Fiji">Fiji</option>
+                <option value="Trinidad and Tobago">Trinidad and Tobago</option>
+                <option value="Guyana">Guyana</option>
+                <option value="Panama">Panama</option>
+                <option value="Other">Other (add in notes)</option>
+              </optgroup>
+            </select>
+          </div>
+        </div>
+      </fieldset>
+
+      <fieldset class="date-fieldset">
+        <legend>Death <span class="legend-hint">(leave blank if living)</span></legend>
+        <div class="unknown-row">
+          <label class="unknown-check">
+            <input type="checkbox" id="aDodUnknown" onchange="document.getElementById('aDodFields').hidden=this.checked"/>
+            Deceased but date unknown
+          </label>
+        </div>
+        <div id="aDodFields">
+          <div class="field-row triple">
+            <div class="field-group"><label>Day</label><input type="number" id="aDodDay" min="1" max="31" placeholder="DD"/></div>
+            <div class="field-group"><label>Month</label>
+              <select id="aDodMonth"><option value="">Month</option>
+                <option value="01">January</option><option value="02">February</option>
+                <option value="03">March</option><option value="04">April</option>
+                <option value="05">May</option><option value="06">June</option>
+                <option value="07">July</option><option value="08">August</option>
+                <option value="09">September</option><option value="10">October</option>
+                <option value="11">November</option><option value="12">December</option>
+              </select>
+            </div>
+            <div class="field-group"><label>Year</label><input type="number" id="aDodYear" min="1800" max="2025" placeholder="YYYY"/></div>
+          </div>
+        </div>
+      </fieldset>
+
+      <!-- ── Parents ── -->
+      <div class="section-divider">Parents</div>
+      <fieldset class="rel-fieldset">
+        <legend>Father</legend>
+        <div class="field-row">
+          <div class="field-group"><label>First name</label><input type="text" id="aFatherFirst" autocomplete="off"/></div>
+          <div class="field-group"><label>Last name</label><input type="text" id="aFatherLast" autocomplete="off"/></div>
+        </div>
+        <div class="field-row">
+          <div class="field-group"><label>Birth year</label><input type="number" id="aFatherDOB" min="1800" max="2010" placeholder="YYYY"/></div>
+          <div class="field-group"><label>Village of origin</label><input type="text" id="aFatherVillage" autocomplete="off"/></div>
+        </div>
+      </fieldset>
+      <fieldset class="rel-fieldset">
+        <legend>Mother</legend>
+        <div class="field-row">
+          <div class="field-group"><label>First name</label><input type="text" id="aMotherFirst" autocomplete="off"/></div>
+          <div class="field-group"><label>Last name (married)</label><input type="text" id="aMotherLast" autocomplete="off"/></div>
+        </div>
+        <div class="field-row">
+          <div class="field-group"><label>Maiden name</label><input type="text" id="aMotherMaiden" autocomplete="off"/></div>
+          <div class="field-group"><label>Birth year</label><input type="number" id="aMotherDOB" min="1800" max="2010" placeholder="YYYY"/></div>
+        </div>
+      </fieldset>
+
+      <!-- ── Spouse & children ── -->
+      <div class="section-divider">Spouse(s) &amp; children</div>
+      <fieldset class="rel-fieldset">
+        <legend>Spouse(s) / partner(s)</legend>
+        <div id="addSpouseList"></div>
+        <button type="button" class="btn-add-rel" onclick="addDynRow('addSpouseList','addSpouse','Spouse name','addSpouseName','addSpouseDOB')">+ Add spouse</button>
+      </fieldset>
+      <fieldset class="rel-fieldset">
+        <legend>Children</legend>
+        <div id="addChildList"></div>
+        <button type="button" class="btn-add-rel" onclick="addDynRow('addChildList','addChild',' Child\'s name','addChildName','addChildDOB')">+ Add child</button>
+      </fieldset>
+
+      <!-- ── Notes ── -->
+      <div class="section-divider">Notes</div>
+      <div class="field-group">
+        <label for="aNotes">Anything else — stories, occupation, nicknames…</label>
+        <textarea id="aNotes" rows="3" placeholder="Anything you know that might help…"></textarea>
+      </div>
+
+      <!-- ── Submitter ── -->
+      <div class="submitter-section">
+        <div class="section-divider" style="margin-top:0">About you</div>
+        <p class="section-intro" style="margin-top:-.4rem">So we can follow up if needed.</p>
+        <div class="field-row">
+          <div class="field-group">
+            <label for="aSubmitterName">Your name <span class="req">*</span></label>
+            <input type="text" id="aSubmitterName" autocomplete="name"/>
+            <span class="field-error" id="aSubmitterNameErr"></span>
+          </div>
+          <div class="field-group">
+            <label for="aSubmitterEmail">Your email <span class="hint-label">(for confirmation)</span></label>
+            <input type="email" id="aSubmitterEmail" autocomplete="email"/>
+          </div>
+        </div>
+      </div>
+
+      <div class="phase-nav" style="margin-top:1.2rem">
+        <a class="btn-ghost" href="viewer.html">← Cancel</a>
+        <button type="button" class="btn-primary" onclick="submitUpdate()">Submit update →</button>
+      </div>
+
+    </form>
+  </div>
+
+  <!-- ── Submitting ── -->
+  <div id="phase-submitting" class="phase" hidden>
+    <div class="submitting-inner">
+      <div class="spinner"></div>
+      <p>Sending update…</p>
+    </div>
+  </div>
+
+  <!-- ── Success ── -->
+  <div id="phase-success" class="phase" hidden>
+    <div class="success-panel">
+      <div class="success-glyph">✦</div>
+      <h2>Update submitted</h2>
+      <p id="successMsg">Your information will be merged into the tree on the next sync.</p>
+      <div style="display:flex;gap:.6rem;justify-content:center;flex-wrap:wrap">
+        <a class="btn-primary" href="viewer.html">Back to tree</a>
+        <button class="btn-secondary" onclick="resetForm()">Add another update</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+</main>
+
+<footer class="site-footer">
+  <p>
+    <a href="history.html" target="_blank" rel="noopener">Our history</a> ·
+    <a href="PRIVACY.md" target="_blank" rel="noopener">Privacy notice</a> ·
+    <a href="mailto:bhakta.family.tree@gmail.com">Contact curator</a>
+  </p>
+</footer>
+
+<script src="js/relations.js"></script>
+<script src="js/villages.js"></script>
+<script src="js/storage.js"></script>
+<script>
+// ── Parse URL params ──────────────────────────────────────────
+const params = new URLSearchParams(window.location.search);
+const NODE_ID   = params.get('node')   || '';
+const NODE_NAME = params.get('name')   || '';
+const NODE_DOB  = params.get('dob')    || '';
+const NODE_VILLAGE = params.get('village') || '';
+const NODE_BRANCH  = params.get('branch')  || '';
+const NODE_REL     = params.get('rel')     || '';
+const NODE_GEN     = params.get('gen')     || '';
+const IS_STUB   = params.get('stub')   === '1';
+
+// ── Phase helpers ─────────────────────────────────────────────
+function showPhase(id) {
+  document.querySelectorAll('.phase').forEach(p => { p.hidden = true; p.classList.remove('active'); });
+  const el = document.getElementById(id);
+  el.hidden = false; el.classList.add('active');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// ── Init ──────────────────────────────────────────────────────
+window.addEventListener('DOMContentLoaded', () => {
+  // Set hidden fields
+  document.getElementById('mergeTargetNodeId').value   = NODE_ID;
+  document.getElementById('mergeTargetName').value     = NODE_NAME;
+  document.getElementById('mergeRelKey').value         = NODE_REL;
+  document.getElementById('mergeRelBranch').value      = NODE_BRANCH;
+  document.getElementById('mergeRelGeneration').value  = NODE_GEN;
+
+  // Node card
+  const nameEl = document.getElementById('nodeName');
+  nameEl.textContent = NODE_NAME || 'Unknown person';
+  const badge = document.getElementById('nodeBadge');
+  if (IS_STUB) {
+    badge.textContent = 'Stub — inferred from other submissions';
+    badge.className   = 'node-card-badge badge-stub';
+  } else {
+    badge.textContent = 'Confirmed — adding more information';
+    badge.className   = 'node-card-badge badge-confirmed';
+  }
+
+  // Meta line
+  const metaParts = [];
+  if (NODE_DOB)    metaParts.push(`b. ${NODE_DOB}`);
+  if (NODE_VILLAGE) metaParts.push(NODE_VILLAGE);
+  if (NODE_BRANCH)  metaParts.push(NODE_BRANCH + ' side');
+  document.getElementById('nodeMeta').textContent = metaParts.join(' · ');
+
+  // Already known panel
+  const akRows = [];
+  if (NODE_DOB)     akRows.push(['Born', NODE_DOB]);
+  if (NODE_VILLAGE) akRows.push(['Village', NODE_VILLAGE]);
+  if (NODE_BRANCH)  akRows.push(['Branch', NODE_BRANCH]);
+  if (akRows.length) {
+    const container = document.getElementById('akRows');
+    akRows.forEach(([label, val]) => {
+      const row = document.createElement('div');
+      row.className = 'ak-row';
+      row.innerHTML = `<span class="ak-label">${label}</span><span class="ak-val">${val}</span>`;
+      container.appendChild(row);
+    });
+    document.getElementById('alreadyKnown').hidden = false;
+  }
+
+  // Intro text
+  document.getElementById('formIntro').innerHTML = IS_STUB
+    ? `This person was <strong>inferred</strong> from another submission — fill in what you know to confirm them in the tree.`
+    : `You're adding more information to an <strong>existing record</strong> for ${NODE_NAME || 'this person'}. Fill in only the fields you want to update — blanks won't overwrite existing data.`;
+
+  // Pre-fill name from URL
+  if (NODE_NAME) {
+    const parts = NODE_NAME.trim().split(' ');
+    if (parts.length >= 2) {
+      document.getElementById('aFirst').value = parts[0];
+      document.getElementById('aLast').value  = parts[parts.length - 1];
+      if (parts.length === 3) document.getElementById('aMiddle').value = parts[1];
+    } else {
+      document.getElementById('aFirst').value = NODE_NAME;
+    }
+  }
+
+  // Village autocomplete
+  const vEl = document.getElementById('aVillageOrigin');
+  if (vEl && typeof attachVillageAutocomplete === 'function') {
+    attachVillageAutocomplete(vEl);
+  }
+});
+
+// ── Dynamic rows ──────────────────────────────────────────────
+let dynCounters = {};
+function addDynRow(listId, prefix, placeholder, nameField, dobField) {
+  dynCounters[prefix] = (dynCounters[prefix] || 0) + 1;
+  const rowId = `${prefix}-${dynCounters[prefix]}`;
+  const row = document.createElement('div');
+  row.className = 'dyn-row'; row.id = rowId;
+  row.innerHTML = `
+    <div class="field-group"><label>Full name</label>
+      <input type="text" name="${nameField}[]" placeholder="${placeholder}"/></div>
+    <div class="field-group"><label>Birth year</label>
+      <input type="number" name="${dobField}[]" min="1800" max="2025" placeholder="YYYY"/></div>
+    <button type="button" class="btn-remove-rel"
+      onclick="document.getElementById('${rowId}').remove()" aria-label="Remove">✕</button>`;
+  document.getElementById(listId).appendChild(row);
+}
+
+// ── Collect & submit ──────────────────────────────────────────
+function v(id) { return (document.getElementById(id)?.value || '').trim(); }
+
+function buildDate(day, month, year) {
+  if (!year) return '';
+  if (month && day) return `${String(day).padStart(2,'0')}/${month}/${year}`;
+  if (month) return `${month}/${year}`;
+  return year;
+}
+
+function collectSpouses() {
+  return Array.from(document.querySelectorAll('[name="addSpouseName[]"]'))
+    .map((el, i) => ({ name: el.value.trim()||null, dob: document.querySelectorAll('[name="addSpouseDOB[]"]')[i]?.value.trim()||null }))
+    .filter(s => s.name || s.dob);
+}
+
+function collectChildren() {
+  return Array.from(document.querySelectorAll('[name="addChildName[]"]'))
+    .map((el, i) => ({ name: el.value.trim()||null, dob: document.querySelectorAll('[name="addChildDOB[]"]')[i]?.value.trim()||null }))
+    .filter(c => c.name || c.dob);
+}
+
+async function submitUpdate() {
+  const submitterName = v('aSubmitterName');
+  if (!submitterName) {
+    document.getElementById('aSubmitterNameErr').textContent = 'Required';
+    document.getElementById('aSubmitterName').classList.add('invalid');
+    return;
+  }
+  document.getElementById('aSubmitterNameErr').textContent = '';
+  document.getElementById('aSubmitterName').classList.remove('invalid');
+
+  showPhase('phase-submitting');
+
+  const dob = document.getElementById('aDobUnknown').checked
+    ? null : buildDate(v('aDobDay'), v('aDobMonth'), v('aDobYear')) || null;
+  const dod = document.getElementById('aDodUnknown').checked
+    ? null : buildDate(v('aDodDay'), v('aDodMonth'), v('aDodYear')) || null;
+
+  const data = {
+    // Merge target — tells collate.py to merge directly
+    merge_target_node_id: document.getElementById('mergeTargetNodeId').value,
+    merge_target_name:    document.getElementById('mergeTargetName').value,
+    is_node_update:       true,
+
+    // Identity
+    firstName:    v('aFirst')   || null,
+    alias:        v('aAlias')   || null,
+    middleName:   v('aMiddle')  || null,
+    lastName:     v('aLast')    || null,
+    maidenName:   v('aMaiden')  || null,
+    gotra:        v('aGotra')   || null,
+    gender:       v('aGender')  || null,
+
+    // Relationship context (from URL)
+    relationKey:        document.getElementById('mergeRelKey').value || null,
+    relationBranch:     document.getElementById('mergeRelBranch').value || null,
+    relationGeneration: document.getElementById('mergeRelGeneration').value
+                          ? Number(document.getElementById('mergeRelGeneration').value) : null,
+
+    // Dates & places
+    dob, dobUnknown: document.getElementById('aDobUnknown').checked,
+    birthPlace:   v('aBirthPlace')       || null,
+    villageOrigin: v('aVillageOrigin')   || null,
+    countryEmigrated: v('aCountryEmigrated') || null,
+    dod, dodUnknown: document.getElementById('aDodUnknown').checked,
+
+    // Parents
+    father: {
+      firstName: v('aFatherFirst') || null,
+      lastName:  v('aFatherLast')  || null,
+      dob:       v('aFatherDOB')   || null,
+      village:   v('aFatherVillage') || null,
+    },
+    mother: {
+      firstName:  v('aMotherFirst')  || null,
+      lastName:   v('aMotherLast')   || null,
+      maidenName: v('aMotherMaiden') || null,
+      dob:        v('aMotherDOB')    || null,
+    },
+
+    spouses:  collectSpouses(),
+    children: collectChildren(),
+    notes:    v('aNotes') || null,
+
+    // Submitter
+    submitterName:  submitterName,
+    submitterEmail: v('aSubmitterEmail') || null,
+    submittedAt:    new Date().toISOString(),
+    isStub:         false,
+
+    // Anchor = the node being updated
+    anchorFirstName: document.getElementById('mergeTargetName').value.split(' ')[0] || '',
+    anchorLastName:  document.getElementById('mergeTargetName').value.split(' ').slice(-1)[0] || '',
+  };
+
+  try {
+    await submitToSheets(data);
+    document.getElementById('successMsg').textContent =
+      `Update for ${data.merge_target_name || 'this person'} received. It will be merged into the tree on the next sync.`;
+    showPhase('phase-success');
+  } catch(e) {
+    alert('Something went wrong — please try again.\n\n' + e.message);
+    showPhase('phase-form');
+  }
+}
+
+function resetForm() {
+  window.location.href = 'add.html';
+}
+</script>
+</body>
+</html>

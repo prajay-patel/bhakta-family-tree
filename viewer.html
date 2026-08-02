@@ -34,8 +34,9 @@ html,body{height:100%;overflow:hidden;font-family:'Inter',sans-serif;font-size:1
 .add-link:hover{text-decoration:underline}
 
 /* Canvas */
-#canvas{width:100%;height:calc(100vh - 54px);overflow:hidden;cursor:grab;touch-action:none;position:relative}
+#canvas{width:100%;height:calc(100vh - 54px);overflow:hidden;cursor:default;touch-action:none;position:relative}
 #canvas.grabbing{cursor:grabbing}
+#canvas.pannable{cursor:grab}
 svg#tree{width:100%;height:100%;display:block}
 
 /* Node styles */
@@ -149,8 +150,9 @@ svg#tree{width:100%;height:100%;display:block}
   <input type="range" id="genSlider" min="1" max="6" value="6" oninput="onGenSlider(this.value)"/>
   <span class="gen-label" id="genVal">All</span>
   <div class="topbar-sep"></div>
+  <button class="tb-btn active" id="btnLock" onclick="toggleLock()">🔒 Locked</button>
+  <button class="tb-btn" onclick="exportSVG()">↓ SVG</button>
   <button class="tb-btn" onclick="exportPNG()">↓ PNG</button>
-  <button class="tb-btn" onclick="exportGEDCOM()">↓ GEDCOM</button>
   <div class="tb-spacer"></div>
   <a class="add-link" href="index.html">+ Add member</a>
   <a class="add-link" href="history.html" target="_blank" rel="noopener" style="color:var(--gold)">Our History</a>
@@ -301,6 +303,7 @@ async function loadData() {
       nodeMap = {};
       G.nodes.forEach(n => { nodeMap[n.id || n.node_id] = n; n.id = n.id || n.node_id; });
       document.getElementById('emptyState').style.display = 'none';
+      initZoom();    // initialise zoom once before first render
       buildLayout();
       return;
 
@@ -410,21 +413,63 @@ function shouldShowEdge(e) {
   return ['parent_of','spouse_of','sibling_of'].some(t => type.includes(t));
 }
 
-// ── Render ────────────────────────────────────────────────────
-const FORM_URL = 'index.html';
-let svg, rootG, zoom;
+// ── Zoom & pan — initialised once, preserved across redraws ──
+let zoom;
+let isLocked = true;   // start locked
+
+function initZoom() {
+  zoom = d3.zoom()
+    .scaleExtent([0.1, 4])
+    .filter(event => {
+      // When locked: block all drag/wheel except pinch-to-zoom on touch
+      if (isLocked) {
+        if (event.type === 'wheel') return false;
+        if (event.type === 'mousedown') return false;
+        return event.touches && event.touches.length === 2;
+      }
+      return !event.ctrlKey || event.type === 'wheel';
+    })
+    .on('zoom', e => {
+      transform = e.transform;
+      d3.select('#root').attr('transform', e.transform.toString());
+    });
+  d3.select('#tree').call(zoom);
+  updateLockBtn();
+}
+
+function updateLockBtn() {
+  const btn = document.getElementById('btnLock');
+  if (!btn) return;
+  btn.textContent = isLocked ? '🔒 Locked' : '🔓 Free';
+  btn.classList.toggle('active', isLocked);
+}
+
+function toggleLock() {
+  isLocked = !isLocked;
+  // Rebuild zoom filter
+  zoom.filter(event => {
+    if (isLocked) {
+      if (event.type === 'wheel') return false;
+      if (event.type === 'mousedown') return false;
+      return event.touches && event.touches.length === 2;
+    }
+    return !event.ctrlKey || event.type === 'wheel';
+  });
+  updateLockBtn();
+  const canvas = document.getElementById('canvas');
+  canvas.style.cursor = isLocked ? 'default' : 'grab';
+}
 
 function render() {
   const svgEl = document.getElementById('tree');
   svgEl.innerHTML = '';
 
-  // Zoom behaviour
-  zoom = d3.zoom().scaleExtent([0.1, 4]).on('zoom', e => {
-    transform = e.transform;
-    d3.select('#root').attr('transform', e.transform.toString());
-  });
+  // Re-attach zoom to fresh SVG (but zoom object and transform are preserved)
   d3.select(svgEl).call(zoom);
   const root = d3.select(svgEl).append('g').attr('id','root');
+
+  // Restore current transform so the view doesn't jump on redraw
+  d3.select('#root').attr('transform', transform.toString());
 
   // Arrow marker
   const defs = root.append('defs');
@@ -553,7 +598,22 @@ function openPanel(n) {
   set('pdGotra',   n.gotra);
   set('pdBranch',  n.relation_branch || n.branch);
   set('pdSources', n._submission_count ? `${n._submission_count} submission${n._submission_count>1?'s':''}` : '1 submission');
-  document.getElementById('pdAddBtn').href = `index.html?prefill=${encodeURIComponent(n.display_name || '')}`;
+  // Build add.html URL with all known node data
+  const addParams = new URLSearchParams({
+    node:    n.id || n.node_id || '',
+    name:    n.display_name || [n.first_name, n.last_name].filter(Boolean).join(' ') || '',
+    dob:     dob || '',
+    village: n.village_origin || n.village_of_origin || '',
+    branch:  n.relation_branch || n.branch || '',
+    rel:     n.relation_key || '',
+    gen:     n.relation_generation ?? '',
+    stub:    (n.is_stub || false) ? '1' : '0',
+  });
+  const addBtn = document.getElementById('pdAddBtn');
+  addBtn.href = `add.html?${addParams.toString()}`;
+  addBtn.textContent = n.is_stub
+    ? '+ Fill in details for this person'
+    : '+ Add / update info for this person';
   document.getElementById('panel').classList.remove('hidden');
 }
 
@@ -584,78 +644,242 @@ function onSearch(q) {
   if (layoutNodes.length > 0) toast(`Found ${layoutNodes.length} match${layoutNodes.length!==1?'es':''}`);
 }
 
-// ── Zoom & pan ────────────────────────────────────────────────
+// ── Zoom controls ─────────────────────────────────────────────
 function zoomBy(factor) {
   d3.select('#tree').transition().duration(250).call(zoom.scaleBy, factor);
 }
 
 function resetView() {
+  // Reset to initial centered position
+  transform = d3.zoomIdentity;
   d3.select('#tree').transition().duration(400).call(zoom.transform, d3.zoomIdentity);
+  // Re-center after reset
+  setTimeout(centerGraph, 420);
 }
 
 function centerGraph() {
+  // Only center on first load — after that preserve the user's view
+  if (transform.k !== 1 || transform.x !== 0 || transform.y !== 0) return;
   if (!dGraph || !layoutNodes.length) return;
   const svgEl = document.getElementById('tree');
   const W = svgEl.clientWidth, H = svgEl.clientHeight;
   const gs = dGraph.graph();
   const gW = gs.width || 800, gH = gs.height || 600;
   const scale = Math.min(0.9, Math.min(W/gW, H/gH));
-  const tx = (W - gW*scale)/2, ty = (H - gH*scale)/2;
-  d3.select('#tree').call(zoom.transform, d3.zoomIdentity.translate(tx,ty).scale(scale));
+  const tx = (W - gW*scale)/2, ty = Math.max(20, (H - gH*scale)/2);
+  transform = d3.zoomIdentity.translate(tx, ty).scale(scale);
+  d3.select('#tree').call(zoom.transform, transform);
 }
 
 // ── Export ────────────────────────────────────────────────────
-function exportPNG() {
-  const svgEl = document.getElementById('tree');
-  const xml = new XMLSerializer().serializeToString(svgEl);
-  const blob = new Blob([xml], {type:'image/svg+xml'});
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a'); a.href=url; a.download='family_tree.svg'; a.click();
+function exportSVG() {
+  if (!layoutNodes.length) { toast('No tree to export'); return; }
+
+  // Build a standalone SVG with all styles inlined — no external CSS needed
+  const gs   = dGraph.graph();
+  const gW   = (gs.width  || 800) + 80;
+  const gH   = (gs.height || 600) + 80;
+  const PAD  = 40;
+
+  const lines = [];
+  lines.push(`<?xml version="1.0" encoding="UTF-8"?>`);
+  lines.push(`<svg xmlns="http://www.w3.org/2000/svg" width="${gW}" height="${gH}" viewBox="-${PAD} -${PAD} ${gW} ${gH}">`);
+
+  // Inline styles
+  lines.push(`<style>
+    text { font-family: Inter, Arial, sans-serif; }
+    .node-name { font-size: 11.5px; font-weight: 500; fill: #1C1A14; }
+    .node-sub  { font-size: 9.5px;  fill: #4A4438; }
+    .node-stub-label { font-size: 9px; fill: #aaa; font-style: italic; }
+  </style>`);
+
+  // Arrow marker
+  lines.push(`<defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+      <path d="M2 1L8 5L2 9" fill="none" stroke="#888" stroke-width="1.5" stroke-linecap="round"/>
+    </marker>
+  </defs>`);
+
+  // Colours
+  const C = {
+    confirmed: { fill:'#ffffff', stroke:'#2D4A3E' },
+    deceased:  { fill:'#E8DFC8', stroke:'#8B3A2A' },
+    stub:      { fill:'#F5EFE0', stroke:'#aaaaaa', dash:'5,3' },
+    focused:   { stroke:'#C8973A' },
+    edgeParent:'#4A4438', edgeSpouse:'#C8973A',
+  };
+
+  // Edges
+  lines.push(`<g class="edges">`);
+  layoutEdges.forEach(e => {
+    const src = e.source || e.from, tgt = e.target || e.to;
+    const type = e.type || '';
+    const sn = dGraph.node(src), tn = dGraph.node(tgt);
+    if (!sn || !tn) return;
+    const isSpouse = type.includes('spouse');
+    const stroke = isSpouse ? C.edgeSpouse : C.edgeParent;
+    const dash   = isSpouse ? '4,3' : '';
+    const pts    = dGraph.edge(src, tgt) || {};
+    let d;
+    if (pts.points && pts.points.length > 1) {
+      d = `M${pts.points.map(p=>`${p.x},${p.y}`).join('L')}`;
+    } else {
+      const mx = (sn.x + tn.x) / 2;
+      d = `M${sn.x},${sn.y + NODE_H/2} C${sn.x},${mx} ${tn.x},${mx} ${tn.x},${tn.y - NODE_H/2}`;
+    }
+    const markerEnd = type.includes('parent') ? ' marker-end="url(#arr)"' : '';
+    const dashAttr  = dash ? ` stroke-dasharray="${dash}"` : '';
+    lines.push(`<path d="${d}" fill="none" stroke="${stroke}" stroke-width="1" opacity="0.6"${dashAttr}${markerEnd}/>`);
+  });
+  lines.push(`</g>`);
+
+  // Nodes
+  lines.push(`<g class="nodes">`);
+  layoutNodes.forEach(n => {
+    const dn = dGraph.node(n.id);
+    if (!dn) return;
+    const { x, y } = dn;
+    const isStub     = n.is_stub || false;
+    const isDeceased = !!(n.dod || n.dod_unknown);
+    const col = isStub ? C.stub : isDeceased ? C.deceased : C.confirmed;
+    const rx   = NODE_W/2, ry = NODE_H/2;
+    const rx0  = x - rx,   ry0 = y - ry;
+    const dash = isStub ? ` stroke-dasharray="${col.dash}"` : '';
+    lines.push(`<g transform="translate(${rx0},${ry0})">`);
+    lines.push(`  <rect width="${NODE_W}" height="${NODE_H}" rx="7" fill="${col.fill}" stroke="${col.stroke}" stroke-width="0.8"${dash}/>`);
+
+    const name = shortDisplayName(n);
+    const sub  = subLabel(n);
+    const ny   = sub ? NODE_H/2 - 7 : NODE_H/2;
+    lines.push(`  <text class="node-name" x="${NODE_W/2}" y="${ny}" text-anchor="middle" dominant-baseline="central">${escSVG(name)}</text>`);
+    if (sub) lines.push(`  <text class="node-sub" x="${NODE_W/2}" y="${NODE_H/2 + 8}" text-anchor="middle" dominant-baseline="central">${escSVG(sub)}</text>`);
+    if (isStub) lines.push(`  <text class="node-stub-label" x="${NODE_W/2}" y="${NODE_H/2 + 8}" text-anchor="middle" dominant-baseline="central">stub</text>`);
+    lines.push(`</g>`);
+  });
+  lines.push(`</g>`);
+  lines.push(`</svg>`);
+
+  const svgStr = lines.join('\n');
+  const blob   = new Blob([svgStr], { type: 'image/svg+xml;charset=utf-8' });
+  const url    = URL.createObjectURL(blob);
+  const a      = document.createElement('a');
+  a.href       = url;
+  a.download   = 'bhakta_family_tree.svg';
+  a.click();
   URL.revokeObjectURL(url);
   toast('Exported as SVG');
 }
 
-function exportGEDCOM() {
-  let out = '0 HEAD\n1 GEDC\n2 VERS 5.5.1\n1 CHAR UTF-8\n';
-  G.nodes.forEach((n,i) => {
-    const id = `@I${i+1}@`;
-    n._ged_id = id;
-    out += `0 ${id} INDI\n`;
-    const fn = n.first_name || '', ln = n.last_name || '';
-    out += `1 NAME ${fn} /${ln}/\n`;
-    if (n.gender === 'male')   out += '1 SEX M\n';
-    if (n.gender === 'female') out += '1 SEX F\n';
-    if (n.dob) out += `1 BIRT\n2 DATE ${n.dob}\n`;
-    if (n.birth_place) out += `2 PLAC ${n.birth_place}\n`;
-    if (n.dod) out += `1 DEAT\n2 DATE ${n.dod}\n`;
-    if (n.notes) out += `1 NOTE ${n.notes.replace(/\n/g,' ')}\n`;
-  });
-  // Families from parent-child edges
-  const families = {};
-  G.edges.forEach(e => {
-    if ((e.type||'').includes('parent_of')) {
-      const pId = e.source||e.from, cId = e.target||e.to;
-      if (!families[pId]) families[pId] = { parents: [pId], children: [] };
-      families[pId].children.push(cId);
+function exportPNG() {
+  if (!layoutNodes.length) { toast('No tree to export'); return; }
+  toast('Preparing PNG…');
+
+  // Build the same standalone SVG as exportSVG but with system fonts
+  // (Google Fonts won't load cross-origin in canvas)
+  const gs  = dGraph.graph();
+  const gW  = (gs.width  || 800) + 80;
+  const gH  = (gs.height || 600) + 80;
+  const PAD = 40;
+  const SCALE = 2;  // retina / high-DPI output
+
+  const lines = [];
+  lines.push(`<svg xmlns="http://www.w3.org/2000/svg" width="${gW}" height="${gH}" viewBox="-${PAD} -${PAD} ${gW} ${gH}">`);
+  lines.push(`<rect width="${gW}" height="${gH}" x="-${PAD}" y="-${PAD}" fill="#F5EFE0"/>`);
+  lines.push(`<style>
+    text { font-family: Arial, Helvetica, sans-serif; }
+    .node-name { font-size: 11.5px; font-weight: bold; fill: #1C1A14; }
+    .node-sub  { font-size: 9.5px; fill: #4A4438; }
+    .node-stub-label { font-size: 9px; fill: #aaa; font-style: italic; }
+  </style>`);
+  lines.push(`<defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+      <path d="M2 1L8 5L2 9" fill="none" stroke="#888" stroke-width="1.5" stroke-linecap="round"/>
+    </marker>
+  </defs>`);
+
+  const C = {
+    confirmed: { fill:'#ffffff', stroke:'#2D4A3E' },
+    deceased:  { fill:'#E8DFC8', stroke:'#8B3A2A' },
+    stub:      { fill:'#F5EFE0', stroke:'#aaaaaa', dash:'5,3' },
+    edgeParent:'#4A4438', edgeSpouse:'#C8973A',
+  };
+
+  // Edges
+  lines.push(`<g>`);
+  layoutEdges.forEach(e => {
+    const src = e.source || e.from, tgt = e.target || e.to;
+    const type = e.type || '';
+    const sn = dGraph.node(src), tn = dGraph.node(tgt);
+    if (!sn || !tn) return;
+    const isSpouse = type.includes('spouse');
+    const stroke = isSpouse ? C.edgeSpouse : C.edgeParent;
+    const dash   = isSpouse ? ' stroke-dasharray="4,3"' : '';
+    const pts    = dGraph.edge(src, tgt) || {};
+    let d;
+    if (pts.points && pts.points.length > 1) {
+      d = `M${pts.points.map(p=>`${p.x},${p.y}`).join('L')}`;
+    } else {
+      const mx = (sn.x + tn.x) / 2;
+      d = `M${sn.x},${sn.y+NODE_H/2} C${sn.x},${mx} ${tn.x},${mx} ${tn.x},${tn.y-NODE_H/2}`;
     }
+    const markerEnd = type.includes('parent') ? ' marker-end="url(#arr)"' : '';
+    lines.push(`<path d="${d}" fill="none" stroke="${stroke}" stroke-width="1" opacity="0.6"${dash}${markerEnd}/>`);
   });
-  let fi = 1;
-  Object.entries(families).forEach(([pId, fam]) => {
-    const pNode = nodeMap[pId];
-    if (!pNode?._ged_id) return;
-    const fRef = `@F${fi++}@`;
-    out += `0 ${fRef} FAM\n1 HUSB ${pNode._ged_id}\n`;
-    fam.children.forEach(cId => {
-      const cn = nodeMap[cId];
-      if (cn?._ged_id) out += `1 CHIL ${cn._ged_id}\n`;
-    });
+  lines.push(`</g>`);
+
+  // Nodes
+  lines.push(`<g>`);
+  layoutNodes.forEach(n => {
+    const dn = dGraph.node(n.id);
+    if (!dn) return;
+    const { x, y } = dn;
+    const isStub     = n.is_stub || false;
+    const isDeceased = !!(n.dod || n.dod_unknown);
+    const col  = isStub ? C.stub : isDeceased ? C.deceased : C.confirmed;
+    const rx0  = x - NODE_W/2, ry0 = y - NODE_H/2;
+    const dash = isStub ? ` stroke-dasharray="${col.dash}"` : '';
+    const name = shortDisplayName(n);
+    const sub  = subLabel(n);
+    const ny   = sub ? NODE_H/2 - 7 : NODE_H/2;
+    lines.push(`<g transform="translate(${rx0},${ry0})">`);
+    lines.push(`  <rect width="${NODE_W}" height="${NODE_H}" rx="7" fill="${col.fill}" stroke="${col.stroke}" stroke-width="0.8"${dash}/>`);
+    lines.push(`  <text class="node-name" x="${NODE_W/2}" y="${ny}" text-anchor="middle" dominant-baseline="central">${escSVG(name)}</text>`);
+    if (sub)    lines.push(`  <text class="node-sub" x="${NODE_W/2}" y="${NODE_H/2+8}" text-anchor="middle" dominant-baseline="central">${escSVG(sub)}</text>`);
+    if (isStub) lines.push(`  <text class="node-stub-label" x="${NODE_W/2}" y="${NODE_H/2+8}" text-anchor="middle" dominant-baseline="central">stub</text>`);
+    lines.push(`</g>`);
   });
-  out += '0 TRLR\n';
-  const blob = new Blob([out], {type:'text/plain'});
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a'); a.href=url; a.download='family_tree.ged'; a.click();
-  URL.revokeObjectURL(url);
-  toast('Exported as GEDCOM (.ged)');
+  lines.push(`</g></svg>`);
+
+  const svgStr = lines.join('\n');
+  const svgBlob = new Blob([svgStr], { type: 'image/svg+xml;charset=utf-8' });
+  const svgUrl  = URL.createObjectURL(svgBlob);
+
+  const img = new Image();
+  img.onload = () => {
+    const canvas  = document.createElement('canvas');
+    canvas.width  = gW * SCALE;
+    canvas.height = gH * SCALE;
+    const ctx = canvas.getContext('2d');
+    ctx.scale(SCALE, SCALE);
+    ctx.drawImage(img, 0, 0);
+    URL.revokeObjectURL(svgUrl);
+    canvas.toBlob(pngBlob => {
+      const url = URL.createObjectURL(pngBlob);
+      const a   = document.createElement('a');
+      a.href    = url;
+      a.download = 'bhakta_family_tree.png';
+      a.click();
+      URL.revokeObjectURL(url);
+      toast('Exported as PNG');
+    }, 'image/png');
+  };
+  img.onerror = () => {
+    URL.revokeObjectURL(svgUrl);
+    toast('PNG export failed — try SVG instead');
+  };
+  img.src = svgUrl;
+}
+  return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
 // ── Touch / pinch zoom ────────────────────────────────────────

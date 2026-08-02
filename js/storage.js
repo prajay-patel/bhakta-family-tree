@@ -23,6 +23,8 @@ function flattenForSheet(data) {
     children_json: JSON.stringify(data.children||[]),
     notes: data.notes||'', is_stub: data.isStub?'1':'',
     submitter_name: data.submitterName||'', submitter_email: data.submitterEmail||'',
+    merge_target_node_id: data.merge_target_node_id||'',
+    is_node_update: data.is_node_update?'1':'',
     raw_json: JSON.stringify(data),
   };
 }

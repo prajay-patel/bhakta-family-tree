@@ -4,7 +4,7 @@ A crowd-sourced family tree for our extended family. Fill in what you know about
 
 ## How to add a family member
 
-**Open the form:** [https://prajay-patel.github.io/bhakta-family-tree](https://prajay-patel.github.io/bhakta-family-tree)
+**Open the form:** [https://prajay-patel.github.io/family-tree-form](https://prajay-patel.github.io/family-tree-form)
 
 The form works on any phone, tablet, or computer — no account or app needed. Just open the link in a browser.
 
@@ -33,7 +33,7 @@ Your entry goes directly to a private Google Sheet that only the tree curator ca
 
 Once the curator has processed submissions, the interactive tree is available at:
 
-[https://prajay-patel.github.io/bhakta-family-tree/viewer.html](https://prajay-patel.github.io/bhakta-family-tree/viewer.html)
+[https://prajay-patel.github.io/family-tree-form/viewer.html](https://prajay-patel.github.io/family-tree-form/viewer.html)
 
 In the viewer you can:
 - Search by name
