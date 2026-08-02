@@ -77,18 +77,45 @@ function restoreDraft() {
   session.submitterName  = s.submitterName  || '';
   session.submitterEmail = s.submitterEmail || '';
   session.mode           = s.mode           || 'self';
-  session.anchor         = { ...s.anchor };
+  session.anchor         = { ...(s.anchor || {}) };
   session.selfRecord     = s.selfRecord ? JSON.parse(JSON.stringify(s.selfRecord)) : null;
   session.people         = JSON.parse(JSON.stringify(s.people || []));
   session.currentPerson  = null;
-  document.getElementById('draftBanner').hidden = true;
+  hideBanner();
   refreshSessionUI();
   showPhase('phase-session');
 }
 
 function discardDraft() {
   clearDraft();
-  document.getElementById('draftBanner').hidden = true;
+  hideBanner();
+  // Reset all anchor inputs so the form is visibly clean
+  ['anchorFirst','anchorLast','anchorEmail','proxyFirst','proxyLast'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+  // Reset session state
+  session.submitterName  = '';
+  session.submitterEmail = '';
+  session.mode           = 'self';
+  session.anchor         = { firstName: '', lastName: '', nodeHint: null };
+  session.selfRecord     = null;
+  session.people         = [];
+  session.currentPerson  = null;
+  // Return to anchor phase so user sees a clean form
+  showPhase('phase-anchor');
+}
+
+function showBanner(msg) {
+  const banner = document.getElementById('draftBanner');
+  const msgEl  = document.getElementById('draftMsg');
+  if (msgEl) msgEl.textContent = msg;
+  if (banner) banner.hidden = false;
+}
+
+function hideBanner() {
+  const banner = document.getElementById('draftBanner');
+  if (banner) banner.hidden = true;
 }
 
 // ── Phase management ──────────────────────────────────────────
@@ -106,17 +133,17 @@ function showPhase(id) {
 // ── Init ──────────────────────────────────────────────────────
 window.addEventListener('DOMContentLoaded', () => {
   const d = loadDraft();
-  if (d && (d.session.selfRecord || d.session.people.length > 0)) {
+  if (d && (d.session.selfRecord || (d.session.people || []).length > 0)) {
     const n    = d.session.anchor?.firstName || '';
     const cnt  = (d.session.people || []).length;
     const self = d.session.selfRecord ? 1 : 0;
-    document.getElementById('draftMsg').textContent =
-      `Saved session for ${n || 'unknown'} — ${self + cnt} ${(self + cnt) === 1 ? 'entry' : 'entries'} saved.`;
-    document.getElementById('draftBanner').hidden = false;
+    const total = self + cnt;
+    showBanner(
+      `Saved session for ${n || 'someone'} — ${total} ${total === 1 ? 'entry' : 'entries'} saved.`
+    );
   }
   buildRelPickers();
   populateStubRelSelect();
-  // Village autocomplete on both forms
   attachVillageHint('sVillageOrigin');
   attachVillageHint('villageOrigin');
   setInterval(saveDraft, 30000);
@@ -739,7 +766,12 @@ function startOver() {
   session.people = []; session.selfRecord = null; session.currentPerson = null;
   session.submitterName = ''; session.submitterEmail = '';
   session.anchor = { firstName: '', lastName: '', nodeHint: null };
+  ['anchorFirst','anchorLast','anchorEmail','proxyFirst','proxyLast'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
   clearDraft();
+  hideBanner();
   showPhase('phase-anchor');
 }
 

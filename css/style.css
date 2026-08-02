@@ -25,6 +25,7 @@ h1{font-family:'Playfair Display',serif;font-size:1.7rem;font-weight:600;color:v
 
 /* Draft banner */
 .draft-banner{max-width:720px;margin:.8rem auto 0;padding:.7rem 1.2rem;background:#fff;border:1px solid var(--gold);border-radius:var(--radius);display:flex;align-items:center;gap:1rem;font-size:.85rem;color:var(--ink-soft)}
+.draft-banner[hidden]{display:none !important}
 .draft-actions{display:flex;gap:.5rem;margin-left:auto;flex-shrink:0}
 .btn-draft-restore{background:var(--forest);color:var(--parchment);border:none;border-radius:var(--radius);padding:.3rem .8rem;font-size:.82rem;cursor:pointer}
 .btn-draft-discard{background:none;border:1px solid var(--parchment-d);border-radius:var(--radius);padding:.3rem .8rem;font-size:.82rem;cursor:pointer;color:var(--ink-soft)}
