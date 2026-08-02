@@ -418,13 +418,13 @@ function shouldShowEdge(e) {
 
 // ── Zoom & pan — initialised once, preserved across redraws ──
 let zoom;
-let isLocked = true;   // start locked
+let isLocked   = true;
+let needsCenter = true;   // true until first successful center
 
 function initZoom() {
   zoom = d3.zoom()
     .scaleExtent([0.1, 4])
     .filter(event => {
-      // When locked: block all drag/wheel except pinch-to-zoom on touch
       if (isLocked) {
         if (event.type === 'wheel') return false;
         if (event.type === 'mousedown') return false;
@@ -653,27 +653,27 @@ function zoomBy(factor) {
 }
 
 function resetView() {
-  transform = d3.zoomIdentity;
+  needsCenter = true;
+  transform   = d3.zoomIdentity;
   d3.select('#tree').call(zoom.transform, d3.zoomIdentity);
-  setTimeout(centerGraph, 50);
+  centerGraph();
 }
 
 function centerGraph() {
-  // Only auto-center on first load (when transform is still identity)
-  if (transform !== d3.zoomIdentity && (transform.x !== 0 || transform.y !== 0 || transform.k !== 1)) return;
+  if (!needsCenter) return;
   if (!dGraph || !layoutNodes.length) return;
   const svgEl = document.getElementById('tree');
-  const W = svgEl.clientWidth  || 800;
-  const H = svgEl.clientHeight || 600;
+  const W = svgEl.clientWidth  || window.innerWidth  || 800;
+  const H = svgEl.clientHeight || window.innerHeight || 600;
   const gs = dGraph.graph();
   const gW = gs.width  || 800;
   const gH = gs.height || 600;
-  const scale = Math.min(0.85, Math.min(W / (gW + 60), H / (gH + 60)));
+  const scale = Math.min(0.85, Math.min(W / (gW + 80), H / (gH + 80)));
   const tx = (W - gW * scale) / 2;
   const ty = Math.max(20, (H - gH * scale) / 2);
   const t  = d3.zoomIdentity.translate(tx, ty).scale(scale);
-  transform = t;
-  // Apply via zoom so D3's internal state stays in sync
+  transform    = t;
+  needsCenter  = false;
   d3.select('#tree').call(zoom.transform, t);
 }
 
