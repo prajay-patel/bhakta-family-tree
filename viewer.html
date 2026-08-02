@@ -43,7 +43,6 @@ svg#tree{width:100%;height:100%;display:block}
 .node-g rect{rx:7;stroke-width:.8}
 .node-g.confirmed rect{fill:#fff;stroke:var(--forest)}
 .node-g.stub rect{fill:var(--parchment);stroke:#aaa;stroke-dasharray:5 3}
-.node-g.deceased rect{fill:var(--parchment-d);stroke:var(--rust)}
 .node-g.focused rect{stroke:var(--gold);stroke-width:2}
 .node-g.dimmed{opacity:.2}
 .node-name{font-family:'Inter',sans-serif;font-size:11.5px;font-weight:500;fill:var(--ink);pointer-events:none}
@@ -224,8 +223,7 @@ svg#tree{width:100%;height:100%;display:block}
     <button class="zoom-btn" onclick="resetView()"  title="Reset">⌖</button>
   </div>
   <div class="legend">
-    <div class="leg-row"><div class="leg-swatch" style="background:#fff;border:1px solid var(--forest)"></div>Living</div>
-    <div class="leg-row"><div class="leg-swatch" style="background:var(--parchment-d);border:1px solid var(--rust)"></div>Deceased</div>
+    <div class="leg-row"><div class="leg-swatch" style="background:#fff;border:1px solid var(--forest)"></div>Confirmed</div>
     <div class="leg-row"><div class="leg-swatch" style="background:var(--parchment);border:1px dashed #aaa"></div>Stub (inferred)</div>
     <div class="leg-row"><div class="leg-line" style="border-color:var(--ink-soft)"></div>Parent–child</div>
     <div class="leg-row"><div class="leg-line" style="border-color:var(--gold);border-style:dashed"></div>Spouse</div>
@@ -479,11 +477,10 @@ function render() {
     if (!dn) return;
     const { x, y } = dn;
     const isStub    = n.is_stub || false;
-    const isDeceased= !!(n.dod || n.dod_unknown);
     const isFocused = n.id === focusNodeId;
     const isDimmed  = focusNodeId && !focusedNeighbours.has(n.id);
 
-    const cls = `node-g ${isStub ? 'stub' : isDeceased ? 'deceased' : 'confirmed'}${isFocused ? ' focused' : ''}${isDimmed ? ' dimmed' : ''}`;
+    const cls = `node-g ${isStub ? 'stub' : 'confirmed'}${isFocused ? ' focused' : ''}${isDimmed ? ' dimmed' : ''}`;
     const g = nodeGroup.append('g').attr('class', cls)
       .attr('transform', `translate(${x - NODE_W/2},${y - NODE_H/2})`)
       .on('click', ev => { ev.stopPropagation(); onNodeClick(n); });
@@ -674,7 +671,6 @@ function exportSVG() {
   // Colours
   const C = {
     confirmed: { fill:'#ffffff', stroke:'#2D4A3E' },
-    deceased:  { fill:'#E8DFC8', stroke:'#8B3A2A' },
     stub:      { fill:'#F5EFE0', stroke:'#aaaaaa', dash:'5,3' },
     focused:   { stroke:'#C8973A' },
     edgeParent:'#4A4438', edgeSpouse:'#C8973A',
@@ -711,8 +707,7 @@ function exportSVG() {
     if (!dn) return;
     const { x, y } = dn;
     const isStub     = n.is_stub || false;
-    const isDeceased = !!(n.dod || n.dod_unknown);
-    const col = isStub ? C.stub : isDeceased ? C.deceased : C.confirmed;
+    const col = isStub ? C.stub : C.confirmed;
     const rx   = NODE_W/2, ry = NODE_H/2;
     const rx0  = x - rx,   ry0 = y - ry;
     const dash = isStub ? ` stroke-dasharray="${col.dash}"` : '';
@@ -770,7 +765,6 @@ function exportPNG() {
 
   const C = {
     confirmed: { fill:'#ffffff', stroke:'#2D4A3E' },
-    deceased:  { fill:'#E8DFC8', stroke:'#8B3A2A' },
     stub:      { fill:'#F5EFE0', stroke:'#aaaaaa', dash:'5,3' },
     edgeParent:'#4A4438', edgeSpouse:'#C8973A',
   };
@@ -805,8 +799,7 @@ function exportPNG() {
     if (!dn) return;
     const { x, y } = dn;
     const isStub     = n.is_stub || false;
-    const isDeceased = !!(n.dod || n.dod_unknown);
-    const col  = isStub ? C.stub : isDeceased ? C.deceased : C.confirmed;
+    const col  = isStub ? C.stub : C.confirmed;
     const rx0  = x - NODE_W/2, ry0 = y - NODE_H/2;
     const dash = isStub ? ` stroke-dasharray="${col.dash}"` : '';
     const name = shortDisplayName(n);
