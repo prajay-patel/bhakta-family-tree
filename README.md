@@ -33,7 +33,7 @@ Your entry goes directly to a private Google Sheet that only the tree curator ca
 
 Once the curator has processed submissions, the interactive tree is available at:
 
-[https://prajay-patel.github.io/family-tree-form/viewer.html](https://prajay-patel.github.io/family-tree-form/viewer.html)
+[https://prajay-patel.github.io/bhakta-family-tree/viewer.html](https://prajay-patel.github.io/bhakta-family-tree/viewer.html)
 
 In the viewer you can:
 - Search by name
