@@ -238,6 +238,54 @@
           </select>
         </div>
 
+        <fieldset class="rel-fieldset">
+          <legend data-en="Father" data-gu="પિતા">Father</legend>
+          <div class="field-row">
+            <div class="field-group">
+              <label for="fatherFirst" data-en="First name" data-gu="પ્રથમ નામ">First name</label>
+              <input type="text" id="fatherFirst" placeholder="e.g. Ramesh" autocomplete="off"/>
+            </div>
+            <div class="field-group">
+              <label for="fatherLast" data-en="Last name" data-gu="અટક">Last name</label>
+              <input type="text" id="fatherLast" placeholder="e.g. Bhakta" autocomplete="off"/>
+            </div>
+          </div>
+          <div class="field-row">
+            <div class="field-group">
+              <label for="fatherDOB" data-en="Birth year" data-gu="જન્મ વર્ષ">Birth year</label>
+              <input type="number" id="fatherDOB" min="1800" max="2010" placeholder="YYYY"/>
+            </div>
+            <div class="field-group">
+              <label for="fatherVillage" data-en="Village of origin" data-gu="ગ્રામ">Village of origin</label>
+              <input type="text" id="fatherVillage" placeholder="e.g. Chikhli" autocomplete="off"/>
+            </div>
+          </div>
+        </fieldset>
+
+        <fieldset class="rel-fieldset">
+          <legend data-en="Mother" data-gu="માતા">Mother</legend>
+          <div class="field-row">
+            <div class="field-group">
+              <label for="motherFirst" data-en="First name" data-gu="પ્રથમ નામ">First name</label>
+              <input type="text" id="motherFirst" placeholder="e.g. Lata" autocomplete="off"/>
+            </div>
+            <div class="field-group">
+              <label for="motherLast" data-en="Last name" data-gu="અટક">Last name <span class="hint-label" data-en="(married name)" data-gu="(લગ્ન પછીનું)">(married name)</span></label>
+              <input type="text" id="motherLast" placeholder="e.g. Bhakta" autocomplete="off"/>
+            </div>
+          </div>
+          <div class="field-row">
+            <div class="field-group">
+              <label for="motherMaiden" data-en="Maiden name" data-gu="જન્મ અટક">Maiden name</label>
+              <input type="text" id="motherMaiden" placeholder="Birth surname" autocomplete="off"/>
+            </div>
+            <div class="field-group">
+              <label for="motherDOB" data-en="Birth year" data-gu="જન્મ વર્ષ">Birth year</label>
+              <input type="number" id="motherDOB" min="1800" max="2010" placeholder="YYYY"/>
+            </div>
+          </div>
+        </fieldset>
+
         <div class="sub-nav">
           <button type="button" class="btn-ghost" onclick="prevSub(2)">←</button>
           <button type="button" class="btn-primary" onclick="nextSub(2)"><span data-en="Continue →" data-gu="આગળ →">Continue →</span></button>
@@ -362,10 +410,11 @@
         </fieldset>
 
         <fieldset class="rel-fieldset">
-          <legend data-en="Parents (if known)" data-gu="માતા-પિતા (ખ્યાલ હોય તો)">Parents (if known)</legend>
+          <legend data-en="Additional parent info" data-gu="માતા-પિતા વધારાની માહિતી">Additional parent info <span class="legend-hint" data-en="(if not already entered above)" data-gu="(ઉપર ન ભર્યું હોય તો)">(if not already entered above)</span></legend>
+          <p class="sub-hint" style="margin-bottom:.6rem" data-en="Use this if you know a parent by a different name than entered above, or want to add a third known parent figure (step-parent, adoptive parent)." data-gu="ઉપર દાખલ નામ કરતાં અલગ નામ ખ્યાલ હોય, અથવા સાવકા/દત્તક માતા-પિતા ઉમેરવા હોય તો.">Use this for a step-parent, adoptive parent, or if you know a parent by a different name than entered above.</p>
           <div class="field-row">
             <div class="field-group">
-              <label for="parent1Name" data-en="Parent 1 name" data-gu="માતા/પિતા ૧ નામ">Parent 1 name</label>
+              <label for="parent1Name" data-en="Name" data-gu="નામ">Name</label>
               <input type="text" id="parent1Name" placeholder="Full name"/>
             </div>
             <div class="field-group">
@@ -375,7 +424,7 @@
           </div>
           <div class="field-row">
             <div class="field-group">
-              <label for="parent2Name" data-en="Parent 2 name" data-gu="માતા/પિતા ૨ નામ">Parent 2 name</label>
+              <label for="parent2Name" data-en="Name" data-gu="નામ">Name</label>
               <input type="text" id="parent2Name" placeholder="Full name"/>
             </div>
             <div class="field-group">

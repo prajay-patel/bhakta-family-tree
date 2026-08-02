@@ -1,4 +1,4 @@
-const SHEET_ENDPOINT = 'https://script.google.com/macros/s/AKfycbwoGZRuIQafbjYNhMdnHiANgGVhVwwfzFDJCGwT5lhk82KH3DHpiLHOh6rjhzV80Xru3g/exec';
+const SHEET_ENDPOINT = 'YOUR_APPS_SCRIPT_WEB_APP_URL_HERE';
 function flattenForSheet(data) {
   return {
     submitted_at: data.submittedAt||'', first_name: data.firstName||'',
@@ -13,6 +13,10 @@ function flattenForSheet(data) {
     approx_age: data.approxAge||'', birth_place: data.birthPlace||'',
     village_origin: data.villageOrigin||'', country_emigrated: data.countryEmigrated||'',
     dod: data.dod||'', dod_unknown: data.dodUnknown?'1':'',
+    father_first: data.father?.firstName||'', father_last: data.father?.lastName||'',
+    father_dob:   data.father?.dob||'',       father_village: data.father?.village||'',
+    mother_first: data.mother?.firstName||'', mother_last: data.mother?.lastName||'',
+    mother_maiden: data.mother?.maidenName||'', mother_dob: data.mother?.dob||'',
     parent1_name: data.parent1?.name||'', parent1_dob: data.parent1?.dob||'',
     parent2_name: data.parent2?.name||'', parent2_dob: data.parent2?.dob||'',
     spouses_json: JSON.stringify(data.spouses||[]),

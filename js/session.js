@@ -236,6 +236,8 @@ function cancelPersonForm() { session.currentPerson = null; refreshSessionUI(); 
 
 function clearPersonForm() {
   ['pFirst','pAlias','pMiddle','pLast','pMaiden','pGotra','pGender',
+   'fatherFirst','fatherLast','fatherDOB','fatherVillage',
+   'motherFirst','motherLast','motherMaiden','motherDOB',
    'dobDay','dobMonth','dobYear','approxAge','birthPlace','villageOrigin',
    'countryEmigrated','dodDay','dodMonth','dodYear','pNotes','customRelation',
    'parent1Name','parent1DOB','parent2Name','parent2DOB'].forEach(id => {
@@ -441,6 +443,13 @@ function buildPersonSummary() {
   if (country) lines.push(`<strong>Emigrated to:</strong> ${country}`);
   const dodUnknown = document.getElementById('dodUnknown')?.checked;
   if (dodUnknown) lines.push(`<strong>Deceased:</strong> date unknown`);
+  const fatherName = [v('fatherFirst'), v('fatherLast')].filter(Boolean).join(' ');
+  const motherName = [v('motherFirst'), v('motherLast')].filter(Boolean).join(' ');
+  if (fatherName) lines.push(`<strong>Father:</strong> ${fatherName}${v('fatherDOB') ? ' (b. '+v('fatherDOB')+')' : ''}`);
+  if (motherName) {
+    const maiden = v('motherMaiden') ? ` née ${v('motherMaiden')}` : '';
+    lines.push(`<strong>Mother:</strong> ${motherName}${maiden}${v('motherDOB') ? ' (b. '+v('motherDOB')+')' : ''}`);
+  }
   const spouseNames = Array.from(document.querySelectorAll('[name="spouseName[]"]'))
     .map(el => el.value.trim()).filter(Boolean);
   if (spouseNames.length) lines.push(`<strong>Spouse(s):</strong> ${spouseNames.join(', ')}`);
@@ -481,6 +490,14 @@ function collectPerson() {
     villageOrigin: v('villageOrigin')||null, countryEmigrated: v('countryEmigrated')||null,
     dod: document.getElementById('dodUnknown')?.checked ? null : buildDate(v('dodDay'),v('dodMonth'),v('dodYear'))||null,
     dodUnknown: document.getElementById('dodUnknown')?.checked||false,
+    father: {
+      firstName: v('fatherFirst')||null, lastName: v('fatherLast')||null,
+      dob: v('fatherDOB')||null, village: v('fatherVillage')||null,
+    },
+    mother: {
+      firstName: v('motherFirst')||null, lastName: v('motherLast')||null,
+      maidenName: v('motherMaiden')||null, dob: v('motherDOB')||null,
+    },
     parent1: { name: v('parent1Name')||null, dob: v('parent1DOB')||null },
     parent2: { name: v('parent2Name')||null, dob: v('parent2DOB')||null },
     spouses, children, notes: v('pNotes')||null,
@@ -497,8 +514,12 @@ function prefillPersonForm(p) {
   set('birthPlace',p.birthPlace); set('villageOrigin',p.villageOrigin);
   set('countryEmigrated',p.countryEmigrated); set('pNotes',p.notes);
   set('customRelation',p.customRelation);
-  set('parent1Name',p.parent1?.name); set('parent1DOB',p.parent1?.dob);
-  set('parent2Name',p.parent2?.name); set('parent2DOB',p.parent2?.dob);
+  set('fatherFirst',  p.father?.firstName);  set('fatherLast', p.father?.lastName);
+  set('fatherDOB',    p.father?.dob);        set('fatherVillage', p.father?.village);
+  set('motherFirst',  p.mother?.firstName);  set('motherLast', p.mother?.lastName);
+  set('motherMaiden', p.mother?.maidenName); set('motherDOB',  p.mother?.dob);
+  set('parent1Name',  p.parent1?.name);      set('parent1DOB', p.parent1?.dob);
+  set('parent2Name',  p.parent2?.name);      set('parent2DOB', p.parent2?.dob);
   if (p.dobUnknown) { document.getElementById('dobUnknown').checked=true; document.getElementById('dobFields').hidden=true; }
   else if (p.dob) {
     const pts = p.dob.split('/');

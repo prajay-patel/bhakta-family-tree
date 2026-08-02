@@ -1,1 +1,7 @@
-secret_client.json
+data/people.json
+data/flagged.json
+data/family_tree.*
+!data/.gitkeep
+.DS_Store
+Thumbs.db
+.vscode/

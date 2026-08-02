@@ -4,7 +4,7 @@ A crowd-sourced family tree for our extended family. Fill in what you know about
 
 ## How to add a family member
 
-**Open the form:** [https://prajay-patel.github.io/family-tree-form](https://prajay-patel.github.io/family-tree-form)
+**Open the form:** [https://yourusername.github.io/family-tree-form](https://yourusername.github.io/family-tree-form)
 
 The form works on any phone, tablet, or computer — no account or app needed. Just open the link in a browser.
 
@@ -33,7 +33,7 @@ Your entry goes directly to a private Google Sheet that only the tree curator ca
 
 Once the curator has processed submissions, the interactive tree is available at:
 
-[https://prajay-patel.github.io/family-tree-form/viewer.html](https://prajay-patel.github.io/family-tree-form/viewer.html)
+[https://yourusername.github.io/family-tree-form/viewer.html](https://yourusername.github.io/family-tree-form/viewer.html)
 
 In the viewer you can:
 - Search by name
@@ -48,7 +48,7 @@ Dashed nodes are people who have been mentioned but haven't submitted their own 
 
 ## Questions or corrections
 
-If you notice an error, a missing person, or a misplaced relationship, contact the curator at **[bhakta.family.tree@gmail.com]** or use the "Add / update info" button on any person's detail panel in the viewer.
+If you notice an error, a missing person, or a misplaced relationship, contact the curator at **[your-email@example.com]** or use the "Add / update info" button on any person's detail panel in the viewer.
 
 ---
 
