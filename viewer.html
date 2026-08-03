@@ -342,9 +342,14 @@ function buildLayout() {
     const src = e.source || e.from;
     const tgt = e.target || e.to;
     const type = e.type || 'parent_of';
-    // Only add parent_of to Dagre for ranking; render others as overlays
     if (type === 'parent_of') {
+      // Strict parent-above-child ranking
       dGraph.setEdge(src, tgt, {}, `e${i}`);
+    } else if (type.includes('spouse')) {
+      // minlen:0 lets Dagre place spouses on the SAME rank (side by side)
+      // instead of leaving their relative rank undetermined, which is
+      // what produced long diagonal spouse connectors before.
+      dGraph.setEdge(src, tgt, { minlen: 0, weight: 5 }, `e${i}`);
     }
   });
 
@@ -426,6 +431,55 @@ function initZoom() {
   d3.select('#tree').call(zoom);
 }
 
+// ── Edge path routing ─────────────────────────────────────────
+// Family-tree charts read best with clean right-angle "elbow"
+// connectors rather than generic bezier curves, which tend to
+// overlap and cross unpredictably once the tree has any density.
+
+function computeParentChildPath(sn, tn) {
+  const startX = sn.x, startY = sn.y + NODE_H / 2;
+  const endX   = tn.x, endY   = tn.y - NODE_H / 2;
+
+  // Directly stacked — a straight vertical line, no elbow needed
+  if (Math.abs(startX - endX) < 2) {
+    return `M${startX},${startY} L${endX},${endY}`;
+  }
+
+  const midY = startY + (endY - startY) / 2;
+  const dir  = endX > startX ? 1 : -1;
+  const r    = Math.min(10, Math.abs(endX - startX) / 2, Math.abs(midY - startY), Math.abs(endY - midY));
+
+  return [
+    `M${startX},${startY}`,
+    `L${startX},${midY - r}`,
+    `Q${startX},${midY} ${startX + dir * r},${midY}`,
+    `L${endX - dir * r},${midY}`,
+    `Q${endX},${midY} ${endX},${midY + r}`,
+    `L${endX},${endY}`,
+  ].join(' ');
+}
+
+function computeSpousePath(sn, tn) {
+  const sameRank = Math.abs(sn.y - tn.y) < NODE_H * 0.6;
+
+  if (sameRank) {
+    // Direct horizontal connector between the facing sides — this is
+    // the common case since spouses are now pinned to the same Dagre rank
+    const left  = sn.x <= tn.x ? sn : tn;
+    const right = sn.x <= tn.x ? tn : sn;
+    const y     = (sn.y + tn.y) / 2;
+    return `M${left.x + NODE_W / 2},${y} L${right.x - NODE_W / 2},${y}`;
+  }
+
+  // Different ranks (rare, e.g. filtered view splits them) — gentle curve
+  const mx = (sn.x + tn.x) / 2, my = (sn.y + tn.y) / 2;
+  return `M${sn.x},${sn.y} Q${mx},${my} ${tn.x},${tn.y}`;
+}
+
+function computeEdgePath(type, sn, tn) {
+  return type.includes('spouse') ? computeSpousePath(sn, tn) : computeParentChildPath(sn, tn);
+}
+
 function render() {
   const svgEl = document.getElementById('tree');
   svgEl.innerHTML = '';
@@ -456,15 +510,7 @@ function render() {
     if (!sn || !tn) return;
     const isDim = focusNodeId && !focusedNeighbours.has(src) && !focusedNeighbours.has(tgt);
     const cls = type.includes('spouse') ? 'edge-spouse' : type.includes('sibling') ? 'edge-sibling' : 'edge-parent';
-    // Simple line; Dagre provides points for parent edges
-    const pts = dGraph.edge(src, tgt) || {};
-    let pathD;
-    if (pts.points && pts.points.length > 1) {
-      pathD = `M${pts.points.map(p=>`${p.x},${p.y}`).join('L')}`;
-    } else {
-      const mx = (sn.x + tn.x)/2;
-      pathD = `M${sn.x},${sn.y+NODE_H/2} C${sn.x},${mx} ${tn.x},${mx} ${tn.x},${tn.y-NODE_H/2}`;
-    }
+    const pathD = computeEdgePath(type, sn, tn);
     edgeGroup.append('path').attr('class', `edge ${cls}${isDim?' dimmed':''}`)
       .attr('d', pathD)
       .attr('marker-end', type.includes('parent') ? 'url(#arr)' : null);
@@ -686,14 +732,7 @@ function exportSVG() {
     const isSpouse = type.includes('spouse');
     const stroke = isSpouse ? C.edgeSpouse : C.edgeParent;
     const dash   = isSpouse ? '4,3' : '';
-    const pts    = dGraph.edge(src, tgt) || {};
-    let d;
-    if (pts.points && pts.points.length > 1) {
-      d = `M${pts.points.map(p=>`${p.x},${p.y}`).join('L')}`;
-    } else {
-      const mx = (sn.x + tn.x) / 2;
-      d = `M${sn.x},${sn.y + NODE_H/2} C${sn.x},${mx} ${tn.x},${mx} ${tn.x},${tn.y - NODE_H/2}`;
-    }
+    const d      = computeEdgePath(type, sn, tn);
     const markerEnd = type.includes('parent') ? ' marker-end="url(#arr)"' : '';
     const dashAttr  = dash ? ` stroke-dasharray="${dash}"` : '';
     lines.push(`<path d="${d}" fill="none" stroke="${stroke}" stroke-width="1" opacity="0.6"${dashAttr}${markerEnd}/>`);
@@ -779,14 +818,7 @@ function exportPNG() {
     const isSpouse = type.includes('spouse');
     const stroke = isSpouse ? C.edgeSpouse : C.edgeParent;
     const dash   = isSpouse ? ' stroke-dasharray="4,3"' : '';
-    const pts    = dGraph.edge(src, tgt) || {};
-    let d;
-    if (pts.points && pts.points.length > 1) {
-      d = `M${pts.points.map(p=>`${p.x},${p.y}`).join('L')}`;
-    } else {
-      const mx = (sn.x + tn.x) / 2;
-      d = `M${sn.x},${sn.y+NODE_H/2} C${sn.x},${mx} ${tn.x},${mx} ${tn.x},${tn.y-NODE_H/2}`;
-    }
+    const d      = computeEdgePath(type, sn, tn);
     const markerEnd = type.includes('parent') ? ' marker-end="url(#arr)"' : '';
     lines.push(`<path d="${d}" fill="none" stroke="${stroke}" stroke-width="1" opacity="0.6"${dash}${markerEnd}/>`);
   });
