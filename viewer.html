@@ -943,6 +943,19 @@ function drawEdges(edgeGroup, focusedNeighbours) {
   });
 }
 
+// Text rows inside a person's box, shared by the live view and exports
+// so nothing overlaps: name, then birth/death years, then (for stubs) a
+// small "stub" note on its own line.
+function nodeTextLines(n, stubText) {
+  const out = [{ cls: 'node-name', text: shortDisplayName(n) }];
+  const sub = subLabel(n);
+  if (sub) out.push({ cls: 'node-sub', text: sub });
+  if (n.is_stub) out.push({ cls: 'node-stub-label', text: stubText });
+  const ys = { 1: [NODE_H/2], 2: [NODE_H/2 - 7, NODE_H/2 + 8], 3: [12, 25, 37] }[out.length];
+  out.forEach((l, i) => { l.y = ys[i]; });
+  return out;
+}
+
 function render() {
   const svgEl = document.getElementById('tree');
   svgEl.innerHTML = '';
@@ -986,22 +999,10 @@ function render() {
 
     g.append('rect').attr('width', NODE_W).attr('height', NODE_H);
 
-    const shortName = shortDisplayName(n);
-    const hasTwo = !isStub;
-    const y1 = hasTwo ? NODE_H/2 - 7 : NODE_H/2;
-    const y2 = NODE_H/2 + 8;
-
-    g.append('text').attr('class','node-name').attr('x',NODE_W/2).attr('y',y1)
-      .attr('text-anchor','middle').attr('dominant-baseline','central').text(shortName);
-
-    if (!isStub) {
-      const sub = subLabel(n);
-      if (sub) g.append('text').attr('class','node-sub').attr('x',NODE_W/2).attr('y',y2)
-        .attr('text-anchor','middle').attr('dominant-baseline','central').text(sub);
-    } else {
-      g.append('text').attr('class','node-stub-label').attr('x',NODE_W/2).attr('y',y2)
-        .attr('text-anchor','middle').attr('dominant-baseline','central').text('stub — add info');
-    }
+    nodeTextLines(n, 'stub — add info').forEach(l => {
+      g.append('text').attr('class', l.cls).attr('x', NODE_W/2).attr('y', l.y)
+        .attr('text-anchor','middle').attr('dominant-baseline','central').text(l.text);
+    });
 
     // Hub badge — a small gold connection-count badge on well-connected
     // confirmed people (usually elders with many recorded children/
@@ -1252,12 +1253,8 @@ function exportSVG() {
     lines.push(`<g transform="translate(${rx0},${ry0})">`);
     lines.push(`  <rect width="${NODE_W}" height="${NODE_H}" rx="7" fill="${col.fill}" stroke="${col.stroke}" stroke-width="0.8"${dash}/>`);
 
-    const name = shortDisplayName(n);
-    const sub  = subLabel(n);
-    const ny   = sub ? NODE_H/2 - 7 : NODE_H/2;
-    lines.push(`  <text class="node-name" x="${NODE_W/2}" y="${ny}" text-anchor="middle" dominant-baseline="central">${escSVG(name)}</text>`);
-    if (sub) lines.push(`  <text class="node-sub" x="${NODE_W/2}" y="${NODE_H/2 + 8}" text-anchor="middle" dominant-baseline="central">${escSVG(sub)}</text>`);
-    if (isStub) lines.push(`  <text class="node-stub-label" x="${NODE_W/2}" y="${NODE_H/2 + 8}" text-anchor="middle" dominant-baseline="central">stub</text>`);
+    nodeTextLines(n, 'stub').forEach(l => lines.push(
+      `  <text class="${l.cls}" x="${NODE_W/2}" y="${l.y}" text-anchor="middle" dominant-baseline="central">${escSVG(l.text)}</text>`));
     lines.push(`</g>`);
   });
   lines.push(`</g>`);
@@ -1328,14 +1325,10 @@ function exportPNG() {
     const col  = isStub ? C.stub : C.confirmed;
     const rx0  = x - NODE_W/2, ry0 = y - NODE_H/2;
     const dash = isStub ? ` stroke-dasharray="${col.dash}"` : '';
-    const name = shortDisplayName(n);
-    const sub  = subLabel(n);
-    const ny   = sub ? NODE_H/2 - 7 : NODE_H/2;
     lines.push(`<g transform="translate(${rx0},${ry0})">`);
     lines.push(`  <rect width="${NODE_W}" height="${NODE_H}" rx="7" fill="${col.fill}" stroke="${col.stroke}" stroke-width="0.8"${dash}/>`);
-    lines.push(`  <text class="node-name" x="${NODE_W/2}" y="${ny}" text-anchor="middle" dominant-baseline="central">${escSVG(name)}</text>`);
-    if (sub)    lines.push(`  <text class="node-sub" x="${NODE_W/2}" y="${NODE_H/2+8}" text-anchor="middle" dominant-baseline="central">${escSVG(sub)}</text>`);
-    if (isStub) lines.push(`  <text class="node-stub-label" x="${NODE_W/2}" y="${NODE_H/2+8}" text-anchor="middle" dominant-baseline="central">stub</text>`);
+    nodeTextLines(n, 'stub').forEach(l => lines.push(
+      `  <text class="${l.cls}" x="${NODE_W/2}" y="${l.y}" text-anchor="middle" dominant-baseline="central">${escSVG(l.text)}</text>`));
     lines.push(`</g>`);
   });
   lines.push(`</g></svg>`);
