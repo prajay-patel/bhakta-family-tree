@@ -1,24 +1,35 @@
-MIT License
+Copyright (c) 2025-2026 Prajay Patel. All Rights Reserved.
 
-Copyright (c) 2025 Prajay Patel
+This repository and everything in it (the source code, design, layout, text,
+graphics and data, together the "Work") is the property of Prajay Patel and is
+protected by copyright law. The Work is NOT open source.
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+The source is publicly visible for transparency only. Without the prior
+written permission of the copyright holder, you may NOT:
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
+  1. Copy, reproduce, or download the Work for use outside of viewing it here;
+  2. Distribute, publish, sublicense, or share the Work or any part of it;
+  3. Modify the Work or create derivative works based on it;
+  4. Use the Work, or any part of it, for any commercial purpose, including
+     selling it, offering it as a product or service, or using it to generate
+     revenue directly or indirectly;
+  5. Host or deploy the Work, or a modified version of it, anywhere else.
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+PERMITTED USE
+  - Family members and other invited visitors may use the hosted family tree
+    website for its intended personal purpose.
+  - Viewing this repository on GitHub, and forking it within GitHub, are
+    allowed only to the extent required by the GitHub Terms of Service. A fork
+    does not grant any of the rights listed above.
+
+PERMISSIONS, LICENSING AND PARTNERSHIP
+  Any use beyond the above, including commercial use, redistribution, or
+  partnership, requires a separate written agreement with the copyright holder.
+  To ask, open an issue on this repository or contact Prajay Patel directly.
+
+THE WORK IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED.
+IN NO EVENT SHALL THE COPYRIGHT HOLDER BE LIABLE FOR ANY CLAIM, DAMAGES OR
+OTHER LIABILITY ARISING FROM, OUT OF, OR IN CONNECTION WITH THE WORK.
 
 ---
 

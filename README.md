@@ -72,7 +72,10 @@ Contact the tree curator at **bhakta.family.tree@gmail.com** or use the
 
 ## Legal & privacy
 
-The code in this repository is released under the [MIT License](LICENSE).
+Copyright (c) 2025-2026 Prajay Patel. **All Rights Reserved.** This project is
+not open source: you may not copy, redistribute, modify, or use it commercially
+without written permission. See [LICENSE](LICENSE) for the full terms. For
+licensing or partnership enquiries, please open an issue or get in touch.
 
 Family data submitted through this form is stored privately in the curator's
 Google Sheet and is not included in this repository at any point. The tree
