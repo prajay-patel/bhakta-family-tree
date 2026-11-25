@@ -22,6 +22,7 @@ The form works on any phone, tablet, or computer — no account or app needed.
 - **Village autocomplete** — start typing and it will suggest from all 243 Leuva Patidar villages of South Gujarat, with district shown on selection
 - **Country of emigration** — a dropdown with all known Bhakta family destinations (Kenya, Uganda, Zambia, UK, USA, Canada…)
 - **Gujarati toggle** — the ગુ / EN button in the top right switches all labels to Gujarati script
+- **Colour schemes** — the colour-dot button in the header opens a palette: pick a preset (Heritage, Saffron, Monsoon, Peacock, Lotus, Night, Midnight, High contrast), tap swatches for individual colours, or type any hex code. Your choice is remembered on that device across every page.
 - **Stub quick-add** — if you know someone exists but not their details, add a placeholder so other relatives can fill it in later
 - **Confirmation email** — you'll receive a summary of what you submitted
 
