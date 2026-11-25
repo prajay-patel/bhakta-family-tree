@@ -47,6 +47,9 @@ svg#tree{width:100%;height:100%;display:block}
 .node-g.stub rect{fill:var(--parchment);stroke:var(--mist);stroke-dasharray:5 3}
 .node-g.focused rect{stroke:var(--gold);stroke-width:2}
 .node-g.dimmed{opacity:.2}
+#canvas.arranging .node-g{cursor:move}
+.node-g.dragging rect{stroke:var(--gold);stroke-width:2;filter:drop-shadow(0 3px 6px rgba(0,0,0,.18))}
+.tb-btn[hidden]{display:none}
 .node-name{font-family:'Inter',sans-serif;font-size:11.5px;font-weight:500;fill:var(--ink);pointer-events:none}
 .node-sub{font-family:'Inter',sans-serif;font-size:9.5px;fill:var(--ink-soft);pointer-events:none}
 .node-stub-label{font-size:9px;fill:var(--mist);font-style:italic;pointer-events:none}
@@ -183,6 +186,8 @@ svg#tree{width:100%;height:100%;display:block}
   <div class="topbar-sep"></div>
   <button class="tb-btn" onclick="exportSVG()">↓ SVG</button>
   <button class="tb-btn" onclick="exportPNG()">↓ PNG</button>
+  <button class="tb-btn" id="btnArrange" onclick="toggleArrange()" title="Drag people to rearrange the tree">✥ Arrange</button>
+  <button class="tb-btn" id="btnResetLayout" onclick="resetArrangement()" title="Undo your manual arrangement" hidden>↺ Reset layout</button>
   <div class="tb-spacer"></div>
   <a class="add-link" href="index.html">+ Add member</a>
   <a class="add-link" href="history.html" target="_blank" rel="noopener" style="color:var(--gold)">Our History</a>
@@ -478,12 +483,6 @@ function buildLayout() {
   // Filter nodes by branch and generation depth
   const visibleIds = getVisibleIds();
 
-  dGraph = new dagre.graphlib.Graph({ multigraph: true });
-  dGraph.setGraph({
-    rankdir: 'TB', nodesep: 28, ranksep: 60, edgesep: 10,
-  });
-  dGraph.setDefaultEdgeLabel(() => ({}));
-
   layoutNodes = G.nodes.filter(n => visibleIds.has(n.id));
   layoutEdges = dedupeReciprocal(G.edges.filter(e => {
     const src = e.source || e.from;
@@ -491,98 +490,212 @@ function buildLayout() {
     return visibleIds.has(src) && visibleIds.has(tgt) && shouldShowEdge(e);
   }));
 
-  layoutNodes.forEach(n => {
-    dGraph.setNode(n.id, { width: NODE_W, height: NODE_H, label: n.id });
+  // ── 1. Couples are laid out as one unit ──
+  // Each married couple (or wider chain of spouses) becomes a single
+  // wide box for Dagre. This keeps partners side by side on the same
+  // generation row, and a spouse who has no parents or children in the
+  // data (e.g. a stub for a husband or wife) no longer floats up to the
+  // top row and drags their partner with them.
+  layoutGroups = buildSpouseGroups();
+
+  const g = new dagre.graphlib.Graph();
+  g.setGraph({ rankdir: 'TB', nodesep: 28, ranksep: RANK_SEP, edgesep: 10 });
+  g.setDefaultEdgeLabel(() => ({}));
+  layoutGroups.forEach(grp => {
+    g.setNode(grp.key, { width: groupWidth(grp.members.length), height: NODE_H });
   });
-  layoutEdges.forEach((e, i) => {
-    const src = e.source || e.from;
-    const tgt = e.target || e.to;
-    const type = e.type || 'parent_of';
-    if (type === 'parent_of') {
-      // Only parent-child edges drive Dagre's ranking. Spouse edges are
-      // deliberately NOT given to Dagre: it treats every edge as a
-      // "source above target" constraint, and minlen:0 only relaxes the
-      // minimum gap — it does not force equal rank (verified directly
-      // against dagre 0.8.5). Spouses are aligned in a post-layout pass
-      // below instead, which is reliable.
-      dGraph.setEdge(src, tgt, {}, `e${i}`);
-    }
-  });
-
-  dagre.layout(dGraph);
-  alignSpouses();
-  render();
-}
-
-// ── Post-layout spouse alignment ──────────────────────────────
-// Dagre has no same-rank constraint, so after layout we pull each
-// spouse onto their partner's row and place them immediately beside
-// them, then nudge any node they'd land on out of the way.
-function alignSpouses() {
-  const GAP = 26;                     // horizontal gap between spouse boxes
-  const spousePairs = [];
-  const seen = new Set();
-
+  // Parent → child links between couples drive the generation rows.
   layoutEdges.forEach(e => {
-    const type = e.type || '';
-    if (!type.includes('spouse')) return;
-    const a = e.source || e.from, b = e.target || e.to;
-    const key = [a, b].sort().join('|');
-    if (seen.has(key)) return;
-    seen.add(key);
-    if (dGraph.node(a) && dGraph.node(b)) spousePairs.push([a, b]);
+    if ((e.type || 'parent_of') !== 'parent_of') return;
+    const gp = groupOf[e.source || e.from], gc = groupOf[e.target || e.to];
+    if (!gp || !gc || gp === gc) return;
+    const existing = g.edge(gp, gc);
+    if (existing) existing.weight += 1;
+    else g.setEdge(gp, gc, { weight: 1, minlen: 1 });
+  });
+  dagre.layout(g);
+
+  // ── 2. Expand each couple back into individual people ──
+  // Order partners so each sits on the side nearest their own parents,
+  // which keeps the lines up to each family from crossing.
+  const parentsOf = {};
+  layoutEdges.forEach(e => {
+    if ((e.type || 'parent_of') !== 'parent_of') return;
+    const c = e.target || e.to;
+    (parentsOf[c] = parentsOf[c] || []).push(e.source || e.from);
+  });
+  dGraph = new dagre.graphlib.Graph();
+  dGraph.setGraph({});
+  layoutGroups.forEach(grp => {
+    const gn = g.node(grp.key);
+    const sideKey = id => {
+      const ps = (parentsOf[id] || []).map(p => groupOf[p]).filter(k => k && k !== grp.key);
+      return ps.length ? ps.reduce((s, k) => s + g.node(k).x, 0) / ps.length : null;
+    };
+    const keyed = grp.members.map((id, i) => ({ id, i, k: sideKey(id) }));
+    // Partners who married in (no parents shown) take the couple's
+    // centre as their key, so they land on the side away from their
+    // partner's parents and the line up to that family stays clear.
+    keyed.forEach(m => { if (m.k === null) m.k = gn.x + 0.5 + m.i * 0.01; });
+    keyed.sort((a, b) => a.k - b.k);
+    grp.members = keyed.map(m => m.id);
+    grp.autoX = gn.x; grp.autoY = gn.y;
+    placeGroup(grp, gn.x, gn.y);
   });
 
-  spousePairs.forEach(([aId, bId]) => {
-    const a = dGraph.node(aId), b = dGraph.node(bId);
-    if (!a || !b) return;
-    if (Math.abs(a.y - b.y) < 1) return;   // already aligned
+  // ── 3. Apply any positions the viewer arranged by hand ──
+  const saved = loadManualLayout();
+  layoutGroups.forEach(grp => {
+    const o = saved[grp.key];
+    if (o) placeGroup(grp, grp.autoX + (o.dx || 0), grp.autoY + (o.dr || 0) * ROW_STEP);
+  });
 
-    // Anchor on whichever partner is more structurally constrained —
-    // the one with children already placed below them. That person's
-    // x-position is holding a subtree together, so moving them would
-    // drag long edges across the canvas. The other partner (typically
-    // the one who married in) is the one free to move.
-    const childCount = (id) => layoutEdges.filter(e => {
-      const t = e.type || '';
-      return t.includes('parent_of') && (e.source || e.from) === id;
-    }).length;
+  normaliseBounds();
+  render();
+  updateArrangeUi();
+}
 
-    const aKids = childCount(aId), bKids = childCount(bId);
-    let anchor, mover;
-    if (aKids !== bKids) {
-      [anchor, mover] = aKids > bKids ? [a, b] : [b, a];
-    } else {
-      // Equal footing — keep the higher node (closer to the root) put.
-      [anchor, mover] = a.y <= b.y ? [a, b] : [b, a];
-    }
-    mover.y = anchor.y;
+// ── Spouse groups ─────────────────────────────────────────────
+const RANK_SEP   = 60;
+const ROW_STEP   = NODE_H + RANK_SEP;   // vertical distance between generations
+const COUPLE_GAP = 26;                  // horizontal gap between partners
+let layoutGroups = [], groupOf = {};
 
-    // Try placing on the right first, then the left, preferring
-    // whichever side is already free — this avoids shoving unrelated
-    // nodes across the canvas and creating very long spouse edges.
-    const rowNodes = layoutNodes
-      .map(n => dGraph.node(n.id))
-      .filter(dn => dn && dn !== mover && dn !== anchor &&
-                    Math.abs(dn.y - anchor.y) < 1);
+function groupWidth(n) { return n * NODE_W + (n - 1) * COUPLE_GAP; }
 
-    const free = (x) => !rowNodes.some(dn => Math.abs(dn.x - x) < NODE_W + GAP);
-    const right = anchor.x + NODE_W + GAP;
-    const left  = anchor.x - NODE_W - GAP;
-
-    if (free(right))      mover.x = right;
-    else if (free(left))  mover.x = left;
-    else {
-      // Both sides occupied — take the right slot and push the
-      // occupant further right to open a gap.
-      mover.x = right;
-      rowNodes.forEach(dn => {
-        if (Math.abs(dn.x - right) < NODE_W + GAP) dn.x = right + NODE_W + GAP;
-      });
-    }
+function buildSpouseGroups() {
+  const parent = {};
+  const find = x => (parent[x] === x ? x : (parent[x] = find(parent[x])));
+  layoutNodes.forEach(n => { parent[n.id] = n.id; });
+  layoutEdges.forEach(e => {
+    if (!(e.type || '').includes('spouse')) return;
+    const a = e.source || e.from, b = e.target || e.to;
+    if (parent[a] === undefined || parent[b] === undefined) return;
+    parent[find(a)] = find(b);
+  });
+  const byRoot = {};
+  layoutNodes.forEach(n => { (byRoot[find(n.id)] = byRoot[find(n.id)] || []).push(n.id); });
+  groupOf = {};
+  return Object.values(byRoot).map(members => {
+    const key = members.slice().sort().join('+');
+    members.forEach(id => { groupOf[id] = key; });
+    return { key, members };
   });
 }
 
+function placeGroup(grp, cx, cy) {
+  const left = cx - groupWidth(grp.members.length) / 2;
+  grp.x = cx; grp.y = cy;
+  grp.members.forEach((id, i) => {
+    const x = left + NODE_W / 2 + i * (NODE_W + COUPLE_GAP);
+    const dn = dGraph.node(id);
+    if (dn) { dn.x = x; dn.y = cy; }
+    else dGraph.setNode(id, { x, y: cy, width: NODE_W, height: NODE_H });
+  });
+}
+
+// Shift everything so the tree starts at (0,0) and record its size — the
+// fit-to-screen and export code assume that. If the view is already
+// placed, compensate so nothing visibly jumps.
+function normaliseBounds() {
+  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+  dGraph.nodes().forEach(id => {
+    const d = dGraph.node(id);
+    minX = Math.min(minX, d.x - NODE_W / 2); maxX = Math.max(maxX, d.x + NODE_W / 2);
+    minY = Math.min(minY, d.y - NODE_H / 2); maxY = Math.max(maxY, d.y + NODE_H / 2);
+  });
+  if (!isFinite(minX)) { minX = minY = maxX = maxY = 0; }
+  if (minX || minY) {
+    dGraph.nodes().forEach(id => { const d = dGraph.node(id); d.x -= minX; d.y -= minY; });
+    layoutGroups.forEach(grp => { grp.x -= minX; grp.y -= minY; grp.autoX -= minX; grp.autoY -= minY; });
+    if (!needsCenter && zoom) {
+      transform = transform.translate(minX, minY);
+      d3.select('#tree').call(zoom.transform, transform);
+    }
+  }
+  dGraph.graph().width = maxX - minX;
+  dGraph.graph().height = maxY - minY;
+}
+
+// ── Manual arrangement ────────────────────────────────────────
+// In Arrange mode people can be dragged. A couple moves together, and
+// on release it snaps to the nearest generation row. Positions are
+// remembered in this browser only (they're offsets from the automatic
+// layout, so they survive the tree being updated).
+const LAYOUT_KEY = 'bft-layout-v1';
+let arrangeMode = false;
+
+function loadManualLayout() {
+  try { return JSON.parse(localStorage.getItem(LAYOUT_KEY) || '{}') || {}; }
+  catch (e) { return {}; }
+}
+function saveManualLayout(obj) {
+  try { localStorage.setItem(LAYOUT_KEY, JSON.stringify(obj)); } catch (e) { /* storage blocked */ }
+}
+
+function toggleArrange() {
+  arrangeMode = !arrangeMode;
+  if (arrangeMode) toast('Drag people to rearrange — couples move together');
+  render();
+  updateArrangeUi();
+}
+
+function resetArrangement() {
+  saveManualLayout({});
+  buildLayout();
+  toast('Layout reset');
+}
+
+function updateArrangeUi() {
+  const btn = document.getElementById('btnArrange');
+  const reset = document.getElementById('btnResetLayout');
+  if (btn) btn.classList.toggle('active', arrangeMode);
+  if (reset) reset.hidden = !Object.keys(loadManualLayout()).length;
+  const canvas = document.getElementById('canvas');
+  if (canvas) canvas.classList.toggle('arranging', arrangeMode);
+}
+
+function attachDrag(sel) {
+  sel.call(d3.drag()
+    .clickDistance(4)
+    .on('start', function (ev) {
+      const grp = layoutGroups.find(g => g.key === groupOf[this.dataset.id]);
+      this.__grp = grp;
+      d3.selectAll('.node-g').filter(function () { return groupOf[this.dataset.id] === grp.key; }).raise().classed('dragging', true);
+    })
+    .on('drag', function (ev) {
+      const grp = this.__grp;
+      placeGroup(grp, grp.x + ev.dx, grp.y + ev.dy);
+      redrawMoved(grp);
+    })
+    .on('end', function () {
+      const grp = this.__grp;
+      d3.selectAll('.node-g.dragging').classed('dragging', false);
+      const dr = Math.round((grp.y - grp.autoY) / ROW_STEP);
+      const dx = Math.round(grp.x - grp.autoX);
+      const saved = loadManualLayout();
+      if (dr || Math.abs(dx) > 2) saved[grp.key] = { dx, dr };
+      else delete saved[grp.key];
+      saveManualLayout(saved);
+      buildLayout();
+    }));
+}
+
+// Move a dragged couple's boxes and the lines attached to them, without
+// rebuilding the whole drawing (which would cancel the drag).
+function redrawMoved(grp) {
+  const moved = new Set(grp.members);
+  d3.selectAll('.node-g').each(function () {
+    if (!moved.has(this.dataset.id)) return;
+    const d = dGraph.node(this.dataset.id);
+    this.setAttribute('transform', `translate(${d.x - NODE_W/2},${d.y - NODE_H/2})`);
+  });
+  d3.selectAll('path.edge').each(function () {
+    const s = this.dataset.s, t = this.dataset.t;
+    if (!moved.has(s) && !moved.has(t)) return;
+    this.setAttribute('d', computeEdgePath(this.dataset.type, dGraph.node(s), dGraph.node(t)));
+  });
+}
 function getVisibleIds() {
   const ids = new Set();
   let candidates = G.nodes;
@@ -759,6 +872,7 @@ function render() {
     const pathD = computeEdgePath(type, sn, tn);
     edgeGroup.append('path').attr('class', `edge ${cls}${isDim?' dimmed':''}`)
       .attr('d', pathD)
+      .attr('data-s', src).attr('data-t', tgt).attr('data-type', type)
       .attr('marker-end', type.includes('parent') ? 'url(#arr)' : null);
   });
 
@@ -774,8 +888,10 @@ function render() {
 
     const cls = `node-g ${isStub ? 'stub' : 'confirmed'}${isFocused ? ' focused' : ''}${isDimmed ? ' dimmed' : ''}`;
     const g = nodeGroup.append('g').attr('class', cls)
+      .attr('data-id', n.id)
       .attr('transform', `translate(${x - NODE_W/2},${y - NODE_H/2})`)
       .on('click', ev => { ev.stopPropagation(); onNodeClick(n); });
+    if (arrangeMode) attachDrag(g);
 
     g.append('rect').attr('width', NODE_W).attr('height', NODE_H);
 
