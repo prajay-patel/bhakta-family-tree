@@ -62,6 +62,27 @@ shared viewer, please note this when submitting or contact the curator directly.
 
 ---
 
+## What the public viewer shows differently for living people
+
+The viewer applies one extra protection beyond what's described above:
+
+- **For someone who has passed away**, the viewer shows their full birth
+  and death dates, exactly as submitted. This is standard practice in
+  genealogy — precise dates carry real historical value and there's no
+  ongoing risk once someone is deceased.
+- **For someone still living**, the viewer only ever shows their birth
+  **year** — never the exact day and month. An exact date of birth
+  alongside a full name is commonly used to verify identity (banks,
+  government services, etc.), so it's deliberately left out of anything
+  publicly visible, even though the full date may have been submitted
+  and is stored privately in the curator's records.
+
+This applies everywhere in the viewer, including the URL used by the
+"Add / update info" button — the full date of birth for a living person
+is never passed into a visible link or shown on screen.
+
+---
+
 ## How long information is kept
 
 Submitted information is kept for as long as the family tree project is active.

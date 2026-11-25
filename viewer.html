@@ -107,8 +107,33 @@ svg#tree{width:100%;height:100%;display:block}
 .hp-full-link:hover{background:var(--forest-l)}
 
 /* History toggle button */
-.history-toggle-btn{position:absolute;bottom:56px;left:16px;background:var(--forest);color:var(--parchment);border:none;border-radius:var(--radius);padding:.42rem .9rem;font-size:.78rem;cursor:pointer;z-index:10;transition:background .15s;font-family:'Inter',sans-serif}
+.history-toggle-btn{position:absolute;bottom:152px;left:16px;background:var(--forest);color:var(--parchment);border:none;border-radius:var(--radius);padding:.42rem .9rem;font-size:.78rem;cursor:pointer;z-index:10;transition:background .15s;font-family:'Inter',sans-serif}
 .history-toggle-btn:hover{background:var(--forest-l)}
+
+/* Key connectors — hub badge on well-connected nodes */
+.hub-badge{cursor:pointer}
+.hub-badge circle{fill:var(--gold);stroke:#fff;stroke-width:1.2}
+.hub-badge text{font-size:8.5px;font-weight:600;fill:#fff;text-anchor:middle;dominant-baseline:central;pointer-events:none}
+
+/* Key connectors panel — same pattern as history panel, opens from the right */
+.connectors-panel{position:absolute;top:0;right:0;width:270px;height:100%;background:#fff;border-left:1px solid var(--parchment-d);z-index:15;display:flex;flex-direction:column;transition:transform .25s ease;box-shadow:-2px 0 12px rgba(0,0,0,.08)}
+.connectors-panel.hidden{transform:translateX(270px)}
+.cp-header{display:flex;align-items:center;justify-content:space-between;padding:.9rem 1rem;background:var(--forest);flex-shrink:0}
+.cp-title{font-family:'Playfair Display',serif;font-size:1rem;color:var(--parchment)}
+.cp-close{background:none;border:none;color:var(--mist);cursor:pointer;font-size:1rem;padding:.2rem .3rem}
+.cp-close:hover{color:var(--parchment)}
+.cp-body{padding:1rem;overflow-y:auto;flex:1;font-size:13px;color:var(--ink-soft)}
+.cp-intro{margin-bottom:1rem;line-height:1.55;font-size:12.5px}
+.cp-list{display:flex;flex-direction:column;gap:.5rem}
+.cp-item{display:flex;align-items:center;gap:.6rem;padding:.55rem .7rem;border:1px solid var(--parchment-d);border-radius:var(--radius);cursor:pointer;background:var(--parchment);transition:border-color .15s,background .15s}
+.cp-item:hover{border-color:var(--gold);background:#fff}
+.cp-rank{width:22px;height:22px;border-radius:50%;background:var(--gold);color:#fff;font-size:11px;font-weight:600;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.cp-info{flex:1;min-width:0}
+.cp-name{font-size:.85rem;font-weight:500;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cp-meta{font-size:.72rem;color:var(--mist);margin-top:1px}
+.cp-count{font-size:.72rem;color:var(--forest);font-weight:600;white-space:nowrap}
+.connectors-toggle-btn{position:absolute;bottom:16px;right:60px;background:var(--gold);color:#fff;border:none;border-radius:var(--radius);padding:.42rem .9rem;font-size:.78rem;cursor:pointer;z-index:10;transition:background .15s;font-family:'Inter',sans-serif}
+.connectors-toggle-btn:hover{background:#b3822f}
 
 /* Toast */
 #toast{position:absolute;top:70px;left:50%;transform:translateX(-50%);background:rgba(45,74,62,.92);color:var(--parchment);padding:6px 14px;border-radius:20px;font-size:12px;z-index:30;opacity:0;transition:opacity .25s;pointer-events:none}
@@ -125,6 +150,12 @@ svg#tree{width:100%;height:100%;display:block}
   .search-wrap{flex:1 1 140px}
   #panel{width:calc(100vw - 24px);right:12px}
   .gen-label,.topbar-sep{display:none}
+  .connectors-panel{width:calc(100vw - 24px)}
+  .connectors-panel.hidden{transform:translateX(calc(100vw - 24px))}
+  .legend{display:none}
+  .history-toggle-btn{bottom:16px;left:16px;font-size:.72rem;padding:.36rem .7rem}
+  .connectors-toggle-btn{bottom:16px;right:16px;font-size:.72rem;padding:.36rem .7rem}
+  .zoom-btns{bottom:64px}
 }
 </style>
 </head>
@@ -132,7 +163,7 @@ svg#tree{width:100%;height:100%;display:block}
 
 <!-- Top bar -->
 <div class="topbar">
-  <span class="topbar-title">❧ Bhakta Family Tree</span>
+  <span class="topbar-title">❧ Bhakta Family Tree Project</span>
   <div class="topbar-sep"></div>
   <div class="search-wrap">
     <span class="search-icon">⌕</span>
@@ -216,7 +247,20 @@ svg#tree{width:100%;height:100%;display:block}
     </div>
   </div>
 
+  <!-- Key connectors panel -->
+  <div id="connectorsPanel" class="connectors-panel hidden">
+    <div class="cp-header">
+      <div class="cp-title">★ Key Connectors</div>
+      <button class="cp-close" onclick="closeConnectors()" aria-label="Close">✕</button>
+    </div>
+    <div class="cp-body">
+      <p class="cp-intro">The most-connected people in the tree — usually elders whose children, grandchildren, and spouse are all documented. A good place to start exploring.</p>
+      <div class="cp-list" id="cpList"></div>
+    </div>
+  </div>
+
   <button class="history-toggle-btn" onclick="toggleHistory()" title="Our Family History">❧ History</button>
+  <button class="connectors-toggle-btn" onclick="toggleConnectors()" title="Key Connectors">★ Connectors</button>
   <div class="zoom-btns">
     <button class="zoom-btn" onclick="zoomBy(1.25)" title="Zoom in">+</button>
     <button class="zoom-btn" onclick="zoomBy(0.8)"  title="Zoom out">−</button>
@@ -227,6 +271,7 @@ svg#tree{width:100%;height:100%;display:block}
     <div class="leg-row"><div class="leg-swatch" style="background:var(--parchment);border:1px dashed #aaa"></div>Stub (inferred)</div>
     <div class="leg-row"><div class="leg-line" style="border-color:var(--ink-soft)"></div>Parent–child</div>
     <div class="leg-row"><div class="leg-line" style="border-color:var(--gold);border-style:dashed"></div>Spouse</div>
+    <div class="leg-row"><div class="leg-swatch" style="background:var(--gold);border-radius:50%;width:12px;height:12px"></div># = connections</div>
   </div>
   <div id="emptyState">
     <h2>No tree data yet</h2>
@@ -302,6 +347,8 @@ async function loadData() {
       nodeMap = {};
       G.nodes.forEach(n => { nodeMap[n.id || n.node_id] = n; n.id = n.id || n.node_id; });
       document.getElementById('emptyState').style.display = 'none';
+      computeNodeDegrees();
+      populateConnectorsPanel();
       initZoom();
       buildLayout();  // buildLayout calls render() then centerGraph()
       return;
@@ -312,6 +359,112 @@ async function loadData() {
   }
   // Keep empty state visible
   console.warn('No tree data found');
+}
+
+// ── Key connectors — most-connected people act as natural anchors ──
+let nodeDegree = {};
+const HUB_MIN_DEGREE = 5;   // minimum real connections to earn a hub badge
+const HUB_TOP_N       = 8;  // how many people the panel lists
+
+function computeNodeDegrees() {
+  nodeDegree = {};
+  G.nodes.forEach(n => { nodeDegree[n.id] = 0; });
+  // Count each relationship ONCE. tree.py stores reciprocal pairs
+  // (parent_of/child_of, spouse both ways), so counting raw edges
+  // doubles every person's true connection count.
+  const counted = new Set();
+  G.edges.forEach(e => {
+    const src = e.source || e.from, tgt = e.target || e.to;
+    const type = (e.type || '').replace('child_of', 'parent_of');
+    const key = [src, tgt].sort().join('|') + '|' + type;
+    if (counted.has(key)) return;
+    counted.add(key);
+    if (nodeDegree[src] !== undefined) nodeDegree[src]++;
+    if (nodeDegree[tgt] !== undefined) nodeDegree[tgt]++;
+  });
+}
+
+function getTopConnected(n = HUB_TOP_N) {
+  return G.nodes
+    .filter(node => !node.is_stub)   // confirmed people make better anchors than placeholders
+    .map(node => ({ node, degree: nodeDegree[node.id] || 0 }))
+    .filter(x => x.degree > 0)
+    .sort((a, b) => b.degree - a.degree)
+    .slice(0, n);
+}
+
+function populateConnectorsPanel() {
+  const list = document.getElementById('cpList');
+  if (!list) return;
+  list.innerHTML = '';
+  const top = getTopConnected();
+  if (!top.length) {
+    list.innerHTML = '<p style="font-size:.8rem;color:var(--mist)">Not enough connections yet — as more relatives are added, key figures will appear here.</p>';
+    return;
+  }
+  top.forEach(({ node, degree }, i) => {
+    const item = document.createElement('div');
+    item.className = 'cp-item';
+    const name = node.display_name || [node.first_name, node.last_name].filter(Boolean).join(' ') || '?';
+    const meta = subLabel(node) || (node.village_origin || '');
+    item.innerHTML = `
+      <div class="cp-rank">${i + 1}</div>
+      <div class="cp-info">
+        <div class="cp-name">${name}</div>
+        <div class="cp-meta">${meta || '&nbsp;'}</div>
+      </div>
+      <div class="cp-count">${degree}</div>`;
+    item.addEventListener('click', () => focusOnNode(node.id));
+    list.appendChild(item);
+  });
+}
+
+function toggleConnectors() {
+  document.getElementById('connectorsPanel').classList.toggle('hidden');
+}
+function closeConnectors() {
+  document.getElementById('connectorsPanel').classList.add('hidden');
+}
+
+// Jump to any node by id — resets filters if it's currently hidden by
+// them, then focuses and pans the viewport to bring it into view.
+function focusOnNode(id) {
+  const inView = layoutNodes.some(n => n.id === id);
+  if (!inView) {
+    currentFilter = 'all';
+    document.querySelectorAll('.tb-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('btnAll')?.classList.add('active');
+    currentGenDepth = 6;
+    const slider = document.getElementById('genSlider');
+    if (slider) slider.value = 6;
+    const genVal = document.getElementById('genVal');
+    if (genVal) genVal.textContent = 'All';
+    searchTerm = '';
+    const search = document.getElementById('searchInput');
+    if (search) search.value = '';
+    buildLayout();
+  }
+  const node = nodeMap[id];
+  if (!node) return;
+  focusNodeId = id;
+  render();
+  openPanel(node);
+  closeConnectors();
+  panToNode(id);
+}
+
+function panToNode(id) {
+  const dn = dGraph && dGraph.node(id);
+  if (!dn) return;
+  const svgEl = document.getElementById('tree');
+  const W = svgEl.clientWidth  || 800;
+  const H = svgEl.clientHeight || 600;
+  const k = transform.k || 1;
+  const tx = W / 2 - dn.x * k;
+  const ty = H / 2 - dn.y * k;
+  const t  = d3.zoomIdentity.translate(tx, ty).scale(k);
+  transform = t;
+  d3.select('#tree').transition().duration(400).call(zoom.transform, t);
 }
 
 // ── Dagre layout ──────────────────────────────────────────────
@@ -329,11 +482,11 @@ function buildLayout() {
   dGraph.setDefaultEdgeLabel(() => ({}));
 
   layoutNodes = G.nodes.filter(n => visibleIds.has(n.id));
-  layoutEdges = G.edges.filter(e => {
+  layoutEdges = dedupeReciprocal(G.edges.filter(e => {
     const src = e.source || e.from;
     const tgt = e.target || e.to;
     return visibleIds.has(src) && visibleIds.has(tgt) && shouldShowEdge(e);
-  });
+  }));
 
   layoutNodes.forEach(n => {
     dGraph.setNode(n.id, { width: NODE_W, height: NODE_H, label: n.id });
@@ -343,18 +496,88 @@ function buildLayout() {
     const tgt = e.target || e.to;
     const type = e.type || 'parent_of';
     if (type === 'parent_of') {
-      // Strict parent-above-child ranking
+      // Only parent-child edges drive Dagre's ranking. Spouse edges are
+      // deliberately NOT given to Dagre: it treats every edge as a
+      // "source above target" constraint, and minlen:0 only relaxes the
+      // minimum gap — it does not force equal rank (verified directly
+      // against dagre 0.8.5). Spouses are aligned in a post-layout pass
+      // below instead, which is reliable.
       dGraph.setEdge(src, tgt, {}, `e${i}`);
-    } else if (type.includes('spouse')) {
-      // minlen:0 lets Dagre place spouses on the SAME rank (side by side)
-      // instead of leaving their relative rank undetermined, which is
-      // what produced long diagonal spouse connectors before.
-      dGraph.setEdge(src, tgt, { minlen: 0, weight: 5 }, `e${i}`);
     }
   });
 
   dagre.layout(dGraph);
+  alignSpouses();
   render();
+}
+
+// ── Post-layout spouse alignment ──────────────────────────────
+// Dagre has no same-rank constraint, so after layout we pull each
+// spouse onto their partner's row and place them immediately beside
+// them, then nudge any node they'd land on out of the way.
+function alignSpouses() {
+  const GAP = 26;                     // horizontal gap between spouse boxes
+  const spousePairs = [];
+  const seen = new Set();
+
+  layoutEdges.forEach(e => {
+    const type = e.type || '';
+    if (!type.includes('spouse')) return;
+    const a = e.source || e.from, b = e.target || e.to;
+    const key = [a, b].sort().join('|');
+    if (seen.has(key)) return;
+    seen.add(key);
+    if (dGraph.node(a) && dGraph.node(b)) spousePairs.push([a, b]);
+  });
+
+  spousePairs.forEach(([aId, bId]) => {
+    const a = dGraph.node(aId), b = dGraph.node(bId);
+    if (!a || !b) return;
+    if (Math.abs(a.y - b.y) < 1) return;   // already aligned
+
+    // Anchor on whichever partner is more structurally constrained —
+    // the one with children already placed below them. That person's
+    // x-position is holding a subtree together, so moving them would
+    // drag long edges across the canvas. The other partner (typically
+    // the one who married in) is the one free to move.
+    const childCount = (id) => layoutEdges.filter(e => {
+      const t = e.type || '';
+      return t.includes('parent_of') && (e.source || e.from) === id;
+    }).length;
+
+    const aKids = childCount(aId), bKids = childCount(bId);
+    let anchor, mover;
+    if (aKids !== bKids) {
+      [anchor, mover] = aKids > bKids ? [a, b] : [b, a];
+    } else {
+      // Equal footing — keep the higher node (closer to the root) put.
+      [anchor, mover] = a.y <= b.y ? [a, b] : [b, a];
+    }
+    mover.y = anchor.y;
+
+    // Try placing on the right first, then the left, preferring
+    // whichever side is already free — this avoids shoving unrelated
+    // nodes across the canvas and creating very long spouse edges.
+    const rowNodes = layoutNodes
+      .map(n => dGraph.node(n.id))
+      .filter(dn => dn && dn !== mover && dn !== anchor &&
+                    Math.abs(dn.y - anchor.y) < 1);
+
+    const free = (x) => !rowNodes.some(dn => Math.abs(dn.x - x) < NODE_W + GAP);
+    const right = anchor.x + NODE_W + GAP;
+    const left  = anchor.x - NODE_W - GAP;
+
+    if (free(right))      mover.x = right;
+    else if (free(left))  mover.x = left;
+    else {
+      // Both sides occupied — take the right slot and push the
+      // occupant further right to open a gap.
+      mover.x = right;
+      rowNodes.forEach(dn => {
+        if (Math.abs(dn.x - right) < NODE_W + GAP) dn.x = right + NODE_W + GAP;
+      });
+    }
+  });
 }
 
 function getVisibleIds() {
@@ -414,7 +637,27 @@ function getGenerationReachable(centerId, depth) {
 
 function shouldShowEdge(e) {
   const type = e.type || '';
+  // tree.py exports reciprocal pairs (parent_of + child_of, and spouse_of
+  // in both directions). Rendering both halves draws every line twice and
+  // double-counts every connection, so keep only one side of each pair.
+  if (type.includes('child_of')) return false;
   return ['parent_of','spouse_of','sibling_of'].some(t => type.includes(t));
+}
+
+// Deduplicate reciprocal spouse/sibling edges (A->B and B->A are the
+// same relationship) so each is laid out and drawn exactly once.
+function dedupeReciprocal(edges) {
+  const seen = new Set();
+  return edges.filter(e => {
+    const src = e.source || e.from, tgt = e.target || e.to;
+    const type = e.type || '';
+    if (type.includes('spouse') || type.includes('sibling')) {
+      const key = [src, tgt].sort().join('|') + '|' + type;
+      if (seen.has(key)) return false;
+      seen.add(key);
+    }
+    return true;
+  });
 }
 
 // ── Zoom & pan — initialised once, preserved across redraws ──
@@ -549,6 +792,19 @@ function render() {
       g.append('text').attr('class','node-stub-label').attr('x',NODE_W/2).attr('y',y2)
         .attr('text-anchor','middle').attr('dominant-baseline','central').text('stub — add info');
     }
+
+    // Hub badge — a small gold connection-count badge on well-connected
+    // confirmed people (usually elders with many recorded children/
+    // grandchildren), making them easy to spot at a glance as good
+    // starting points for exploring the tree.
+    const degree = nodeDegree[n.id] || 0;
+    if (!isStub && degree >= HUB_MIN_DEGREE) {
+      const badge = g.append('g').attr('class', 'hub-badge')
+        .attr('transform', `translate(${NODE_W - 6},-6)`)
+        .on('click', ev => { ev.stopPropagation(); focusOnNode(n.id); });
+      badge.append('circle').attr('r', 9);
+      badge.append('text').attr('y', 0.5).text(degree);
+    }
   });
 
   // Click on canvas to defocus
@@ -558,9 +814,16 @@ function render() {
 
 function shortDisplayName(n) {
   const name = n.display_name || [n.first_name, n.last_name].filter(Boolean).join(' ') || '?';
-  const parts = name.split(' ');
-  if (parts.length <= 2) return name;
-  return `${parts[0]} ${parts[parts.length-1][0]}.`;
+  // Node box is 140px wide; roughly 21 chars fit at 11.5px. Prefer showing
+  // the full name, then "First Last", then a character-level ellipsis —
+  // rather than always collapsing to an initial, which loses the surname.
+  if (name.length <= 21) return name;
+  const parts = name.split(' ').filter(Boolean);
+  if (parts.length > 2) {
+    const firstLast = `${parts[0]} ${parts[parts.length - 1]}`;
+    if (firstLast.length <= 21) return firstLast;
+  }
+  return name.slice(0, 20).trimEnd() + '…';
 }
 
 function subLabel(n) {
@@ -592,6 +855,23 @@ function onNodeClick(n) {
   else closePanel();
 }
 
+// Privacy policy: full birth date is only shown once someone is deceased
+// (standard genealogical practice, no ongoing risk). For living people,
+// only the birth YEAR is ever shown or passed forward in URLs — an exact
+// date of birth alongside a full name is commonly used for identity
+// verification, so it's kept out of anything publicly visible.
+function displayBirthInfo(n) {
+  const isLiving = !(n.dod || n.dod_unknown);
+  if (n.dob_unknown) return null;
+  const raw = n.dob || (n.birth_year ? String(n.birth_year) : '');
+  if (!raw) return null;
+  if (isLiving) {
+    const yearMatch = String(raw).match(/(\d{4})/);
+    return yearMatch ? yearMatch[1] : raw;
+  }
+  return raw;   // deceased — full date is fine
+}
+
 function openPanel(n) {
   const isStub = n.is_stub;
   const isDeceased = !!(n.dod || n.dod_unknown);
@@ -600,7 +880,7 @@ function openPanel(n) {
   document.getElementById('pdBadge').innerHTML =
     `<span class="pd-badge ${isStub ? 'pd-stub' : isDeceased ? 'pd-deceased' : 'pd-living'}">${isStub ? 'Stub / inferred' : isDeceased ? 'Deceased' : 'Living'}</span>`;
   const set = (id,val) => { document.getElementById(id).textContent = val || '—'; };
-  const dob = n.dob || (n.birth_year ? String(n.birth_year) : '') || (n.dob_unknown ? 'unknown' : null);
+  const dob = displayBirthInfo(n) || (n.dob_unknown ? 'unknown' : null);
   const dod = n.dod || (n.dod_unknown ? 'unknown (deceased)' : null);
   set('pdBorn',    dob);
   set('pdDied',    dod);
@@ -609,7 +889,10 @@ function openPanel(n) {
   set('pdGotra',   n.gotra);
   set('pdBranch',  n.relation_branch || n.branch);
   set('pdSources', n._submission_count ? `${n._submission_count} submission${n._submission_count>1?'s':''}` : '1 submission');
-  // Build add.html URL with all known node data
+  // Build add.html URL with all known node data. Uses the same
+  // privacy-restricted dob (year-only for living people) since this
+  // shows up in the browser address bar and history before add.html
+  // even loads — not just inside the page itself.
   const addParams = new URLSearchParams({
     node:    n.id || n.node_id || '',
     name:    n.display_name || [n.first_name, n.last_name].filter(Boolean).join(' ') || '',
@@ -676,9 +959,21 @@ function centerGraph() {
   const gs = dGraph.graph();
   const gW = gs.width  || 800;
   const gH = gs.height || 600;
-  const scale = Math.min(0.85, Math.min(W / (gW + 60), H / (gH + 60)));
+
+  // Fit-to-screen, but never shrink below a legible size. On a phone a
+  // wide tree would otherwise scale to ~0.15 and be unreadable — better
+  // to start readable at the top of the tree and let the user pan.
+  const MIN_READABLE = 0.45;
+  const fitScale = Math.min(W / (gW + 60), H / (gH + 60));
+  const scale = Math.min(0.85, Math.max(fitScale, MIN_READABLE));
+
+  // When we've zoomed past fit (scale > fitScale), anchor to the top of
+  // the tree rather than centring, so the oldest generation is visible
+  // first and the user pans downward through the generations.
+  const zoomedIn = scale > fitScale + 0.001;
   const tx = (W - gW * scale) / 2;
-  const ty = Math.max(20, (H - gH * scale) / 2);
+  const ty = zoomedIn ? 20 : Math.max(20, (H - gH * scale) / 2);
+
   const t  = d3.zoomIdentity.translate(tx, ty).scale(scale);
   transform   = t;
   needsCenter = false;
