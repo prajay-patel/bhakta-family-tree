@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <script src="js/theme.js"></script>
   <title>Bhakta Family Tree Project — Add or Update a Person</title>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600&family=Inter:wght@300;400;500&display=swap" rel="stylesheet"/>
@@ -39,7 +40,7 @@
       margin-bottom: .3rem;
     }
     .badge-stub     { background: var(--parchment-d); color: var(--ink-soft); }
-    .badge-confirmed{ background: rgba(45,74,62,.12); color: var(--forest); }
+    .badge-confirmed{ background: color-mix(in srgb,var(--forest) 12%,transparent); color: var(--forest); }
     .section-intro {
       font-size: .85rem;
       color: var(--ink-soft);
@@ -49,8 +50,8 @@
     }
     .section-intro strong { color: var(--ink); font-style: normal; }
     .already-known {
-      background: rgba(45,74,62,.05);
-      border: 1px solid rgba(45,74,62,.15);
+      background: color-mix(in srgb,var(--forest) 5%,transparent);
+      border: 1px solid color-mix(in srgb,var(--forest) 15%,transparent);
       border-radius: var(--radius);
       padding: .7rem .9rem;
       margin-bottom: 1.2rem;
@@ -108,6 +109,7 @@
       <h1>Bhakta Family Tree</h1>
       <p class="header-sub">Add or update information about a family member</p>
     </div>
+    <span data-theme-slot></span>
     <a class="btn-history" href="viewer.html">← Back to tree</a>
   </div>
 </header>
