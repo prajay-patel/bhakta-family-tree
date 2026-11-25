@@ -690,11 +690,9 @@ function redrawMoved(grp) {
     const d = dGraph.node(this.dataset.id);
     this.setAttribute('transform', `translate(${d.x - NODE_W/2},${d.y - NODE_H/2})`);
   });
-  d3.selectAll('path.edge').each(function () {
-    const s = this.dataset.s, t = this.dataset.t;
-    if (!moved.has(s) && !moved.has(t)) return;
-    this.setAttribute('d', computeEdgePath(this.dataset.type, dGraph.node(s), dGraph.node(t)));
-  });
+  const edgeGroup = d3.select('#root g.edges');
+  edgeGroup.selectAll('*').remove();
+  drawEdges(edgeGroup, getFocusNeighbours(focusNodeId));
 }
 function getVisibleIds() {
   const ids = new Set();
@@ -839,6 +837,112 @@ function computeEdgePath(type, sn, tn) {
   return type.includes('spouse') ? computeSpousePath(sn, tn) : computeParentChildPath(sn, tn);
 }
 
+// ── Edge shapes ───────────────────────────────────────────────
+// Children hang from their parents as a family unit: one line drops from
+// the middle of the couple's spouse link (or from a single parent's box)
+// to a horizontal bar, which branches down to each child. Families whose
+// bars would overlap in the same gap get separate "lanes" so two
+// families' lines never merge into one ambiguous line.
+const LANE_STEP = 10;
+
+function edgeShapes() {
+  const shapes = [];
+  const pos = id => dGraph.node(id);
+
+  // Spouse and sibling links — one line each, as before
+  layoutEdges.forEach(e => {
+    const type = e.type || '';
+    if (type === 'parent_of' || type.includes('parent')) return;
+    const src = e.source || e.from, tgt = e.target || e.to;
+    const sn = pos(src), tn = pos(tgt);
+    if (!sn || !tn) return;
+    shapes.push({ cls: type.includes('spouse') ? 'edge-spouse' : 'edge-sibling',
+                  d: computeEdgePath(type, sn, tn), ids: [src, tgt], marker: false });
+  });
+
+  // Group each child's visible parents into families. Parents who are
+  // in the same couple share one family; otherwise each parent gets
+  // their own line to the child.
+  const parentsOf = {};
+  layoutEdges.forEach(e => {
+    if (!(e.type || '').includes('parent')) return;
+    const c = e.target || e.to, pId = e.source || e.from;
+    if (!pos(c) || !pos(pId)) return;
+    (parentsOf[c] = parentsOf[c] || []).push(pId);
+  });
+  const families = {};
+  Object.entries(parentsOf).forEach(([child, ps]) => {
+    const byGroup = {};
+    ps.forEach(pId => { (byGroup[groupOf[pId] || pId] = byGroup[groupOf[pId] || pId] || []).push(pId); });
+    Object.values(byGroup).forEach(unit => {
+      const key = unit.slice().sort().join('|');
+      (families[key] = families[key] || { parents: unit, children: [] }).children.push(child);
+    });
+  });
+
+  const fams = Object.values(families).map(f => {
+    const pp = f.parents.map(pos);
+    const x = pp.reduce((a, d) => a + d.x, 0) / pp.length;
+    const y = Math.max(...pp.map(d => d.y));
+    // Start at the spouse link between two partners; start at the bottom
+    // of the box if the line would otherwise run through one.
+    const throughBox = layoutNodes.some(n => {
+      const d = pos(n.id);
+      return d && Math.abs(d.y - y) < 1 && Math.abs(d.x - x) < NODE_W / 2;
+    });
+    const startY = throughBox ? y + NODE_H / 2 : y;
+    const kids = f.children.map(id => ({ id, d: pos(id) }));
+    const below = kids.every(k => k.d.y - NODE_H / 2 > y + NODE_H / 2 + 4);
+    const xs = kids.map(k => k.d.x).concat(x);
+    return { ...f, x, y, startY, kids, below, left: Math.min(...xs), right: Math.max(...xs) };
+  });
+
+  // Assign lanes per generation gap so overlapping bars are offset
+  const rows = {};
+  fams.filter(f => f.below).forEach(f => { (rows[Math.round(f.y)] = rows[Math.round(f.y)] || []).push(f); });
+  Object.values(rows).forEach(list => {
+    list.sort((a, b) => a.left - b.left);
+    const laneEnds = [];
+    list.forEach(f => {
+      let lane = laneEnds.findIndex(r => r < f.left - 6);
+      if (lane === -1) { lane = laneEnds.length; laneEnds.push(0); }
+      laneEnds[lane] = f.right;
+      f.lane = lane;
+    });
+    const n = laneEnds.length;
+    list.forEach(f => {
+      const gapTop = f.y + NODE_H / 2;
+      const gapBottom = Math.min(...f.kids.map(k => k.d.y - NODE_H / 2));
+      const mid = gapTop + Math.min(RANK_SEP, gapBottom - gapTop) / 2;
+      f.busY = Math.max(gapTop + 6, Math.min(gapBottom - 8, mid + (f.lane - (n - 1) / 2) * LANE_STEP));
+    });
+  });
+
+  fams.forEach(f => {
+    if (!f.below) {
+      // A child moved level with or above a parent (by hand) — fall back
+      // to a direct line per parent.
+      f.parents.forEach(pId => f.kids.forEach(k => shapes.push({
+        cls: 'edge-parent', d: computeParentChildPath(pos(pId), k.d), ids: [pId, k.id], marker: true })));
+      return;
+    }
+    shapes.push({ cls: 'edge-parent', marker: false, ids: f.parents.concat(f.children),
+      d: `M${f.x},${f.startY} V${f.busY} M${f.left},${f.busY} H${f.right}` });
+    f.kids.forEach(k => shapes.push({ cls: 'edge-parent', marker: true, ids: f.parents.concat(k.id),
+      d: `M${k.d.x},${f.busY} V${k.d.y - NODE_H / 2}` }));
+  });
+  return shapes;
+}
+
+function drawEdges(edgeGroup, focusedNeighbours) {
+  edgeShapes().forEach(sh => {
+    const isDim = focusNodeId && !sh.ids.some(id => focusedNeighbours.has(id));
+    edgeGroup.append('path').attr('class', `edge ${sh.cls}${isDim ? ' dimmed' : ''}`)
+      .attr('d', sh.d)
+      .attr('marker-end', sh.marker ? 'url(#arr)' : null);
+  });
+}
+
 function render() {
   const svgEl = document.getElementById('tree');
   svgEl.innerHTML = '';
@@ -861,20 +965,7 @@ function render() {
 
   // Draw edges
   const edgeGroup = root.append('g').attr('class','edges');
-  layoutEdges.forEach(e => {
-    const src = e.source || e.from;
-    const tgt = e.target || e.to;
-    const type = e.type || '';
-    const sn = dGraph.node(src), tn = dGraph.node(tgt);
-    if (!sn || !tn) return;
-    const isDim = focusNodeId && !focusedNeighbours.has(src) && !focusedNeighbours.has(tgt);
-    const cls = type.includes('spouse') ? 'edge-spouse' : type.includes('sibling') ? 'edge-sibling' : 'edge-parent';
-    const pathD = computeEdgePath(type, sn, tn);
-    edgeGroup.append('path').attr('class', `edge ${cls}${isDim?' dimmed':''}`)
-      .attr('d', pathD)
-      .attr('data-s', src).attr('data-t', tgt).attr('data-type', type)
-      .attr('marker-end', type.includes('parent') ? 'url(#arr)' : null);
-  });
+  drawEdges(edgeGroup, focusedNeighbours);
 
   // Draw nodes
   const nodeGroup = root.append('g').attr('class','nodes');
@@ -1138,18 +1229,12 @@ function exportSVG() {
 
   // Edges
   lines.push(`<g class="edges">`);
-  layoutEdges.forEach(e => {
-    const src = e.source || e.from, tgt = e.target || e.to;
-    const type = e.type || '';
-    const sn = dGraph.node(src), tn = dGraph.node(tgt);
-    if (!sn || !tn) return;
-    const isSpouse = type.includes('spouse');
+  edgeShapes().forEach(sh => {
+    const isSpouse = sh.cls === 'edge-spouse';
     const stroke = isSpouse ? C.edgeSpouse : C.edgeParent;
-    const dash   = isSpouse ? '4,3' : '';
-    const d      = computeEdgePath(type, sn, tn);
-    const markerEnd = type.includes('parent') ? ' marker-end="url(#arr)"' : '';
-    const dashAttr  = dash ? ` stroke-dasharray="${dash}"` : '';
-    lines.push(`<path d="${d}" fill="none" stroke="${stroke}" stroke-width="1" opacity="0.6"${dashAttr}${markerEnd}/>`);
+    const dash   = isSpouse ? ' stroke-dasharray="4,3"' : '';
+    const markerEnd = sh.marker ? ' marker-end="url(#arr)"' : '';
+    lines.push(`<path d="${sh.d}" fill="none" stroke="${stroke}" stroke-width="1" opacity="0.6"${dash}${markerEnd}/>`);
   });
   lines.push(`</g>`);
 
@@ -1224,17 +1309,12 @@ function exportPNG() {
 
   // Edges
   lines.push(`<g>`);
-  layoutEdges.forEach(e => {
-    const src = e.source || e.from, tgt = e.target || e.to;
-    const type = e.type || '';
-    const sn = dGraph.node(src), tn = dGraph.node(tgt);
-    if (!sn || !tn) return;
-    const isSpouse = type.includes('spouse');
+  edgeShapes().forEach(sh => {
+    const isSpouse = sh.cls === 'edge-spouse';
     const stroke = isSpouse ? C.edgeSpouse : C.edgeParent;
     const dash   = isSpouse ? ' stroke-dasharray="4,3"' : '';
-    const d      = computeEdgePath(type, sn, tn);
-    const markerEnd = type.includes('parent') ? ' marker-end="url(#arr)"' : '';
-    lines.push(`<path d="${d}" fill="none" stroke="${stroke}" stroke-width="1" opacity="0.6"${dash}${markerEnd}/>`);
+    const markerEnd = sh.marker ? ' marker-end="url(#arr)"' : '';
+    lines.push(`<path d="${sh.d}" fill="none" stroke="${stroke}" stroke-width="1" opacity="0.6"${dash}${markerEnd}/>`);
   });
   lines.push(`</g>`);
 
