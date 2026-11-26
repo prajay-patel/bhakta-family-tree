@@ -163,6 +163,9 @@ legend{font-size:.75rem;font-weight:600;text-transform:uppercase;letter-spacing:
 /* Village hint */
 .village-hint{font-size:.74rem;color:var(--forest);background:color-mix(in srgb,var(--forest) 7%,transparent);border-radius:4px;padding:.18rem .5rem;display:block;margin-top:.15rem}
 
+/* Village & places block (outside the birth-date fieldset so "date unknown" never hides it) */
+.places-block{margin:.2rem 0 1rem}
+
 /* Person summary */
 .person-summary{background:var(--parchment);border:1px solid var(--parchment-d);border-radius:var(--radius);padding:.75rem .9rem;font-size:.83rem;color:var(--ink-soft);margin-bottom:.5rem;line-height:1.75}
 .person-summary strong{color:var(--ink);font-weight:500}

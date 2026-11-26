@@ -157,6 +157,7 @@
         <div class="field-group">
           <label for="aFirst">First name</label>
           <input type="text" id="aFirst" autocomplete="off"/>
+          <span class="field-hint">Older generations: keep Bhai/Ben if it's part of their legal name (e.g. Odhavbhai, Shantaben)</span>
         </div>
         <div class="field-group">
           <label for="aAlias">Home / nickname</label>
@@ -179,26 +180,15 @@
           <input type="text" id="aMaiden" placeholder="If different" autocomplete="off"/>
         </div>
         <div class="field-group">
-          <label for="aGotra">Gotra</label>
-          <input type="text" id="aGotra" placeholder="e.g. Kashyap" list="gotra-list-add"/>
-          <datalist id="gotra-list-add">
-            <option value="Kashyap"/><option value="Vasishtha"/><option value="Bharadwaj"/>
-            <option value="Atri"/><option value="Vishwamitra"/><option value="Jamadagni"/>
-            <option value="Gautama"/><option value="Agastya"/><option value="Gargya"/>
-            <option value="Kaundinya"/><option value="Shrivatsa"/><option value="Sandilya"/>
-            <option value="Mudgala"/><option value="Shandilya"/><option value="Kapila"/>
-          </datalist>
+          <label for="aGender">Gender</label>
+          <select id="aGender">
+            <option value="">— unknown —</option>
+            <option value="female">Female</option>
+            <option value="male">Male</option>
+            <option value="nonbinary">Non-binary</option>
+            <option value="other">Other</option>
+          </select>
         </div>
-      </div>
-      <div class="field-group">
-        <label for="aGender">Gender</label>
-        <select id="aGender">
-          <option value="">— unknown —</option>
-          <option value="female">Female</option>
-          <option value="male">Male</option>
-          <option value="nonbinary">Non-binary</option>
-          <option value="other">Other</option>
-        </select>
       </div>
 
       <!-- ── Dates & places ── -->
@@ -232,14 +222,19 @@
               <label>Place of birth</label>
               <input type="text" id="aBirthPlace" placeholder="City, Country"/>
             </div>
-            <div class="field-group">
-              <label>Village / ancestral origin</label>
-              <input type="text" id="aVillageOrigin" placeholder="e.g. Chikhli, Bardoli…" autocomplete="off"/>
-              <span id="aVillageOrigin-hint" class="village-hint" hidden></span>
-            </div>
           </div>
-          <div class="field-group" style="margin-top:.5rem">
-            <label>Country emigrated to</label>
+        </div>
+      </fieldset>
+
+      <div class="places-block">
+        <div class="field-row">
+          <div class="field-group">
+            <label for="aVillageOrigin">Village / ancestral origin</label>
+            <input type="text" id="aVillageOrigin" placeholder="e.g. Chikhli, Bardoli…" autocomplete="off"/>
+            <span id="aVillageOrigin-hint" class="village-hint" hidden></span>
+          </div>
+          <div class="field-group">
+            <label for="aCountryEmigrated">Country emigrated to</label>
             <select id="aCountryEmigrated">
               <option value="">— select —</option>
               <optgroup label="Bhakta family countries">
@@ -269,7 +264,25 @@
             </select>
           </div>
         </div>
-      </fieldset>
+        <div class="field-row" style="margin-top:.5rem">
+          <div class="field-group">
+            <label for="aCurrentLocation">Currently lives in</label>
+            <input type="text" id="aCurrentLocation" placeholder="City, Country — e.g. Leicester, UK" autocomplete="off"/>
+          </div>
+          <div class="field-group">
+            <label for="aGotra">Gotra (if known)</label>
+            <input type="text" id="aGotra" placeholder="Skip if unsure" autocomplete="off" list="gotra-list-add"/>
+            <datalist id="gotra-list-add">
+              <option value="Kashyap"/><option value="Vasishtha"/><option value="Bharadwaj"/>
+              <option value="Atri"/><option value="Vishwamitra"/><option value="Jamadagni"/>
+              <option value="Gautama"/><option value="Agastya"/><option value="Gargya"/>
+              <option value="Kaundinya"/><option value="Shrivatsa"/><option value="Sandilya"/>
+              <option value="Mudgala"/><option value="Shandilya"/><option value="Kapila"/>
+            </datalist>
+            <span class="field-hint">Optional — their village matters more</span>
+          </div>
+        </div>
+      </div>
 
       <fieldset class="date-fieldset">
         <legend>Death <span class="legend-hint">(leave blank if living)</span></legend>
@@ -572,6 +585,7 @@ async function submitUpdate() {
     birthPlace:   v('aBirthPlace')       || null,
     villageOrigin: v('aVillageOrigin')   || null,
     countryEmigrated: v('aCountryEmigrated') || null,
+    currentLocation: v('aCurrentLocation') || null,
     dod, dodUnknown: document.getElementById('aDodUnknown').checked,
 
     // Parents

@@ -4,7 +4,7 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=5"/>
 <script src="js/theme.js"></script>
-  <title>Bhakta Family Tree Project — Viewer</title>
+  <title>Bhakta Family Tree</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&family=Inter:wght@400;500&display=swap" rel="stylesheet"/>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
@@ -16,9 +16,10 @@
   --mist:#A8B8A0;--radius:6px;--t:.15s ease}
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%;overflow:hidden;font-family:'Inter',sans-serif;font-size:14px;color:var(--ink);background:var(--parchment)}
+body{display:flex;flex-direction:column}
 
 /* Top bar */
-.topbar{height:54px;background:var(--forest-bg);display:flex;align-items:center;gap:.6rem;padding:0 1rem;flex-shrink:0;position:relative;z-index:20}
+.topbar{min-height:54px;background:var(--forest-bg);display:flex;flex-wrap:wrap;align-items:center;gap:.45rem .6rem;padding:.45rem 1rem;flex-shrink:0;position:relative;z-index:20}
 .topbar-title{font-family:'Playfair Display',serif;font-size:1.1rem;color:var(--on-primary);flex-shrink:0}
 .topbar-sep{width:1px;height:22px;background:color-mix(in srgb,var(--on-primary) 20%,transparent);flex-shrink:0}
 .search-wrap{position:relative;flex:0 0 200px}
@@ -30,13 +31,18 @@ html,body{height:100%;overflow:hidden;font-family:'Inter',sans-serif;font-size:1
 .tb-btn:hover{background:color-mix(in srgb,var(--on-primary) 20%,transparent)}
 .tb-btn.active{background:color-mix(in srgb,var(--gold) 35%,transparent);border-color:var(--gold)}
 .tb-spacer{flex:1}
+.tb-select{background:color-mix(in srgb,var(--on-primary) 12%,transparent);border:1px solid color-mix(in srgb,var(--on-primary) 20%,transparent);border-radius:var(--radius);color:var(--on-primary);font-size:.78rem;padding:.28rem .5rem;max-width:170px;outline:none;cursor:pointer;font-family:inherit}
+.tb-select option{color:var(--ink);background:var(--surface)}
+.tb-select.active{border-color:var(--gold);background:color-mix(in srgb,var(--gold) 30%,transparent)}
+.tb-btn .tb-count[hidden]{display:none}
+.tb-btn .tb-count{display:inline-block;min-width:16px;padding:0 4px;margin-left:4px;border-radius:8px;background:var(--gold);color:var(--on-accent);font-size:.68rem;line-height:16px;text-align:center}
 .gen-label{font-size:.75rem;color:var(--on-primary-soft);white-space:nowrap}
 #genSlider{width:90px;accent-color:var(--gold)}
 .add-link{font-size:.78rem;color:var(--gold);text-decoration:none;white-space:nowrap}
 .add-link:hover{text-decoration:underline}
 
 /* Canvas */
-#canvas{width:100%;height:calc(100vh - 54px);overflow:hidden;cursor:grab;touch-action:none;position:relative}
+#canvas{width:100%;flex:1;min-height:0;overflow:hidden;overflow:clip;cursor:grab;touch-action:none;position:relative}
 #canvas.grabbing{cursor:grabbing}
 svg#tree{width:100%;height:100%;display:block}
 
@@ -47,6 +53,8 @@ svg#tree{width:100%;height:100%;display:block}
 .node-g.stub rect{fill:var(--parchment);stroke:var(--mist);stroke-dasharray:5 3}
 .node-g.focused rect{stroke:var(--gold);stroke-width:2}
 .node-g.dimmed{opacity:.2}
+.node-g.match rect{stroke:var(--gold);stroke-width:1.8}
+.node-g.context{opacity:.55}
 #canvas.arranging .node-g{cursor:move}
 .node-g.dragging rect{stroke:var(--gold);stroke-width:2;filter:drop-shadow(0 3px 6px rgba(0,0,0,.18))}
 .tb-btn[hidden]{display:none}
@@ -140,6 +148,29 @@ svg#tree{width:100%;height:100%;display:block}
 .connectors-toggle-btn{position:absolute;bottom:16px;right:60px;background:var(--gold);color:var(--on-accent);border:none;border-radius:var(--radius);padding:.42rem .9rem;font-size:.78rem;cursor:pointer;z-index:10;transition:background .15s;font-family:'Inter',sans-serif}
 .connectors-toggle-btn:hover{background:color-mix(in srgb,var(--gold) 85%,#000)}
 
+/* Advanced search panel — slides in from the right like Key Connectors */
+.search-panel{position:absolute;top:0;right:0;width:310px;height:100%;background:var(--surface);border-left:1px solid var(--parchment-d);z-index:16;display:flex;flex-direction:column;transition:transform .25s ease;box-shadow:-2px 0 12px rgba(0,0,0,.08)}
+.search-panel.hidden{transform:translateX(310px);box-shadow:none}
+.sp-body{padding:.9rem 1rem;overflow-y:auto;flex:1;font-size:12.5px;color:var(--ink-soft)}
+.sp-field{display:flex;flex-direction:column;gap:3px;margin-bottom:.65rem}
+.sp-field label,.sp-label{font-size:.68rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--forest)}
+.sp-field input,.sp-field select{width:100%;font:inherit;font-size:.82rem;color:var(--ink);background:var(--parchment);border:1px solid var(--parchment-d);border-radius:var(--radius);padding:.34rem .5rem;outline:none}
+.sp-field input:focus,.sp-field select:focus{border-color:var(--forest);background:var(--surface)}
+.sp-pair{display:grid;grid-template-columns:1fr 1fr;gap:.5rem}
+.sp-hint{font-size:.7rem;color:var(--mist);font-style:italic}
+.sp-check{display:flex;align-items:center;gap:.45rem;font-size:.8rem;color:var(--ink-soft);margin-bottom:.4rem;cursor:pointer}
+.sp-check input{accent-color:var(--forest)}
+.sp-actions{display:flex;gap:.5rem;margin:.3rem 0 .9rem}
+.sp-btn{flex:1;font:inherit;font-size:.78rem;padding:.38rem .6rem;border-radius:var(--radius);cursor:pointer;border:1px solid var(--forest);background:var(--surface);color:var(--forest)}
+.sp-btn:hover{background:color-mix(in srgb,var(--forest) 8%,var(--surface))}
+.sp-summary{font-size:.78rem;color:var(--ink);font-weight:500;margin-bottom:.45rem;padding-top:.6rem;border-top:.5px solid var(--parchment-d)}
+.sp-results{display:flex;flex-direction:column;gap:.35rem}
+.sp-item{display:block;width:100%;text-align:left;font:inherit;padding:.45rem .6rem;border:1px solid var(--parchment-d);border-radius:var(--radius);background:var(--parchment);cursor:pointer;color:inherit}
+.sp-item:hover{border-color:var(--gold);background:var(--surface)}
+.sp-item .n{font-size:.84rem;font-weight:500;color:var(--ink)}
+.sp-item .m{font-size:.72rem;color:var(--ink-soft);margin-top:1px}
+.sp-empty{font-size:.78rem;color:var(--mist)}
+
 /* Toast */
 #toast{position:absolute;top:70px;left:50%;transform:translateX(-50%);background:color-mix(in srgb,var(--forest-bg) 92%,transparent);color:var(--on-primary);padding:6px 14px;border-radius:20px;font-size:12px;z-index:30;opacity:0;transition:opacity .25s;pointer-events:none}
 #toast.show{opacity:1}
@@ -157,6 +188,9 @@ svg#tree{width:100%;height:100%;display:block}
   .gen-label,.topbar-sep{display:none}
   .connectors-panel{width:calc(100vw - 24px)}
   .connectors-panel.hidden{transform:translateX(calc(100vw - 24px))}
+  .search-panel{width:100vw}
+  .search-panel.hidden{transform:translateX(100vw)}
+  .tb-select{flex:1 1 120px;max-width:none}
   .legend{display:none}
   .history-toggle-btn{bottom:16px;left:16px;font-size:.72rem;padding:.36rem .7rem}
   .connectors-toggle-btn{bottom:16px;right:16px;font-size:.72rem;padding:.36rem .7rem}
@@ -168,17 +202,21 @@ svg#tree{width:100%;height:100%;display:block}
 
 <!-- Top bar -->
 <div class="topbar">
-  <span class="topbar-title">❧ Bhakta Family Tree Project</span>
+  <span class="topbar-title">❧ Bhakta Family Tree</span>
   <div class="topbar-sep"></div>
   <div class="search-wrap">
     <span class="search-icon">⌕</span>
     <input type="text" id="searchInput" placeholder="Search name…" oninput="onSearch(this.value)"/>
   </div>
+  <select id="villageFilter" class="tb-select" onchange="setVillage(this.value)" aria-label="Filter by village (gaam)" title="Show people from a village (gaam)">
+    <option value="">All villages (gaam)</option>
+  </select>
+  <button class="tb-btn" id="btnAdvanced" onclick="toggleAdvanced()" title="Search by location, emigration, age and more">⚲ Advanced<span class="tb-count" id="advCount" hidden></span></button>
   <div class="topbar-sep"></div>
-  <button class="tb-btn active" id="btnAll"       onclick="setFilter('all',this)">All</button>
-  <button class="tb-btn"        id="btnMaternal"  onclick="setFilter('maternal',this)">Maternal</button>
-  <button class="tb-btn"        id="btnPaternal"  onclick="setFilter('paternal',this)">Paternal</button>
-  <button class="tb-btn"        id="btnInlaw"     onclick="setFilter('inlaw',this)">In-law</button>
+  <button class="tb-btn branch-btn active" id="btnAll"       onclick="setFilter('all',this)">All</button>
+  <button class="tb-btn branch-btn"        id="btnMaternal"  onclick="setFilter('maternal',this)">Maternal</button>
+  <button class="tb-btn branch-btn"        id="btnPaternal"  onclick="setFilter('paternal',this)">Paternal</button>
+  <button class="tb-btn branch-btn"        id="btnInlaw"     onclick="setFilter('inlaw',this)">In-law</button>
   <div class="topbar-sep"></div>
   <span class="gen-label">Generations</span>
   <input type="range" id="genSlider" min="1" max="6" value="6" oninput="onGenSlider(this.value)"/>
@@ -205,9 +243,10 @@ svg#tree{width:100%;height:100%;display:block}
     <div class="pd-row"><span class="pd-label">Born</span><span class="pd-val" id="pdBorn">—</span></div>
     <div class="pd-row"><span class="pd-label">Died</span><span class="pd-val" id="pdDied">—</span></div>
     <div class="pd-row"><span class="pd-label">Village</span><span class="pd-val" id="pdVillage">—</span></div>
-    <div class="pd-row"><span class="pd-label">Country</span><span class="pd-val" id="pdCountry">—</span></div>
-    <div class="pd-row"><span class="pd-label">Gotra</span><span class="pd-val" id="pdGotra">—</span></div>
+    <div class="pd-row"><span class="pd-label">Emigrated to</span><span class="pd-val" id="pdCountry">—</span></div>
+    <div class="pd-row"><span class="pd-label">Lives in</span><span class="pd-val" id="pdLocation">—</span></div>
     <div class="pd-row"><span class="pd-label">Branch</span><span class="pd-val" id="pdBranch">—</span></div>
+    <div class="pd-row" id="pdGotraRow"><span class="pd-label">Gotra</span><span class="pd-val" id="pdGotra">—</span></div>
     <div class="pd-row"><span class="pd-label">Sources</span><span class="pd-val" id="pdSources">—</span></div>
     <a class="pd-add-btn" id="pdAddBtn" href="index.html">+ Add / update info for this person</a>
   </div>
@@ -267,6 +306,69 @@ svg#tree{width:100%;height:100%;display:block}
     </div>
   </div>
 
+  <!-- Advanced search panel -->
+  <div id="searchPanel" class="search-panel hidden" aria-label="Advanced search">
+    <div class="cp-header">
+      <div class="cp-title">⚲ Advanced search</div>
+      <button class="cp-close" onclick="closeAdvanced()" aria-label="Close">✕</button>
+    </div>
+    <div class="sp-body">
+      <div class="sp-field">
+        <label for="advName">Name</label>
+        <input type="text" id="advName" placeholder="Any part of a name" oninput="onAdvancedInput()"/>
+      </div>
+      <div class="sp-field">
+        <label for="advVillage">Village (gaam)</label>
+        <select id="advVillage" onchange="setVillage(this.value)"><option value="">Any village</option></select>
+      </div>
+      <div class="sp-field">
+        <label for="advLocation">Currently lives in</label>
+        <input type="text" id="advLocation" placeholder="City or country, e.g. Leicester" oninput="onAdvancedInput()"/>
+        <span class="sp-hint">Uses the country emigrated to when no current location was given.</span>
+      </div>
+      <div class="sp-field">
+        <label for="advCountry">Emigrated to</label>
+        <select id="advCountry" onchange="onAdvancedInput()"><option value="">Any country</option></select>
+      </div>
+      <div class="sp-field">
+        <span class="sp-label">Age</span>
+        <div class="sp-pair">
+          <input type="number" id="advAgeMin" min="0" max="130" placeholder="From" aria-label="Minimum age" oninput="onAdvancedInput()"/>
+          <input type="number" id="advAgeMax" min="0" max="130" placeholder="To" aria-label="Maximum age" oninput="onAdvancedInput()"/>
+        </div>
+        <span class="sp-hint">Age today, or age at death for those who have passed.</span>
+      </div>
+      <div class="sp-field">
+        <span class="sp-label">Born between</span>
+        <div class="sp-pair">
+          <input type="number" id="advBornFrom" min="1700" max="2100" placeholder="Year" aria-label="Born from year" oninput="onAdvancedInput()"/>
+          <input type="number" id="advBornTo" min="1700" max="2100" placeholder="Year" aria-label="Born to year" oninput="onAdvancedInput()"/>
+        </div>
+      </div>
+      <div class="sp-pair">
+        <div class="sp-field">
+          <label for="advStatus">Status</label>
+          <select id="advStatus" onchange="onAdvancedInput()">
+            <option value="">Anyone</option><option value="living">Living</option><option value="deceased">Deceased</option>
+          </select>
+        </div>
+        <div class="sp-field">
+          <label for="advGender">Gender</label>
+          <select id="advGender" onchange="onAdvancedInput()">
+            <option value="">Any</option><option value="female">Female</option><option value="male">Male</option>
+          </select>
+        </div>
+      </div>
+      <label class="sp-check"><input type="checkbox" id="advStubs" checked onchange="onAdvancedInput()"/>Include placeholder (stub) people</label>
+      <label class="sp-check"><input type="checkbox" id="advContext" checked onchange="onAdvancedInput()"/>Show their close relatives on the tree</label>
+      <div class="sp-actions">
+        <button class="sp-btn" onclick="clearCriteria()">Clear all</button>
+      </div>
+      <div class="sp-summary" id="advSummary">Set any filter above to find people.</div>
+      <div class="sp-results" id="advResults"></div>
+    </div>
+  </div>
+
   <button class="history-toggle-btn" onclick="toggleHistory()" title="Our Family History">❧ History</button>
   <button class="connectors-toggle-btn" onclick="toggleConnectors()" title="Key Connectors">★ Connectors</button>
   <div class="zoom-btns">
@@ -315,6 +417,11 @@ let currentFilter = 'all';
 let currentGenDepth = 6;
 let focusNodeId = null;
 let searchTerm = '';
+// Village drop-down + advanced search. Empty string = no filter.
+const criteria = { village: '', name: '', location: '', country: '',
+                   ageMin: '', ageMax: '', bornFrom: '', bornTo: '',
+                   status: '', gender: '', stubs: true, context: true };
+let matchIds = null;   // ids that satisfy the current search (null = no search)
 let transform = d3.zoomIdentity;  // proper d3.ZoomTransform, not a plain object
 
 async function loadData() {
@@ -356,6 +463,7 @@ async function loadData() {
       G.nodes.forEach(n => { nodeMap[n.id || n.node_id] = n; n.id = n.id || n.node_id; });
       document.getElementById('emptyState').style.display = 'none';
       computeNodeDegrees();
+      populateSearchOptions();
       populateConnectorsPanel();
       initZoom();
       buildLayout();  // buildLayout calls render() then centerGraph()
@@ -429,6 +537,7 @@ function populateConnectorsPanel() {
 
 function toggleConnectors() {
   document.getElementById('connectorsPanel').classList.toggle('hidden');
+  closeAdvanced();
 }
 function closeConnectors() {
   document.getElementById('connectorsPanel').classList.add('hidden');
@@ -440,8 +549,9 @@ function focusOnNode(id) {
   const inView = layoutNodes.some(n => n.id === id);
   if (!inView) {
     currentFilter = 'all';
-    document.querySelectorAll('.tb-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.branch-btn').forEach(b => b.classList.remove('active'));
     document.getElementById('btnAll')?.classList.add('active');
+    resetCriteria();
     currentGenDepth = 6;
     const slider = document.getElementById('genSlider');
     if (slider) slider.value = 6;
@@ -706,21 +816,19 @@ function getVisibleIds() {
     });
   }
 
-  // Search filter
-  if (searchTerm) {
-    const q = searchTerm.toLowerCase();
-    candidates = candidates.filter(n => {
-      const name = (n.display_name || n.first_name || '').toLowerCase();
-      const alias = (n.alias || '').toLowerCase();
-      return name.includes(q) || alias.includes(q);
-    });
-    // When searching, also include direct relatives of matches
-    const matchIds = new Set(candidates.map(n => n.id));
-    G.edges.forEach(e => {
-      const src = e.source || e.from, tgt = e.target || e.to;
-      if (matchIds.has(src)) ids.add(tgt);
-      if (matchIds.has(tgt)) ids.add(src);
-    });
+  // Name search, village drop-down and advanced search
+  matchIds = null;
+  if (searchTerm || criteriaActive()) {
+    candidates = candidates.filter(n => nameMatches(n, searchTerm) && matchesCriteria(n));
+    matchIds = new Set(candidates.map(n => n.id));
+    // Also include direct relatives of matches, for context
+    if (criteria.context) {
+      G.edges.forEach(e => {
+        const src = e.source || e.from, tgt = e.target || e.to;
+        if (matchIds.has(src)) ids.add(tgt);
+        if (matchIds.has(tgt)) ids.add(src);
+      });
+    }
   }
 
   // Generation depth from focused node
@@ -990,7 +1098,9 @@ function render() {
     const isFocused = n.id === focusNodeId;
     const isDimmed  = focusNodeId && !focusedNeighbours.has(n.id);
 
-    const cls = `node-g ${isStub ? 'stub' : 'confirmed'}${isFocused ? ' focused' : ''}${isDimmed ? ' dimmed' : ''}`;
+    const isMatch   = matchIds && matchIds.has(n.id);
+    const isContext = matchIds && !isMatch && !isDimmed && !isFocused;
+    const cls = `node-g ${isStub ? 'stub' : 'confirmed'}${isFocused ? ' focused' : ''}${isDimmed ? ' dimmed' : ''}${isMatch ? ' match' : ''}${isContext ? ' context' : ''}`;
     const g = nodeGroup.append('g').attr('class', cls)
       .attr('data-id', n.id)
       .attr('transform', `translate(${x - NODE_W/2},${y - NODE_H/2})`)
@@ -1097,7 +1207,9 @@ function openPanel(n) {
   set('pdDied',    dod);
   set('pdVillage', n.village_origin || n.village_of_origin);
   set('pdCountry', n.country_emigrated);
+  set('pdLocation', n.current_location);
   set('pdGotra',   n.gotra);
+  document.getElementById('pdGotraRow').hidden = !n.gotra;
   set('pdBranch',  n.relation_branch || n.branch);
   set('pdSources', n._submission_count ? `${n._submission_count} submission${n._submission_count>1?'s':''}` : '1 submission');
   // Build add.html URL with all known node data. Uses the same
@@ -1131,7 +1243,7 @@ function closePanel() {
 // ── Controls ──────────────────────────────────────────────────
 function setFilter(f, btn) {
   currentFilter = f;
-  document.querySelectorAll('.tb-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.branch-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
   buildLayout();
 }
@@ -1144,10 +1256,200 @@ function onGenSlider(v) {
 
 function onSearch(q) {
   searchTerm = q;
-  if (!q) { buildLayout(); return; }
+  const adv = document.getElementById('advName');
+  if (adv && adv.value !== q) adv.value = q;
   buildLayout();
-  if (layoutNodes.length > 0) toast(`Found ${layoutNodes.length} match${layoutNodes.length!==1?'es':''}`);
+  updateSearchResults();
+  if (q && matchIds) toast(`Found ${matchIds.size} match${matchIds.size !== 1 ? 'es' : ''}`);
 }
+
+// ── Village drop-down & advanced search ───────────────────────
+const THIS_YEAR = new Date().getFullYear();
+
+function villageOf(n) { return (n.village_origin || n.village_of_origin || '').split(',')[0].trim(); }
+function yearIn(v) { const m = String(v || '').match(/\b(1[6-9]\d{2}|20\d{2})\b/); return m ? +m[1] : null; }
+function birthYearOf(n) {
+  if (n.dob_unknown) return null;
+  if (n.birth_year) return +n.birth_year;
+  const y = yearIn(n.dob);
+  if (y) return y;
+  const age = parseInt(n.approx_age, 10);
+  return isNaN(age) ? null : THIS_YEAR - age;
+}
+function isDeceasedNode(n) { return !!(n.dod || n.dod_unknown); }
+// Age today, or age at death for people who have passed.
+function ageOf(n) {
+  const by = birthYearOf(n);
+  if (!by) return null;
+  if (isDeceasedNode(n)) { const dy = yearIn(n.dod); return dy ? dy - by : null; }
+  return THIS_YEAR - by;
+}
+function locationOf(n) { return n.current_location || n.country_emigrated || ''; }
+
+function nameMatches(n, q) {
+  if (!q) return true;
+  q = q.toLowerCase();
+  return [n.display_name, n.first_name, n.alias, n.maiden_name]
+    .some(v => (v || '').toLowerCase().includes(q));
+}
+
+function criteriaActive() {
+  const c = criteria;
+  return !!(c.village || c.name || c.location || c.country || c.ageMin !== '' || c.ageMax !== ''
+            || c.bornFrom !== '' || c.bornTo !== '' || c.status || c.gender || !c.stubs);
+}
+function criteriaCount() {
+  const c = criteria;
+  return [c.village, c.name, c.location, c.country, c.ageMin !== '' || c.ageMax !== '',
+          c.bornFrom !== '' || c.bornTo !== '', c.status, c.gender, !c.stubs].filter(Boolean).length;
+}
+
+function matchesCriteria(n) {
+  const c = criteria;
+  if (!c.stubs && n.is_stub) return false;
+  if (c.village && villageOf(n).toLowerCase() !== c.village.toLowerCase()) return false;
+  if (!nameMatches(n, c.name)) return false;
+  if (c.location && !locationOf(n).toLowerCase().includes(c.location.toLowerCase())) return false;
+  if (c.country && (n.country_emigrated || '').toLowerCase() !== c.country.toLowerCase()) return false;
+  if (c.status === 'living' && isDeceasedNode(n)) return false;
+  if (c.status === 'deceased' && !isDeceasedNode(n)) return false;
+  if (c.gender && (n.gender || '').toLowerCase() !== c.gender) return false;
+  if (c.ageMin !== '' || c.ageMax !== '') {
+    const a = ageOf(n);
+    if (a === null) return false;
+    if (c.ageMin !== '' && a < +c.ageMin) return false;
+    if (c.ageMax !== '' && a > +c.ageMax) return false;
+  }
+  if (c.bornFrom !== '' || c.bornTo !== '') {
+    const by = birthYearOf(n);
+    if (by === null) return false;
+    if (c.bornFrom !== '' && by < +c.bornFrom) return false;
+    if (c.bornTo !== '' && by > +c.bornTo) return false;
+  }
+  return true;
+}
+
+// Fill the village and country drop-downs from the people in the tree.
+function populateSearchOptions() {
+  const tally = getter => {
+    const counts = {};
+    G.nodes.forEach(n => { const v = getter(n); if (v) counts[v] = (counts[v] || 0) + 1; });
+    return Object.entries(counts).sort((a, b) => a[0].localeCompare(b[0]));
+  };
+  const fill = (id, first, entries) => {
+    const sel = document.getElementById(id);
+    if (!sel) return;
+    sel.innerHTML = '';
+    sel.appendChild(new Option(first, ''));
+    entries.forEach(([v, k]) => sel.appendChild(new Option(`${v} (${k})`, v)));
+  };
+  const villages = tally(villageOf);
+  fill('villageFilter', villages.length ? 'All villages (gaam)' : 'No villages recorded yet', villages);
+  fill('advVillage', 'Any village', villages);
+  fill('advCountry', 'Any country', tally(n => n.country_emigrated));
+}
+
+function setVillage(v) {
+  criteria.village = v;
+  ['villageFilter', 'advVillage'].forEach(id => { const el = document.getElementById(id); if (el) el.value = v; });
+  applyCriteria();
+  if (v && matchIds) toast(`${matchIds.size} ${matchIds.size === 1 ? 'person' : 'people'} from ${v}`);
+}
+
+function onAdvancedInput() {
+  const val = id => (document.getElementById(id)?.value || '').trim();
+  criteria.name     = val('advName');
+  criteria.location = val('advLocation');
+  criteria.country  = val('advCountry');
+  criteria.ageMin   = val('advAgeMin');
+  criteria.ageMax   = val('advAgeMax');
+  criteria.bornFrom = val('advBornFrom');
+  criteria.bornTo   = val('advBornTo');
+  criteria.status   = val('advStatus');
+  criteria.gender   = val('advGender');
+  criteria.stubs    = document.getElementById('advStubs').checked;
+  criteria.context  = document.getElementById('advContext').checked;
+  applyCriteria();
+}
+
+function applyCriteria() {
+  focusNodeId = null;
+  document.getElementById('panel').classList.add('hidden');
+  needsCenter = true;      // re-fit the view around the filtered tree
+  buildLayout();
+  updateSearchResults();
+}
+
+function resetCriteria() {
+  Object.assign(criteria, { village: '', name: '', location: '', country: '', ageMin: '', ageMax: '',
+                            bornFrom: '', bornTo: '', status: '', gender: '', stubs: true, context: true });
+  ['villageFilter', 'advVillage', 'advName', 'advLocation', 'advCountry', 'advAgeMin', 'advAgeMax',
+   'advBornFrom', 'advBornTo', 'advStatus', 'advGender'].forEach(id => {
+    const el = document.getElementById(id); if (el) el.value = '';
+  });
+  ['advStubs', 'advContext'].forEach(id => { const el = document.getElementById(id); if (el) el.checked = true; });
+  updateSearchResults();
+}
+
+function clearCriteria() {
+  resetCriteria();
+  searchTerm = '';
+  const s = document.getElementById('searchInput'); if (s) s.value = '';
+  applyCriteria();
+}
+
+function updateSearchResults() {
+  const n = criteriaCount();
+  const badge = document.getElementById('advCount');
+  if (badge) { badge.hidden = !n; badge.textContent = n; }
+  document.getElementById('btnAdvanced')?.classList.toggle('active', !!n);
+  document.getElementById('villageFilter')?.classList.toggle('active', !!criteria.village);
+
+  const summary = document.getElementById('advSummary');
+  const list = document.getElementById('advResults');
+  if (!summary || !list) return;
+  list.innerHTML = '';
+  if (!criteriaActive() && !searchTerm) { summary.textContent = 'Set any filter above to find people.'; return; }
+
+  const hits = G.nodes.filter(p => nameMatches(p, searchTerm) && matchesCriteria(p))
+    .sort((a, b) => (birthYearOf(a) || 9999) - (birthYearOf(b) || 9999)
+                    || (a.display_name || '').localeCompare(b.display_name || ''));
+  summary.textContent = hits.length
+    ? `${hits.length} ${hits.length === 1 ? 'person matches' : 'people match'} — tap one to find them on the tree`
+    : 'Nobody matches those filters yet.';
+  hits.slice(0, 200).forEach(p => {
+    const item = document.createElement('button');
+    item.type = 'button';
+    item.className = 'sp-item';
+    const nm = document.createElement('div'); nm.className = 'n';
+    nm.textContent = p.display_name || [p.first_name, p.last_name].filter(Boolean).join(' ') || 'Unknown';
+    const by = displayBirthInfo(p);
+    const age = ageOf(p);
+    const meta = [by && `b. ${String(by).slice(-4)}`, age !== null && !isDeceasedNode(p) && `age ${age}`,
+                  isDeceasedNode(p) && 'deceased', villageOf(p), p.current_location || p.country_emigrated,
+                  p.is_stub && 'stub'].filter(Boolean).join(' · ');
+    const mt = document.createElement('div'); mt.className = 'm'; mt.textContent = meta || '\u00a0';
+    item.append(nm, mt);
+    item.addEventListener('click', () => {
+      if (window.matchMedia('(max-width:600px)').matches) closeAdvanced();
+      focusOnNode(p.id);
+    });
+    list.appendChild(item);
+  });
+  if (hits.length > 200) {
+    const more = document.createElement('p'); more.className = 'sp-empty';
+    more.textContent = `Showing the first 200 — narrow the filters to see the rest.`;
+    list.appendChild(more);
+  }
+}
+
+function toggleAdvanced() {
+  const panel = document.getElementById('searchPanel');
+  const opening = panel.classList.contains('hidden');
+  panel.classList.toggle('hidden');
+  if (opening) { closeConnectors(); updateSearchResults(); }
+}
+function closeAdvanced() { document.getElementById('searchPanel').classList.add('hidden'); }
 
 // ── Zoom controls ─────────────────────────────────────────────
 function zoomBy(factor) {

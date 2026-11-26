@@ -160,6 +160,7 @@ function collectSelfRecord() {
     birthPlace:       v('sBirthPlace')     || null,
     villageOrigin:    v('sVillageOrigin')  || null,
     countryEmigrated: v('sCountryEmigrated') || null,
+    currentLocation:  v('sCurrentLocation') || null,
     dod:              document.getElementById('sDodUnknown')?.checked
                         ? null
                         : buildDate(v('sDodDay'), v('sDodMonth'), v('sDodYear')) || null,
@@ -334,7 +335,7 @@ function clearPersonForm() {
    'fatherFirst','fatherLast','fatherDOB','fatherVillage',
    'motherFirst','motherLast','motherMaiden','motherDOB',
    'dobDay','dobMonth','dobYear','approxAge','birthPlace','villageOrigin',
-   'countryEmigrated','dodDay','dodMonth','dodYear','pNotes','customRelation'].forEach(id => {
+   'countryEmigrated','currentLocation','dodDay','dodMonth','dodYear','pNotes','customRelation'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.value = '';
   });
@@ -509,7 +510,6 @@ function buildPersonSummary() {
   const name = [fn, ln].filter(Boolean).join(' ');
   if (name)                 lines.push(`<strong>Name:</strong> ${name}`);
   if (v('pAlias'))          lines.push(`<strong>Also known as:</strong> ${v('pAlias')}`);
-  if (v('pGotra'))          lines.push(`<strong>Gotra:</strong> ${v('pGotra')}`);
   const rel = selectedRelKey ? (RELATION_MAP[selectedRelKey]?.terms[0] || selectedRelKey) : v('customRelation');
   if (rel)                  lines.push(`<strong>Relationship:</strong> ${rel}`);
   const dob = buildDate(v('dobDay'), v('dobMonth'), v('dobYear'));
@@ -518,6 +518,8 @@ function buildPersonSummary() {
   else if (v('approxAge'))  lines.push(`<strong>Approx age:</strong> ${v('approxAge')}`);
   if (v('villageOrigin'))   lines.push(`<strong>Village:</strong> ${v('villageOrigin')}`);
   if (v('countryEmigrated'))lines.push(`<strong>Emigrated to:</strong> ${v('countryEmigrated')}`);
+  if (v('currentLocation')) lines.push(`<strong>Lives in:</strong> ${v('currentLocation')}`);
+  if (v('pGotra'))          lines.push(`<strong>Gotra:</strong> ${v('pGotra')}`);
   if (document.getElementById('dodUnknown')?.checked) lines.push(`<strong>Deceased:</strong> date unknown`);
   const fName = [v('fatherFirst'), v('fatherLast')].filter(Boolean).join(' ');
   const mName = [v('motherFirst'), v('motherLast')].filter(Boolean).join(' ');
@@ -559,6 +561,7 @@ function collectPerson() {
     dobUnknown:       document.getElementById('dobUnknown')?.checked||false,
     approxAge:        v('approxAge')||null, birthPlace: v('birthPlace')||null,
     villageOrigin:    v('villageOrigin')||null, countryEmigrated: v('countryEmigrated')||null,
+    currentLocation:  v('currentLocation')||null,
     dod:              document.getElementById('dodUnknown')?.checked ? null : buildDate(v('dodDay'),v('dodMonth'),v('dodYear'))||null,
     dodUnknown:       document.getElementById('dodUnknown')?.checked||false,
     father: { firstName: v('fatherFirst')||null, lastName: v('fatherLast')||null, dob: v('fatherDOB')||null, village: v('fatherVillage')||null },
@@ -575,7 +578,7 @@ function prefillPersonForm(p) {
   set('pLast',  p.lastName);  set('pMaiden', p.maidenName); set('pGotra', p.gotra);
   set('pGender', p.gender);   set('approxAge', p.approxAge);
   set('birthPlace', p.birthPlace); set('villageOrigin', p.villageOrigin);
-  set('countryEmigrated', p.countryEmigrated); set('pNotes', p.notes);
+  set('countryEmigrated', p.countryEmigrated); set('currentLocation', p.currentLocation); set('pNotes', p.notes);
   set('customRelation', p.customRelation);
   set('fatherFirst',  p.father?.firstName); set('fatherLast',  p.father?.lastName);
   set('fatherDOB',    p.father?.dob);       set('fatherVillage', p.father?.village);
