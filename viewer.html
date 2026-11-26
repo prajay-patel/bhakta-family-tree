@@ -234,6 +234,7 @@ svg#tree{width:100%;height:100%;display:block}
   <button class="tb-btn" id="btnArrange" onclick="toggleArrange()" title="Drag people to rearrange the tree">✥ Arrange</button>
   <button class="tb-btn" id="btnResetLayout" onclick="resetArrangement()" title="Undo your manual arrangement" hidden>↺ Reset layout</button>
   <div class="tb-spacer"></div>
+  <a class="add-link" href="map.html">Family map</a>
   <a class="add-link" href="index.html">+ Add member</a>
   <a class="add-link" href="history.html" target="_blank" rel="noopener" style="color:var(--gold)">Our History</a>
   <a class="add-link" href="PRIVACY.md" target="_blank" rel="noopener" style="opacity:.7">Privacy</a>
@@ -474,6 +475,9 @@ async function loadData() {
       populateConnectorsPanel();
       initZoom();
       buildLayout();  // buildLayout calls render() then centerGraph()
+      // viewer.html?focus=<id> — opened from the family map
+      const focusId = new URLSearchParams(location.search).get('focus');
+      if (focusId && nodeMap[focusId]) focusOnNode(focusId);
       return;
 
     } catch(e) {
