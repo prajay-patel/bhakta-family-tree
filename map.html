@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=5"/>
+<script src="js/theme.js"></script>
+<title>Bhakta Family Map</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<style>
+:root{--forest:#2D4A3E;--forest-l:#3D6254;--rust:#8B3A2A;--gold:#C8973A;
+  --surface:#FFFFFF;--forest-bg:#2D4A3E;--on-primary:#F5EFE0;--on-primary-soft:#A8B8A0;--on-accent:#FFFFFF;
+  --parchment:#F5EFE0;--parchment-d:#E8DFC8;--ink:#1C1A14;--ink-soft:#4A4438;--mist:#A8B8A0;--radius:6px}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden;font-family:'Inter',sans-serif;font-size:14px;color:var(--ink);background:var(--parchment)}
+body{display:flex;flex-direction:column}
+
+/* Top bar — matches the tree viewer */
+.topbar{min-height:54px;background:var(--forest-bg);display:flex;flex-wrap:wrap;align-items:center;gap:.45rem .9rem;padding:.45rem 1rem;flex-shrink:0;z-index:1000}
+.topbar-title{font-family:'Playfair Display',serif;font-size:1.1rem;color:var(--on-primary)}
+.tb-spacer{flex:1}
+.tb-link{font-size:.8rem;color:var(--gold);text-decoration:none;white-space:nowrap}
+.tb-link:hover{text-decoration:underline}
+.tb-link.current{color:var(--on-primary);font-weight:500}
+
+.layout{flex:1;min-height:0;display:flex}
+#map{flex:1;min-width:0;background:var(--parchment-d)}
+.side{width:330px;flex-shrink:0;background:var(--surface);border-left:1px solid var(--parchment-d);overflow-y:auto;padding:1rem 1.1rem 1.5rem;font-size:12.5px;color:var(--ink-soft)}
+.side h2{font-family:'Playfair Display',serif;font-size:1.05rem;color:var(--ink);margin-bottom:.25rem}
+.lede{line-height:1.55;margin-bottom:.8rem}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:.4rem;margin-bottom:1rem}
+.stat{background:var(--parchment);border:1px solid var(--parchment-d);border-radius:var(--radius);padding:.45rem .5rem;text-align:center}
+.stat b{display:block;font-size:1.15rem;color:var(--forest);font-weight:600}
+.stat span{font-size:.68rem;color:var(--ink-soft)}
+.sec{margin-bottom:1rem}
+.sec-title{font-size:.68rem;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--forest);margin-bottom:.45rem;padding-bottom:.3rem;border-bottom:.5px solid var(--parchment-d)}
+.layer{display:flex;align-items:center;gap:.55rem;padding:.28rem 0;cursor:pointer;font-size:.82rem;color:var(--ink)}
+.layer input{accent-color:var(--forest)}
+.sw{width:14px;height:14px;border-radius:50%;flex-shrink:0;border:2px solid}
+.sw.village{border-color:var(--gold);background:color-mix(in srgb,var(--gold) 25%,transparent)}
+.sw.birth{border-color:var(--forest);background:var(--forest)}
+.sw.home{border-color:var(--rust);background:var(--rust)}
+.sw.route{border:none;border-radius:2px;height:4px;background:repeating-linear-gradient(90deg,var(--gold) 0 6px,transparent 6px 10px)}
+.layer small{color:var(--mist);margin-left:auto}
+select.ctl{width:100%;font:inherit;font-size:.82rem;color:var(--ink);background:var(--parchment);border:1px solid var(--parchment-d);border-radius:var(--radius);padding:.36rem .5rem;outline:none}
+select.ctl:focus{border-color:var(--forest)}
+.time-row{display:flex;align-items:center;gap:.55rem}
+.time-row input[type=range]{flex:1;accent-color:var(--gold)}
+.play{width:30px;height:30px;border-radius:50%;border:1px solid var(--forest);background:var(--surface);color:var(--forest);cursor:pointer;font-size:.8rem;flex-shrink:0}
+.play:hover{background:color-mix(in srgb,var(--forest) 8%,var(--surface))}
+.time-label{font-size:.8rem;color:var(--ink);font-weight:500;min-width:7.5em;text-align:right}
+.hint{font-size:.72rem;color:var(--mist);font-style:italic;margin-top:.3rem;line-height:1.45}
+.detail{background:var(--parchment);border:1px solid var(--parchment-d);border-radius:8px;padding:.7rem .8rem}
+.detail h3{font-family:'Playfair Display',serif;font-size:.98rem;color:var(--ink);margin-bottom:.15rem}
+.detail .prec{font-size:.72rem;color:var(--mist);margin-bottom:.45rem}
+.detail .grp{margin-top:.5rem}
+.detail .grp b{font-size:.74rem;color:var(--forest);font-weight:600}
+.detail ul{list-style:none;margin-top:.2rem}
+.detail li{padding:.12rem 0;font-size:.8rem}
+.detail a{color:var(--forest);text-decoration:none}
+.detail a:hover{text-decoration:underline}
+.detail .living{color:var(--ink-soft);font-style:italic}
+.dest{display:flex;align-items:center;gap:.5rem;width:100%;font:inherit;text-align:left;background:none;border:none;border-bottom:.5px solid var(--parchment-d);padding:.35rem 0;cursor:pointer;color:var(--ink);font-size:.82rem}
+.dest:last-child{border-bottom:none}
+.dest:hover{color:var(--forest)}
+.dest .bar{height:6px;border-radius:3px;background:var(--rust);opacity:.75}
+.dest .n{margin-left:auto;color:var(--ink-soft);font-size:.75rem}
+.privacy{font-size:.72rem;line-height:1.55;color:var(--ink-soft);background:color-mix(in srgb,var(--forest) 6%,var(--surface));border-radius:var(--radius);padding:.55rem .65rem}
+.privacy b{color:var(--forest)}
+.empty[hidden]{display:none}
+.empty{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;z-index:500;pointer-events:none}
+.empty div{background:var(--surface);border:1px solid var(--parchment-d);border-radius:10px;padding:1rem 1.2rem;max-width:320px;text-align:center;pointer-events:auto;box-shadow:0 2px 12px rgba(0,0,0,.08)}
+
+/* Leaflet theming */
+.leaflet-container{font-family:'Inter',sans-serif;background:var(--parchment-d)}
+.leaflet-tooltip.place-tip{background:var(--surface);color:var(--ink);border:1px solid var(--parchment-d);border-radius:6px;box-shadow:0 2px 8px rgba(0,0,0,.12);font-size:12px;padding:4px 8px}
+.leaflet-tooltip.place-tip::before{display:none}
+.leaflet-control-attribution{font-size:10px}
+.route-flow{stroke-dasharray:7 9;animation:flow 1.6s linear infinite}
+@keyframes flow{to{stroke-dashoffset:-16}}
+@media (prefers-reduced-motion:reduce){.route-flow{animation:none}}
+
+@media(max-width:760px){
+  .layout{flex-direction:column}
+  #map{flex:1 1 55%;min-height:260px}
+  .side{width:auto;flex:1 1 45%;border-left:none;border-top:1px solid var(--parchment-d)}
+  .topbar-title{font-size:.98rem}
+}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <span class="topbar-title">❧ Bhakta Family Map</span>
+  <div class="tb-spacer"></div>
+  <a class="tb-link" href="viewer.html">Tree</a>
+  <a class="tb-link current" href="map.html" aria-current="page">Map</a>
+  <a class="tb-link" href="history.html">Our History</a>
+  <a class="tb-link" href="index.html">+ Add member</a>
+  <span data-theme-slot></span>
+</div>
+
+<div class="layout">
+  <div id="map" role="region" aria-label="Map of family places and migrations" style="position:relative">
+    <div class="empty" id="emptyState" hidden><div>
+      <b>No places to show yet</b>
+      <p class="hint" style="font-style:normal">As relatives add their village, birthplace and where they live, they'll appear here.</p>
+      <p style="margin-top:.6rem"><a href="index.html" style="color:var(--forest)">Add family members →</a></p>
+    </div></div>
+  </div>
+
+  <aside class="side" aria-label="Map controls and details">
+    <h2>Where we come from, where we went</h2>
+    <p class="lede">Villages (gaam) of origin in South Gujarat, where relatives were born, and where they settled — with the routes the family travelled between them.</p>
+
+    <div class="stats">
+      <div class="stat"><b id="stPeople">0</b><span>people mapped</span></div>
+      <div class="stat"><b id="stVillages">0</b><span>villages</span></div>
+      <div class="stat"><b id="stCountries">0</b><span>countries</span></div>
+    </div>
+
+    <div class="sec">
+      <div class="sec-title">Show on map</div>
+      <label class="layer"><input type="checkbox" id="lyVillage" checked/><span class="sw village"></span>Villages (gaam) of origin<small id="cVillage"></small></label>
+      <label class="layer"><input type="checkbox" id="lyBirth" checked/><span class="sw birth"></span>Birthplaces<small id="cBirth"></small></label>
+      <label class="layer"><input type="checkbox" id="lyHome" checked/><span class="sw home"></span>Where they settled or live now<small id="cHome"></small></label>
+      <label class="layer"><input type="checkbox" id="lyRoute" checked/><span class="sw route"></span>Migration routes<small id="cRoute"></small></label>
+      <p class="hint">Bigger circles and thicker lines mean more people. Dashes move in the direction of travel.</p>
+    </div>
+
+    <div class="sec">
+      <div class="sec-title">Filter</div>
+      <select class="ctl" id="villageSel" aria-label="Only show people from this village">
+        <option value="">Everyone — all villages</option>
+      </select>
+      <div style="margin-top:.7rem">
+        <div class="time-row">
+          <button class="play" id="playBtn" title="Play the migrations through time" aria-label="Play through time">▶</button>
+          <input type="range" id="yearSlider" min="1850" max="2030" step="1" value="2030" aria-label="Show people born up to this year"/>
+          <span class="time-label" id="yearLabel">Everyone</span>
+        </div>
+        <p class="hint">Slide or press play to watch each generation's moves appear, by year of birth.</p>
+      </div>
+    </div>
+
+    <div class="sec" id="detailSec" hidden>
+      <div class="sec-title">Selected</div>
+      <div class="detail" id="detail"></div>
+    </div>
+
+    <div class="sec">
+      <div class="sec-title">Where the family settled</div>
+      <div id="destList"></div>
+    </div>
+
+    <div class="sec">
+      <div class="privacy">
+        <b>Privacy.</b> Places are only ever shown as a village, town or country — never an address — and are worked out on this page without sending them to any outside service.
+        <b>Living relatives are never named on the map</b>; they're only counted. Their birthplace and home appear at town level only when at least 3 relatives share that town; otherwise just the country is shown.
+        Villages without a known exact location are shown at their district town and marked approximate.
+      </div>
+      <p class="hint" id="unmapped"></p>
+    </div>
+  </aside>
+</div>
+
+<script src="js/villages.js"></script>
+<script src="js/places.js"></script>
+<script src="js/treedata.js"></script>
+<script>
+// ── Settings ─────────────────────────────────────────────────
+const MIN_LIVING_PER_TOWN = 3;   // living people's town-level points need this many to show
+// Exact points for villages that GeoNames doesn't know — add 'Name': [lat, lng]
+const VILLAGE_EXTRA_POINTS = {};
+
+// ── Place resolution ─────────────────────────────────────────
+// The pipeline (geocode.py) normally attaches a `geo` block to each person.
+// When it hasn't (older data), the same rules run here from places.js.
+const norm = s => String(s || '').toLowerCase().replace(/[^a-z]/g, '');
+const ALL_VILLAGE_POINTS = Object.assign({}, VILLAGE_POINTS, VILLAGE_EXTRA_POINTS);
+const ISO2 = Object.fromEntries(Object.keys(COUNTRY_POINTS).map(cc => [cc.toLowerCase(), cc]));
+
+function pt(label, lat, lng, precision, cc, extra) {
+  return Object.assign({ label, lat, lng, precision, cc }, extra || {});
+}
+function countryPoint(cc) {
+  const c = COUNTRY_POINTS[cc];
+  return c ? pt(c[0], c[1], c[2], 'country', cc) : null;
+}
+function countryCode(text) {
+  const k = norm(text);
+  return COUNTRY_ALIASES[k] || null;
+}
+function resolveVillage(text) {
+  if (!text) return null;
+  const v = findVillage(String(text).split(',')[0]);
+  if (!v) return resolvePlace(text, true);
+  if (ALL_VILLAGE_POINTS[v.name]) { const [a, b] = ALL_VILLAGE_POINTS[v.name]; return pt(v.name, a, b, 'village', 'IN'); }
+  const d = DISTRICT_POINTS[VILLAGE_DISTRICT[v.name] || v.district];
+  return d ? pt(v.name, d[0], d[1], 'district', 'IN', { district: VILLAGE_DISTRICT[v.name] || v.district }) : null;
+}
+function resolvePlace(text, skipVillage) {
+  if (!text || !String(text).trim()) return null;
+  let parts = String(text).split(/[,/;]|\s+-\s+/).map(s => s.trim()).filter(Boolean);
+  let cc = null;
+  for (let i = parts.length - 1; i >= 0 && !cc; i--) cc = countryCode(parts[i]);
+  if (!cc && parts.length === 1 && parts[0].includes(' ')) {
+    const i = parts[0].lastIndexOf(' ');
+    const tail = countryCode(parts[0].slice(i + 1));
+    if (tail) { cc = tail; parts = [parts[0].slice(0, i)]; }
+  }
+  if (!skipVillage && (!cc || cc === 'IN') && findVillage(parts[0])) return resolveVillage(parts[0]);
+  for (const p of parts) {
+    const k = norm(p);
+    const hit = cc ? CITY_POINTS[`${k}|${cc}`]
+                   : Object.entries(CITY_POINTS).find(([key]) => key.startsWith(k + '|'))?.[1];
+    if (hit) return pt(hit[0], hit[2], hit[3], 'city', hit[1]);
+  }
+  return cc ? countryPoint(cc) : null;
+}
+function placesOf(n) {
+  const g = n.geo || {};
+  const emig = g.emigrated || (n.country_emigrated ? (p => p && countryPoint(p.cc))(resolvePlace(n.country_emigrated, true)) : null);
+  return {
+    village: g.village || resolveVillage(n.village_origin || n.village_of_origin),
+    birth: g.birth || resolvePlace(n.birth_place),
+    emigrated: emig,
+    current: g.current || resolvePlace(n.current_location),
+  };
+}
+const keyOf = p => p.precision === 'country' ? `c:${p.cc}` : `${p.precision}:${p.lat.toFixed(3)},${p.lng.toFixed(3)}`;
+
+// ── People → map records ─────────────────────────────────────
+const THIS_YEAR = new Date().getFullYear();
+const isDeceased = n => !!(n.dod || n.dod_unknown);
+function birthYear(n) {
+  if (n.dob_unknown) return null;
+  if (n.birth_year) return +n.birth_year;
+  const m = String(n.dob || '').match(/\b(1[6-9]\d{2}|20\d{2})\b/);
+  if (m) return +m[1];
+  const a = parseInt(n.approx_age, 10);
+  return isNaN(a) ? null : THIS_YEAR - a;
+}
+const nameOf = n => n.display_name || [n.first_name, n.last_name].filter(Boolean).join(' ') || 'Unknown';
+
+let people = [];   // { id, name, living, born, village, stops:[{kind, p}] }
+
+function buildPeople(nodes) {
+  const raw = nodes.map(n => ({ n, pl: placesOf(n) }));
+  // Living people's town-level birthplaces and homes only stay at town level
+  // when enough living relatives share that town.
+  const tally = {};
+  raw.forEach(({ n, pl }) => {
+    if (isDeceased(n)) return;
+    ['birth', 'current'].forEach(k => { const p = pl[k]; if (p && p.precision !== 'country') tally[keyOf(p)] = (tally[keyOf(p)] || 0) + 1; });
+  });
+  const coarsen = (n, p) => {
+    if (!p || isDeceased(n) || p.precision === 'country') return p;
+    return (tally[keyOf(p)] || 0) >= MIN_LIVING_PER_TOWN ? p : countryPoint(p.cc);
+  };
+  people = raw.map(({ n, pl }) => {
+    const birth = coarsen(n, pl.birth), current = coarsen(n, pl.current);
+    // Journey: village of origin → birthplace → country emigrated to → home now.
+    // The emigration country is dropped when a more precise stop is in the same country.
+    let stops = [['village', pl.village], ['birth', birth], ['emigrated', pl.emigrated], ['current', current]]
+      .filter(([, p]) => p).map(([kind, p]) => ({ kind, p }));
+    stops = stops.filter(s => s.kind !== 'emigrated' || !stops.some(o => o !== s && o.p.cc === s.p.cc && o.kind !== 'village'));
+    return { id: n.id, name: nameOf(n), living: !isDeceased(n), stub: !!n.is_stub, born: birthYear(n),
+             village: pl.village ? pl.village.label : '', stops };
+  });
+}
+
+// ── Map ──────────────────────────────────────────────────────
+const map = L.map('map', { worldCopyJump: true, zoomSnap: 0.25, minZoom: 2 }).setView([15, 30], 2.5);
+const TILE = scheme => `https://{s}.basemaps.cartocdn.com/${scheme === 'dark' ? 'dark_all' : 'light_all'}/{z}/{x}/{y}{r}.png`;
+const tiles = L.tileLayer(TILE(getComputedStyle(document.documentElement).colorScheme), {
+  subdomains: 'abcd', maxZoom: 12,
+  attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a> · places: <a href="https://www.geonames.org/">GeoNames</a>',
+}).addTo(map);
+const layers = { route: L.layerGroup().addTo(map), village: L.layerGroup().addTo(map),
+                 birth: L.layerGroup().addTo(map), home: L.layerGroup().addTo(map) };
+const css = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+
+const state = { village: '', year: null, selected: null };
+
+function visiblePeople() {
+  return people.filter(p => p.stops.length
+    && (!state.village || p.village === state.village)
+    && (state.year === null || (p.born !== null && p.born <= state.year)));
+}
+
+// Group people by place for one kind of stop
+function groupPlaces(list, kinds) {
+  const g = {};
+  list.forEach(person => person.stops.forEach(s => {
+    if (!kinds.includes(s.kind)) return;
+    const k = keyOf(s.p);
+    (g[k] = g[k] || { p: s.p, people: new Set() }).people.add(person);
+  }));
+  return Object.values(g).map(x => ({ p: x.p, people: [...x.people] }));
+}
+
+// Where each person ended up: their last stop, if it's a home or emigration country
+function homeGroups(list) {
+  const g = {};
+  list.forEach(person => {
+    const last = person.stops[person.stops.length - 1];
+    if (!['current', 'emigrated'].includes(last.kind)) return;
+    const k = keyOf(last.p);
+    (g[k] = g[k] || { p: last.p, people: [] }).people.push(person);
+  });
+  return Object.values(g);
+}
+
+function curve(a, b) {
+  let [lat1, lng1, lat2, lng2] = [a.lat, a.lng, b.lat, b.lng];
+  if (lng2 - lng1 > 180) lng2 -= 360; else if (lng1 - lng2 > 180) lng2 += 360;
+  const dx = lng2 - lng1, dy = lat2 - lat1, len = Math.hypot(dx, dy) || 1;
+  const bend = Math.min(0.22, 6 / len + 0.12);
+  const cx = (lng1 + lng2) / 2 - dy * bend, cy = (lat1 + lat2) / 2 + dx * bend;
+  const pts = [];
+  for (let i = 0; i <= 40; i++) {
+    const t = i / 40, u = 1 - t;
+    pts.push([u * u * lat1 + 2 * u * t * cy + t * t * lat2, u * u * lng1 + 2 * u * t * cx + t * t * lng2]);
+  }
+  return pts;
+}
+
+function radius(n, base) { return base + 3.2 * Math.sqrt(n); }
+
+function draw() {
+  Object.values(layers).forEach(l => l.clearLayers());
+  const list = visiblePeople();
+  const C = { village: css('--gold'), birth: css('--forest'), home: css('--rust'), route: css('--gold'), surface: css('--surface') };
+
+  // Routes: consecutive stops of each person, merged by origin/destination
+  const routes = {};
+  list.forEach(person => {
+    for (let i = 1; i < person.stops.length; i++) {
+      const a = person.stops[i - 1].p, b = person.stops[i].p;
+      const k = keyOf(a) + '>' + keyOf(b);
+      if (keyOf(a) === keyOf(b)) continue;
+      (routes[k] = routes[k] || { a, b, people: new Set() }).people.add(person);
+    }
+  });
+  const routeList = Object.values(routes);
+  routeList.forEach(r => {
+    const n = r.people.size, w = 1.4 + 1.6 * Math.sqrt(n);
+    const pts = curve(r.a, r.b);
+    L.polyline(pts, { color: C.route, weight: w + 4, opacity: 0.001, interactive: true })   // wide invisible hit area
+      .on('click', () => select({ type: 'route', r }))
+      .bindTooltip(`${r.a.label} → ${r.b.label} · ${n} ${n === 1 ? 'person' : 'people'}`, { className: 'place-tip', sticky: true })
+      .addTo(layers.route);
+    L.polyline(pts, { color: C.route, weight: w, opacity: 0.75, className: 'route-flow', interactive: false }).addTo(layers.route);
+  });
+
+  const groups = {
+    village: groupPlaces(list, ['village']),
+    birth: groupPlaces(list, ['birth']),
+    home: homeGroups(list),
+  };
+  const style = {
+    village: { color: C.village, weight: 2.5, fillColor: C.village, fillOpacity: 0.18, base: 6 },
+    birth:   { color: C.surface, weight: 1.2, fillColor: C.birth, fillOpacity: 0.9, base: 3 },
+    home:    { color: C.surface, weight: 1.2, fillColor: C.home, fillOpacity: 0.9, base: 3.5 },
+  };
+  const labels = { village: 'village of origin for', birth: 'birthplace of', home: 'settled here:' };
+  Object.entries(groups).forEach(([kind, gs]) => {
+    gs.sort((a, b) => b.people.length - a.people.length).forEach(g => {
+      const s = style[kind], n = g.people.length;
+      L.circleMarker([g.p.lat, g.p.lng], { radius: radius(n, s.base), color: s.color, weight: s.weight,
+                                          fillColor: s.fillColor, fillOpacity: s.fillOpacity })
+        .bindTooltip(`<b>${esc(g.p.label)}</b>${g.p.precision === 'district' ? ' (approx.)' : ''} · ${labels[kind]} ${n}`, { className: 'place-tip', direction: 'top' })
+        .on('click', () => select({ type: 'place', p: g.p }))
+        .addTo(layers[kind]);
+    });
+  });
+
+  // Layer visibility, counts, stats
+  [['village', 'lyVillage'], ['birth', 'lyBirth'], ['home', 'lyHome'], ['route', 'lyRoute']].forEach(([k, id]) => {
+    const on = document.getElementById(id).checked;
+    if (on && !map.hasLayer(layers[k])) layers[k].addTo(map);
+    if (!on && map.hasLayer(layers[k])) map.removeLayer(layers[k]);
+  });
+  setText('cVillage', groups.village.length || '');
+  setText('cBirth', groups.birth.length || '');
+  setText('cHome', groups.home.length || '');
+  setText('cRoute', routeList.length || '');
+  setText('stPeople', list.length);
+  setText('stVillages', new Set(list.map(p => p.village).filter(Boolean)).size);
+  setText('stCountries', new Set(list.flatMap(p => p.stops.map(s => s.p.cc))).size);
+  drawDestinations(list);
+  if (state.selected) renderDetail(state.selected, list);
+  document.getElementById('emptyState').hidden = people.some(p => p.stops.length);
+}
+
+function drawDestinations(list) {
+  const by = {};
+  list.forEach(p => { const last = p.stops[p.stops.length - 1].p; (by[last.cc] = by[last.cc] || []).push(p); });
+  const rows = Object.entries(by).sort((a, b) => b[1].length - a[1].length).slice(0, 8);
+  const max = rows.length ? rows[0][1].length : 1;
+  const box = document.getElementById('destList');
+  box.innerHTML = '';
+  if (!rows.length) { box.innerHTML = '<p class="hint">No one shown yet.</p>'; return; }
+  rows.forEach(([cc, ps]) => {
+    const b = document.createElement('button'); b.className = 'dest'; b.type = 'button';
+    const name = (COUNTRY_POINTS[cc] || [cc])[0];
+    b.innerHTML = `<span style="min-width:7.5em">${esc(name)}</span><span class="bar" style="width:${Math.max(6, 90 * ps.length / max)}px"></span><span class="n">${ps.length}</span>`;
+    b.addEventListener('click', () => { const c = countryPoint(cc); if (c) map.flyTo([c.lat, c.lng], 4, { duration: 0.8 }); });
+    box.appendChild(b);
+  });
+}
+
+// ── Selection panel ──────────────────────────────────────────
+function select(sel) { state.selected = sel; renderDetail(sel, visiblePeople()); }
+
+function nameList(ps) {
+  const dead = ps.filter(p => !p.living).sort((a, b) => (a.born || 9999) - (b.born || 9999));
+  const living = ps.length - dead.length;
+  const items = dead.map(p => `<li><a href="viewer.html?focus=${encodeURIComponent(p.id)}">${esc(p.name)}</a>${p.born ? ` <span class="living">b. ${p.born}</span>` : ''}</li>`);
+  if (living) items.push(`<li class="living">${dead.length ? 'and ' : ''}${living} living ${living === 1 ? 'relative' : 'relatives'}</li>`);
+  return `<ul>${items.join('')}</ul>`;
+}
+
+function renderDetail(sel, list) {
+  const box = document.getElementById('detail');
+  document.getElementById('detailSec').hidden = false;
+  if (sel.type === 'route') {
+    const ps = list.filter(p => sel.r.people.has(p));
+    box.innerHTML = `<h3>${esc(sel.r.a.label)} → ${esc(sel.r.b.label)}</h3>
+      <div class="prec">${ps.length} ${ps.length === 1 ? 'person' : 'people'} made this move</div>${nameList(ps)}`;
+    return;
+  }
+  const k = keyOf(sel.p);
+  const at = kinds => list.filter(p => p.stops.some(s => kinds.includes(s.kind) && keyOf(s.p) === k));
+  const grp = (title, ps) => ps.length ? `<div class="grp"><b>${title} (${ps.length})</b>${nameList(ps)}</div>` : '';
+  const prec = { village: 'Village', district: `Approximate — shown at ${esc(sel.p.district || '')} district town`, city: 'Town or city', country: 'Country (no town given)' }[sel.p.precision] || '';
+  const body = grp('Village of origin', at(['village'])) + grp('Born here', at(['birth']))
+             + grp('Live or lived here', at(['current'])) + grp('Emigrated here', at(['emigrated']));
+  box.innerHTML = `<h3>${esc(sel.p.label)}</h3><div class="prec">${prec}</div>${body || '<p class="hint">Nobody here with the current filters.</p>'}`;
+}
+
+// ── Controls ─────────────────────────────────────────────────
+['lyVillage', 'lyBirth', 'lyHome', 'lyRoute'].forEach(id => document.getElementById(id).addEventListener('change', draw));
+document.getElementById('villageSel').addEventListener('change', e => {
+  state.village = e.target.value;
+  draw();
+  fitTo(visiblePeople());
+});
+const slider = document.getElementById('yearSlider');
+function setYear(v, fromPlay) {
+  const max = +slider.max;
+  state.year = v >= max ? null : v;
+  slider.value = v;
+  setText('yearLabel', state.year === null ? 'Everyone' : `Born by ${v}`);
+  if (!fromPlay) stopPlay();
+  draw();
+}
+slider.addEventListener('input', () => setYear(+slider.value));
+let playTimer = null;
+function stopPlay() { clearInterval(playTimer); playTimer = null; setText('playBtn', '▶'); }
+document.getElementById('playBtn').addEventListener('click', () => {
+  if (playTimer) return stopPlay();
+  let y = +slider.min;
+  setText('playBtn', '❚❚');
+  setYear(y, true);
+  playTimer = setInterval(() => {
+    y += 5;
+    if (y >= +slider.max) { setYear(+slider.max, true); stopPlay(); return; }
+    setYear(y, true);
+  }, 450);
+});
+document.addEventListener('bft-theme-change', e => { tiles.setUrl(TILE(e.detail.scheme)); draw(); });
+
+function fitTo(list) {
+  const pts = list.flatMap(p => p.stops.map(s => [s.p.lat, s.p.lng]));
+  if (pts.length) map.fitBounds(pts, { padding: [40, 40], maxZoom: 6 });
+}
+function setText(id, t) { const el = document.getElementById(id); if (el) el.textContent = t; }
+function esc(s) { return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
+
+// ── Init ─────────────────────────────────────────────────────
+loadTreeData().then(({ nodes }) => {
+  buildPeople(nodes);
+  const villages = {};
+  people.forEach(p => { if (p.village) villages[p.village] = (villages[p.village] || 0) + 1; });
+  const sel = document.getElementById('villageSel');
+  Object.keys(villages).sort().forEach(v => sel.appendChild(new Option(`${v} (${villages[v]})`, v)));
+  const years = people.filter(p => p.stops.length && p.born).map(p => p.born);
+  if (years.length) { slider.min = Math.floor(Math.min(...years) / 10) * 10; slider.max = THIS_YEAR; slider.value = THIS_YEAR; }
+  const unmapped = people.filter(p => !p.stops.length && !p.stub).length;
+  setText('unmapped', unmapped ? `${unmapped} ${unmapped === 1 ? 'person has' : 'people have'} no village or place recorded yet, so ${unmapped === 1 ? "isn't" : "aren't"} on the map.` : '');
+  draw();
+  fitTo(people.filter(p => p.stops.length));
+});
+</script>
+</body>
+</html>

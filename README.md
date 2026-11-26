@@ -57,6 +57,19 @@ but haven't submitted their own entry yet. Click them and use the
 
 ---
 
+## Family map
+
+[https://prajay-patel.github.io/bhakta-family-tree/map.html](https://prajay-patel.github.io/bhakta-family-tree/map.html)
+
+An interactive world map of where the family comes from and where it went:
+villages (gaam) of origin, birthplaces, where people settled, and the
+migration routes between them. Filter by village, or press play to watch the
+moves appear generation by generation. Living relatives are only counted,
+never named, and their homes are shown at country level unless at least
+3 relatives share a town.
+
+---
+
 ## Family history
 
 Learn about the Leuva Patidar migration from Gujarat to East Africa and beyond:

@@ -24,6 +24,7 @@ When you submit the form, the following may be collected:
   members you describe
 - Village or ancestral origin
 - Country of emigration
+- The town or country someone currently lives in (never a street address)
 - Gotra (patrilineal clan)
 - Relationship terms (e.g. Masi, Dada) describing how people are connected
 - Any notes or stories you choose to add
@@ -81,6 +82,20 @@ This applies everywhere in the viewer, including the URL used by the
 "Add / update info" button — the full date of birth for a living person
 is never passed into a visible link or shown on screen.
 
+### The family map (`map.html`)
+
+The map shows villages of origin, birthplaces, where people settled, and the
+routes between them. It adds further protections:
+
+- **Living people are never named on the map** — they are only counted.
+- A living person's birthplace or current home is shown at town level only
+  when **at least 3 living relatives** share that town; otherwise only the
+  country is shown.
+- Places are only ever a village, town or country — never an address.
+- Place names are matched to map positions **offline** (from a built-in list
+  derived from GeoNames), so no family place names are sent to any mapping or
+  geocoding service.
+
 ---
 
 ## How long information is kept
@@ -127,7 +142,9 @@ dimension and no disclosure to an indefinite number of persons.
 This site uses no cookies, no analytics, no advertising, and no tracking of
 any kind. The only external connection made when using this form is to
 Google's servers (to receive your submission) and to Google Fonts (to load
-the Playfair Display and Inter typefaces).
+the Playfair Display and Inter typefaces). The family map also loads map
+images from CARTO's map tile servers; those requests reveal only which part of
+the world is being viewed, never any family information.
 
 ---
 
