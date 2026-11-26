@@ -12,6 +12,7 @@ function flattenForSheet(data) {
     dob: data.dob||'', dob_unknown: data.dobUnknown?'1':'',
     approx_age: data.approxAge||'', birth_place: data.birthPlace||'',
     village_origin: data.villageOrigin||'', country_emigrated: data.countryEmigrated||'',
+    current_location: data.currentLocation||'',
     dod: data.dod||'', dod_unknown: data.dodUnknown?'1':'',
     father_first: data.father?.firstName||'', father_last: data.father?.lastName||'',
     father_dob:   data.father?.dob||'',       father_village: data.father?.village||'',

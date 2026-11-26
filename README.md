@@ -14,7 +14,7 @@ The form works on any phone, tablet, or computer — no account or app needed.
 
 1. **Start with yourself** — fill in your own details first (DOB, village, parents, spouse, children)
 2. **Add relatives** — use the relationship picker to add Dada, Dadi, Masi, Kaka, Bhai, Bhen and more
-3. **Fill in only what you know** — every field is optional except your name. A name and a rough birth year is enough.
+3. **Fill in only what you know** — every field is optional except your name. A name, a rough birth year and the village (gaam) are the most useful. Gotra is optional — skip it if unsure.
 4. **Switch the reference point** mid-session to add relatives of a relative (e.g. your Dadi's siblings)
 
 ### Tips
@@ -43,6 +43,8 @@ The interactive tree is at:
 
 In the viewer you can:
 - Search by name
+- Pick a village (gaam) from the drop-down to see everyone from that village
+- Use **Advanced** search to filter by current location, country emigrated to, age, birth year, living/deceased and gender
 - Filter by branch (maternal / paternal / in-law)
 - Adjust how many generations to show with the slider
 - Click any person to see their details and add more information

@@ -132,26 +132,15 @@
             <input type="text" id="sMaiden" placeholder="If different"/>
           </div>
           <div class="field-group">
-            <label for="sGotra" data-en="Gotra" data-gu="ગોત્ર">Gotra</label>
-            <input type="text" id="sGotra" placeholder="e.g. Kashyap" list="gotra-list-self"/>
-            <datalist id="gotra-list-self">
-              <option value="Kashyap"/><option value="Vasishtha"/><option value="Bharadwaj"/>
-              <option value="Atri"/><option value="Vishwamitra"/><option value="Jamadagni"/>
-              <option value="Gautama"/><option value="Agastya"/><option value="Gargya"/>
-              <option value="Kaundinya"/><option value="Shrivatsa"/><option value="Sandilya"/>
-              <option value="Mudgala"/><option value="Shandilya"/><option value="Kapila"/>
-            </datalist>
+            <label for="sGender" data-en="Gender" data-gu="જાતિ">Gender</label>
+            <select id="sGender">
+              <option value="">— prefer not to say —</option>
+              <option value="female" data-en="Female" data-gu="સ્ત્રી">Female</option>
+              <option value="male"   data-en="Male"   data-gu="પુરુષ">Male</option>
+              <option value="nonbinary">Non-binary</option>
+              <option value="other">Other</option>
+            </select>
           </div>
-        </div>
-        <div class="field-group">
-          <label for="sGender" data-en="Gender" data-gu="જાતિ">Gender</label>
-          <select id="sGender">
-            <option value="">— prefer not to say —</option>
-            <option value="female" data-en="Female" data-gu="સ્ત્રી">Female</option>
-            <option value="male"   data-en="Male"   data-gu="પુરુષ">Male</option>
-            <option value="nonbinary">Non-binary</option>
-            <option value="other">Other</option>
-          </select>
         </div>
 
         <div class="sub-nav"><div></div>
@@ -188,7 +177,11 @@
               <div class="field-group"><label data-en="Or approximate age" data-gu="આશરે ઉંમર">Or approximate age</label><input type="number" id="sApproxAge" min="0" max="130" placeholder="e.g. 45"/></div>
               <div class="field-group"><label data-en="Place of birth" data-gu="જન્મ સ્થળ">Place of birth</label><input type="text" id="sBirthPlace" placeholder="City, Country"/></div>
             </div>
-            <div class="field-row" style="margin-top:.5rem">
+          </div>
+        </fieldset>
+
+        <div class="places-block">
+            <div class="field-row">
               <div class="field-group">
                 <label data-en="Village / ancestral origin" data-gu="ગ્રામ / મૂળ">Village / ancestral origin</label>
                 <input type="text" id="sVillageOrigin" placeholder="e.g. Chikhli, Bardoli…" autocomplete="off"/>
@@ -234,8 +227,25 @@
                 </select>
               </div>
             </div>
-          </div>
-        </fieldset>
+            <div class="field-row" style="margin-top:.5rem">
+              <div class="field-group">
+                <label for="sCurrentLocation" data-en="Currently lives in" data-gu="હાલ ક્યાં રહે છે">Currently lives in</label>
+                <input type="text" id="sCurrentLocation" placeholder="City, Country — e.g. Leicester, UK" autocomplete="off"/>
+              </div>
+              <div class="field-group">
+                <label for="sGotra" data-en="Gotra (if known)" data-gu="ગોત્ર (જો ખબર હોય)">Gotra (if known)</label>
+                <input type="text" id="sGotra" placeholder="Skip if unsure" autocomplete="off" list="gotra-list-self"/>
+                <datalist id="gotra-list-self">
+                  <option value="Kashyap"/><option value="Vasishtha"/><option value="Bharadwaj"/>
+                  <option value="Atri"/><option value="Vishwamitra"/><option value="Jamadagni"/>
+                  <option value="Gautama"/><option value="Agastya"/><option value="Gargya"/>
+                  <option value="Kaundinya"/><option value="Shrivatsa"/><option value="Sandilya"/>
+                  <option value="Mudgala"/><option value="Shandilya"/><option value="Kapila"/>
+                </datalist>
+                <span class="field-hint" data-en="Optional — your village matters more" data-gu="વૈકલ્પિક — ગામ વધુ મહત્વનું છે">Optional — your village matters more</span>
+              </div>
+            </div>
+        </div>
 
         <fieldset class="date-fieldset">
           <legend data-en="Death" data-gu="અવસાન">Death <span class="legend-hint">(leave blank if living)</span></legend>
@@ -427,11 +437,11 @@
             <label for="pFirst"><span data-en="First name" data-gu="નામ">First name</span> <span class="req">*</span></label>
             <input type="text" id="pFirst" autocomplete="off"/>
             <span class="field-error" id="pFirstErr"></span>
+            <span class="field-hint" data-en="Older generations: keep Bhai/Ben if it's part of their legal name (e.g. Odhavbhai, Shantaben)" data-gu="જૂની પેઢી: કાયદેસર નામમાં ભાઈ/બેન હોય તો રાખો (દા.ત. ઓધવભાઈ, શાંતાબેન)">Older generations: keep Bhai/Ben if it's part of their legal name (e.g. Odhavbhai, Shantaben)</span>
           </div>
           <div class="field-group">
             <label for="pAlias" data-en="Home / nickname" data-gu="ઘરનું નામ">Home / nickname</label>
             <input type="text" id="pAlias" placeholder="e.g. Ramaben, Kantu" autocomplete="off"/>
-            <span class="field-hint" data-en="Don't include Bhai/Ben — those are honorifics" data-gu="ભાઈ/બેન ન ઉમેરો">Don't include Bhai/Ben — those are honorifics</span>
           </div>
         </div>
         <div class="field-row">
@@ -441,27 +451,15 @@
         <div class="field-row">
           <div class="field-group"><label for="pMaiden" data-en="Maiden / birth name" data-gu="જન્મ અટક">Maiden / birth name</label><input type="text" id="pMaiden" placeholder="If different" autocomplete="off"/></div>
           <div class="field-group">
-            <label for="pGotra" data-en="Gotra" data-gu="ગોત્ર">Gotra</label>
-            <input type="text" id="pGotra" placeholder="e.g. Kashyap" autocomplete="off" list="gotra-list"/>
-            <datalist id="gotra-list">
-              <option value="Kashyap"/><option value="Vasishtha"/><option value="Bharadwaj"/>
-              <option value="Atri"/><option value="Vishwamitra"/><option value="Jamadagni"/>
-              <option value="Gautama"/><option value="Agastya"/><option value="Gargya"/>
-              <option value="Kaundinya"/><option value="Shrivatsa"/><option value="Sandilya"/>
-              <option value="Mudgala"/><option value="Shandilya"/><option value="Kapila"/>
-            </datalist>
-            <span class="field-hint" data-en="Different gotras = definitely different families" data-gu="ભિન્ન ગોત્ર = ભિન્ન કુટુંબ">Different gotras = definitely different families</span>
+            <label for="pGender" data-en="Gender" data-gu="જાતિ">Gender</label>
+            <select id="pGender">
+              <option value="">— unknown —</option>
+              <option value="female" data-en="Female" data-gu="સ્ત્રી">Female</option>
+              <option value="male"   data-en="Male"   data-gu="પુરુષ">Male</option>
+              <option value="nonbinary">Non-binary</option>
+              <option value="other">Other</option>
+            </select>
           </div>
-        </div>
-        <div class="field-group">
-          <label for="pGender" data-en="Gender" data-gu="જાતિ">Gender</label>
-          <select id="pGender">
-            <option value="">— unknown —</option>
-            <option value="female" data-en="Female" data-gu="સ્ત્રી">Female</option>
-            <option value="male"   data-en="Male"   data-gu="પુરુષ">Male</option>
-            <option value="nonbinary">Non-binary</option>
-            <option value="other">Other</option>
-          </select>
         </div>
         <div class="sub-nav">
           <button type="button" class="btn-ghost" onclick="prevSub(2)">←</button>
@@ -491,7 +489,11 @@
               <div class="field-group"><label data-en="Or approximate age" data-gu="આશરે ઉંમર">Or approximate age</label><input type="number" id="approxAge" min="0" max="130" placeholder="e.g. 72"/></div>
               <div class="field-group"><label data-en="Place of birth" data-gu="જન્મ સ્થળ">Place of birth</label><input type="text" id="birthPlace" placeholder="City, Country"/></div>
             </div>
-            <div class="field-row" style="margin-top:.5rem">
+          </div>
+        </fieldset>
+
+        <div class="places-block">
+            <div class="field-row">
               <div class="field-group">
                 <label data-en="Village / ancestral origin" data-gu="ગ્રામ">Village / ancestral origin</label>
                 <input type="text" id="villageOrigin" placeholder="e.g. Chikhli, Bardoli…" autocomplete="off"/>
@@ -537,8 +539,25 @@
                 </select>
               </div>
             </div>
-          </div>
-        </fieldset>
+            <div class="field-row" style="margin-top:.5rem">
+              <div class="field-group">
+                <label for="currentLocation" data-en="Currently lives in" data-gu="હાલ ક્યાં રહે છે">Currently lives in</label>
+                <input type="text" id="currentLocation" placeholder="City, Country — e.g. Leicester, UK" autocomplete="off"/>
+              </div>
+              <div class="field-group">
+                <label for="pGotra" data-en="Gotra (if known)" data-gu="ગોત્ર (જો ખબર હોય)">Gotra (if known)</label>
+                <input type="text" id="pGotra" placeholder="Skip if unsure" autocomplete="off" list="gotra-list"/>
+                <datalist id="gotra-list">
+                  <option value="Kashyap"/><option value="Vasishtha"/><option value="Bharadwaj"/>
+                  <option value="Atri"/><option value="Vishwamitra"/><option value="Jamadagni"/>
+                  <option value="Gautama"/><option value="Agastya"/><option value="Gargya"/>
+                  <option value="Kaundinya"/><option value="Shrivatsa"/><option value="Sandilya"/>
+                  <option value="Mudgala"/><option value="Shandilya"/><option value="Kapila"/>
+                </datalist>
+                <span class="field-hint" data-en="Optional — their village matters more" data-gu="વૈકલ્પિક — ગામ વધુ મહત્વનું છે">Optional — their village matters more</span>
+              </div>
+            </div>
+        </div>
         <fieldset class="date-fieldset">
           <legend data-en="Death" data-gu="અવસાન">Death <span class="legend-hint">(leave blank if living)</span></legend>
           <div class="unknown-row"><label class="unknown-check"><input type="checkbox" id="dodUnknown" onchange="toggleHide('dodFields',this.checked)"/><span data-en="Deceased but date unknown" data-gu="અવસાન, તારીખ અજ્ઞાત">Deceased but date unknown</span></label></div>
