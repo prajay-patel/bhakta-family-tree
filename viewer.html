@@ -157,6 +157,13 @@ svg#tree{width:100%;height:100%;display:block}
 .sp-field input,.sp-field select{width:100%;font:inherit;font-size:.82rem;color:var(--ink);background:var(--parchment);border:1px solid var(--parchment-d);border-radius:var(--radius);padding:.34rem .5rem;outline:none}
 .sp-field input:focus,.sp-field select:focus{border-color:var(--forest);background:var(--surface)}
 .sp-pair{display:grid;grid-template-columns:1fr 1fr;gap:.5rem}
+.sp-seg{display:grid;grid-template-columns:repeat(3,1fr);border:1px solid var(--parchment-d);border-radius:var(--radius);overflow:hidden;background:var(--parchment)}
+.sp-seg label{position:relative;cursor:pointer;text-transform:none;letter-spacing:0;font-weight:400}
+.sp-seg input{position:absolute;opacity:0;inset:0;margin:0;cursor:pointer}
+.sp-seg span{display:block;text-align:center;font-size:.8rem;padding:.36rem .3rem;color:var(--ink-soft);border-left:1px solid var(--parchment-d)}
+.sp-seg label:first-child span{border-left:none}
+.sp-seg input:checked + span{background:var(--forest-bg);color:var(--on-primary);font-weight:500}
+.sp-seg input:focus-visible + span{outline:2px solid var(--gold);outline-offset:-2px}
 .sp-hint{font-size:.7rem;color:var(--mist);font-style:italic}
 .sp-check{display:flex;align-items:center;gap:.45rem;font-size:.8rem;color:var(--ink-soft);margin-bottom:.4rem;cursor:pointer}
 .sp-check input{accent-color:var(--forest)}
@@ -318,6 +325,14 @@ svg#tree{width:100%;height:100%;display:block}
         <input type="text" id="advName" placeholder="Any part of a name" oninput="onAdvancedInput()"/>
       </div>
       <div class="sp-field">
+        <span class="sp-label" id="advStatusLabel">Dead or alive</span>
+        <div class="sp-seg" role="radiogroup" aria-labelledby="advStatusLabel">
+          <label><input type="radio" name="advStatus" value="" checked onchange="onAdvancedInput()"/><span>Either</span></label>
+          <label><input type="radio" name="advStatus" value="living" onchange="onAdvancedInput()"/><span>Alive</span></label>
+          <label><input type="radio" name="advStatus" value="deceased" onchange="onAdvancedInput()"/><span>Deceased</span></label>
+        </div>
+      </div>
+      <div class="sp-field">
         <label for="advVillage">Village (gaam)</label>
         <select id="advVillage" onchange="setVillage(this.value)"><option value="">Any village</option></select>
       </div>
@@ -345,19 +360,11 @@ svg#tree{width:100%;height:100%;display:block}
           <input type="number" id="advBornTo" min="1700" max="2100" placeholder="Year" aria-label="Born to year" oninput="onAdvancedInput()"/>
         </div>
       </div>
-      <div class="sp-pair">
-        <div class="sp-field">
-          <label for="advStatus">Status</label>
-          <select id="advStatus" onchange="onAdvancedInput()">
-            <option value="">Anyone</option><option value="living">Living</option><option value="deceased">Deceased</option>
-          </select>
-        </div>
-        <div class="sp-field">
-          <label for="advGender">Gender</label>
-          <select id="advGender" onchange="onAdvancedInput()">
-            <option value="">Any</option><option value="female">Female</option><option value="male">Male</option>
-          </select>
-        </div>
+      <div class="sp-field">
+        <label for="advGender">Gender</label>
+        <select id="advGender" onchange="onAdvancedInput()">
+          <option value="">Any</option><option value="female">Female</option><option value="male">Male</option>
+        </select>
       </div>
       <label class="sp-check"><input type="checkbox" id="advStubs" checked onchange="onAdvancedInput()"/>Include placeholder (stub) people</label>
       <label class="sp-check"><input type="checkbox" id="advContext" checked onchange="onAdvancedInput()"/>Show their close relatives on the tree</label>
@@ -1365,7 +1372,7 @@ function onAdvancedInput() {
   criteria.ageMax   = val('advAgeMax');
   criteria.bornFrom = val('advBornFrom');
   criteria.bornTo   = val('advBornTo');
-  criteria.status   = val('advStatus');
+  criteria.status   = document.querySelector('input[name="advStatus"]:checked')?.value || '';
   criteria.gender   = val('advGender');
   criteria.stubs    = document.getElementById('advStubs').checked;
   criteria.context  = document.getElementById('advContext').checked;
@@ -1384,10 +1391,11 @@ function resetCriteria() {
   Object.assign(criteria, { village: '', name: '', location: '', country: '', ageMin: '', ageMax: '',
                             bornFrom: '', bornTo: '', status: '', gender: '', stubs: true, context: true });
   ['villageFilter', 'advVillage', 'advName', 'advLocation', 'advCountry', 'advAgeMin', 'advAgeMax',
-   'advBornFrom', 'advBornTo', 'advStatus', 'advGender'].forEach(id => {
+   'advBornFrom', 'advBornTo', 'advGender'].forEach(id => {
     const el = document.getElementById(id); if (el) el.value = '';
   });
   ['advStubs', 'advContext'].forEach(id => { const el = document.getElementById(id); if (el) el.checked = true; });
+  const either = document.querySelector('input[name="advStatus"][value=""]'); if (either) either.checked = true;
   updateSearchResults();
 }
 
@@ -1426,7 +1434,7 @@ function updateSearchResults() {
     const by = displayBirthInfo(p);
     const age = ageOf(p);
     const meta = [by && `b. ${String(by).slice(-4)}`, age !== null && !isDeceasedNode(p) && `age ${age}`,
-                  isDeceasedNode(p) && 'deceased', villageOf(p), p.current_location || p.country_emigrated,
+                  isDeceasedNode(p) ? 'deceased' : (!p.is_stub && 'alive'), villageOf(p), p.current_location || p.country_emigrated,
                   p.is_stub && 'stub'].filter(Boolean).join(' · ');
     const mt = document.createElement('div'); mt.className = 'm'; mt.textContent = meta || '\u00a0';
     item.append(nm, mt);
