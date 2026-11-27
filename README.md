@@ -64,9 +64,16 @@ but haven't submitted their own entry yet. Click them and use the
 An interactive world map of where the family comes from and where it went:
 villages (gaam) of origin, birthplaces, where people settled, and the
 migration routes between them. Filter by village, or press play to watch the
-moves appear generation by generation. Living relatives are only counted,
-never named, and their homes are shown at country level unless at least
-3 relatives share a town.
+moves appear generation by generation. Countries and, zoomed in, states and
+provinces are shaded by how many relatives settled there, and the Gujarat
+districts of origin (Surat, Navsari, Valsad, Tapi) by how many people's
+village is there. Living relatives are only counted, never named; their homes
+show at town level only if at least 3 relatives share the town, otherwise by
+state or region if 3 share that, otherwise by country.
+
+Borders: [Natural Earth](https://www.naturalearthdata.com/) (public domain) and
+[geoBoundaries](https://www.geoboundaries.org/) districts (ODbL) — see
+[`data/geo/README.md`](data/geo/README.md).
 
 ---
 

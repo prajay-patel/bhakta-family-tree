@@ -1,0 +1,8 @@
+{"type":"FeatureCollection", "features": [
+{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[-72.34,21.8],[-72.22,21.77],[-72.31,21.85],[-72.34,21.8]]]},"properties":{"cc":"TC","type":null,"ly":21.7987,"lx":-72.2861,"name":"Providenciales and West Caicos"}},
+{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[-71.51,21.71],[-71.47,21.66],[-71.45,21.69],[-71.48,21.73],[-71.51,21.71]]]},"properties":{"cc":"TC","type":null,"ly":21.7034,"lx":-71.4782,"name":"South Caicos and East Caicos"}},
+{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[-71.8,21.79],[-71.74,21.79],[-71.63,21.77],[-71.68,21.84],[-71.81,21.84],[-71.8,21.79]]]},"properties":{"cc":"TC","type":null,"ly":21.8196,"lx":-71.7669,"name":"Middle Caicos"}},
+{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[-72.02,21.9],[-71.9,21.87],[-71.91,21.95],[-72.02,21.9]]]},"properties":{"cc":"TC","type":null,"ly":21.8916,"lx":-71.9298,"name":"North Caicos"}},
+{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[-71.14,21.51],[-71.15,21.45],[-71.13,21.45],[-71.14,21.51]]]},"properties":{"cc":"TC","type":null,"ly":21.4725,"lx":-71.137,"name":"Grand Turk"}},
+{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[-71.21,21.34],[-71.22,21.31],[-71.21,21.31],[-71.19,21.34],[-71.21,21.34]]]},"properties":{"cc":"TC","type":null,"ly":21.3295,"lx":-71.2072,"name":"Salt Cay"}}
+]}

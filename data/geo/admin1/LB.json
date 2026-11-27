@@ -1,0 +1,8 @@
+{"type":"FeatureCollection", "features": [
+{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[35.29,33.1],[35.48,33.09],[35.82,33.41],[35.85,33.42],[35.63,33.43],[35.53,33.5],[35.31,33.37],[35.42,33.28],[35.29,33.1]]]},"properties":{"cc":"LB","type":"Province","ly":33.3303,"lx":35.5666,"name":"An Nabatiyah"}},
+{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[35.29,33.1],[35.42,33.28],[35.31,33.37],[35.53,33.5],[35.63,33.43],[35.61,33.51],[35.38,33.59],[35.11,33.09],[35.29,33.1]]]},"properties":{"cc":"LB","type":"Province","ly":33.2661,"lx":35.2966,"name":"South Lebanon"}},
+{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[35.87,33.43],[36.05,33.82],[36.27,33.91],[36.6,34.2],[36.42,34.5],[36.33,34.5],[36.01,34.15],[35.61,33.51],[35.63,33.43],[35.85,33.42],[35.87,33.43]]]},"properties":{"cc":"LB","type":"Province","ly":34.0494,"lx":36.1086,"name":"Beqaa"}},
+{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[36.33,34.5],[36.11,34.63],[35.97,34.65],[35.64,34.22],[36.01,34.15],[36.33,34.5]]]},"properties":{"cc":"LB","type":"Province","ly":34.3933,"lx":36.0424,"name":"North Lebanon"}},
+{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[35.55,33.91],[35.48,33.87],[35.38,33.59],[35.61,33.51],[36.01,34.15],[35.64,34.22],[35.55,33.91]]]},"properties":{"cc":"LB","type":"Province","ly":33.9291,"lx":35.6942,"name":"Mount Lebanon"}},
+{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[35.48,33.87],[35.55,33.91],[35.47,33.9],[35.48,33.87]]]},"properties":{"cc":"LB","type":"Province","ly":33.8849,"lx":35.5093,"name":"Beirut"}}
+]}

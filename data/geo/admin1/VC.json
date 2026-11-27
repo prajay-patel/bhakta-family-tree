@@ -1,0 +1,8 @@
+{"type":"FeatureCollection", "features": [
+{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[-61.19,13.04],[-61.25,13.02],[-61.23,12.99],[-61.19,13.04]]]},"properties":{"cc":"VC","type":"Parish","ly":13.0161,"lx":-61.229,"name":"Grenadines"}},
+{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[-61.24,13.16],[-61.19,13.22],[-61.2,13.24],[-61.27,13.19],[-61.24,13.16]]]},"properties":{"cc":"VC","type":"Parish","ly":13.1977,"lx":-61.2287,"name":"Saint Andrew"}},
+{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[-61.14,13.2],[-61.19,13.22],[-61.24,13.16],[-61.14,13.2]]]},"properties":{"cc":"VC","type":"Parish","ly":13.1695,"lx":-61.1899,"name":"Saint George"}},
+{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[-61.17,13.38],[-61.19,13.26],[-61.2,13.24],[-61.19,13.22],[-61.14,13.2],[-61.17,13.38]]]},"properties":{"cc":"VC","type":"Parish","ly":13.2825,"lx":-61.1475,"name":"Charlotte"}},
+{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[-61.27,13.27],[-61.19,13.26],[-61.17,13.38],[-61.27,13.27]]]},"properties":{"cc":"VC","type":"Parish","ly":13.3142,"lx":-61.204,"name":"Saint David"}},
+{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[-61.27,13.19],[-61.2,13.24],[-61.19,13.26],[-61.27,13.27],[-61.27,13.19]]]},"properties":{"cc":"VC","type":"Parish","ly":13.2313,"lx":-61.2534,"name":"Saint Patrick"}}
+]}

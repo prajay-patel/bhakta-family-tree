@@ -42,6 +42,8 @@ body{display:flex;flex-direction:column}
 .sw.village{border-color:var(--gold);background:color-mix(in srgb,var(--gold) 25%,transparent)}
 .sw.birth{border-color:var(--forest);background:var(--forest)}
 .sw.home{border-color:var(--rust);background:var(--rust)}
+.sw.area{border:none;border-radius:3px;width:16px;height:12px;background:linear-gradient(90deg,color-mix(in srgb,var(--rust) 15%,transparent),color-mix(in srgb,var(--rust) 70%,transparent))}
+.sw.district{border:none;border-radius:3px;width:16px;height:12px;background:linear-gradient(90deg,color-mix(in srgb,var(--gold) 15%,transparent),color-mix(in srgb,var(--gold) 75%,transparent));outline:1px dashed var(--gold);outline-offset:-1px}
 .sw.route{border:none;border-radius:2px;height:4px;background:repeating-linear-gradient(90deg,var(--gold) 0 6px,transparent 6px 10px)}
 .layer small{color:var(--mist);margin-left:auto}
 select.ctl{width:100%;font:inherit;font-size:.82rem;color:var(--ink);background:var(--parchment);border:1px solid var(--parchment-d);border-radius:var(--radius);padding:.36rem .5rem;outline:none}
@@ -127,7 +129,9 @@ select.ctl:focus{border-color:var(--forest)}
       <label class="layer"><input type="checkbox" id="lyBirth" checked/><span class="sw birth"></span>Birthplaces<small id="cBirth"></small></label>
       <label class="layer"><input type="checkbox" id="lyHome" checked/><span class="sw home"></span>Where they settled or live now<small id="cHome"></small></label>
       <label class="layer"><input type="checkbox" id="lyRoute" checked/><span class="sw route"></span>Migration routes<small id="cRoute"></small></label>
-      <p class="hint">Bigger circles and thicker lines mean more people. Dashes move in the direction of travel.</p>
+      <label class="layer"><input type="checkbox" id="lyArea" checked/><span class="sw area"></span>Shaded countries &amp; states<small id="cArea"></small></label>
+      <label class="layer"><input type="checkbox" id="lyDistrict" checked/><span class="sw district"></span>Gujarat districts of origin<small id="cDistrict"></small></label>
+      <p class="hint">Bigger circles, thicker lines and darker shading mean more people. Dashes move in the direction of travel. Zoom in to see states and provinces.</p>
     </div>
 
     <div class="sec">
@@ -158,7 +162,7 @@ select.ctl:focus{border-color:var(--forest)}
     <div class="sec">
       <div class="privacy">
         <b>Privacy.</b> Places are only ever shown as a village, town or country — never an address — and are worked out on this page without sending them to any outside service.
-        <b>Living relatives are never named on the map</b>; they're only counted. Their birthplace and home appear at town level only when at least 3 relatives share that town; otherwise just the country is shown.
+        <b>Living relatives are never named on the map</b>; they're only counted. Their birthplace and home appear at town level only when at least 3 relatives share that town; otherwise at state or region level when at least 3 share that; otherwise just the country.
         Villages without a known exact location are shown at their district town and marked approximate.
       </div>
       <p class="hint" id="unmapped"></p>
@@ -171,7 +175,8 @@ select.ctl:focus{border-color:var(--forest)}
 <script src="js/treedata.js"></script>
 <script>
 // ── Settings ─────────────────────────────────────────────────
-const MIN_LIVING_PER_TOWN = 3;   // living people's town-level points need this many to show
+const MIN_LIVING_PER_TOWN = 3;   // living people's town- and region-level points need this many to show
+const REGION_ZOOM = 4;           // zoom level at which states / provinces are shaded
 // Exact points for villages that GeoNames doesn't know — add 'Name': [lat, lng]
 const VILLAGE_EXTRA_POINTS = {};
 
@@ -230,7 +235,84 @@ function placesOf(n) {
     current: g.current || resolvePlace(n.current_location),
   };
 }
-const keyOf = p => p.precision === 'country' ? `c:${p.cc}` : `${p.precision}:${p.lat.toFixed(3)},${p.lng.toFixed(3)}`;
+const keyOf = p => p.precision === 'country' ? `c:${p.cc}`
+                 : p.precision === 'region' ? `r:${p.cc}:${p.region}`
+                 : `${p.precision}:${p.lat.toFixed(3)},${p.lng.toFixed(3)}`;
+
+// ── Boundaries (data/geo) ────────────────────────────────────
+// countries.json and admin1/<CC>.json: Natural Earth (public domain).
+// districts_south_gujarat.json: geoBoundaries IND ADM2 (ODbL 1.0).
+const GEO = { countries: [], regions: {}, districts: [] };
+
+async function fetchFeatures(url) {
+  try { const r = await fetch(url); return r.ok ? prepFeatures((await r.json()).features || []) : []; }
+  catch (e) { return []; }
+}
+// Bounding box and label point for each shape, for fast lookups
+function prepFeatures(fs) {
+  fs.forEach(f => {
+    const polys = f.geometry.type === 'Polygon' ? [f.geometry.coordinates] : f.geometry.type === 'MultiPolygon' ? f.geometry.coordinates : [];
+    let x0 = 180, y0 = 90, x1 = -180, y1 = -90, best = null, bestA = -1;
+    polys.forEach(rings => {
+      rings[0].forEach(([x, y]) => { x0 = Math.min(x0, x); x1 = Math.max(x1, x); y0 = Math.min(y0, y); y1 = Math.max(y1, y); });
+      const c = ringCentroid(rings[0]);
+      if (c.area > bestA) { bestA = c.area; best = c; }
+    });
+    f.polys = polys; f.bbox = [x0, y0, x1, y1];
+    const pr = f.properties;
+    f.label = (pr.lx != null && pr.ly != null) ? [pr.ly, pr.lx] : best ? [best.y, best.x] : [(y0 + y1) / 2, (x0 + x1) / 2];
+  });
+  return fs;
+}
+function ringCentroid(r) {
+  let a = 0, cx = 0, cy = 0;
+  for (let i = 0, j = r.length - 1; i < r.length; j = i++) {
+    const f = r[j][0] * r[i][1] - r[i][0] * r[j][1];
+    a += f; cx += (r[j][0] + r[i][0]) * f; cy += (r[j][1] + r[i][1]) * f;
+  }
+  if (!a) return { x: r[0][0], y: r[0][1], area: 0 };
+  return { x: cx / (3 * a), y: cy / (3 * a), area: Math.abs(a / 2) };
+}
+function inRing(lat, lng, r) {
+  let inside = false;
+  for (let i = 0, j = r.length - 1; i < r.length; j = i++) {
+    const [xi, yi] = r[i], [xj, yj] = r[j];
+    if ((yi > lat) !== (yj > lat) && lng < (xj - xi) * (lat - yi) / (yj - yi) + xi) inside = !inside;
+  }
+  return inside;
+}
+// The shape containing a point; if none (simplified coastlines), the nearest within ~1.5°
+function featureAt(fs, lat, lng) {
+  const hit = fs.find(f => lng >= f.bbox[0] && lng <= f.bbox[2] && lat >= f.bbox[1] && lat <= f.bbox[3]
+    && f.polys.some(rings => inRing(lat, lng, rings[0]) && !rings.slice(1).some(h => inRing(lat, lng, h))));
+  if (hit) return hit;
+  let best = null, bd = 1.5 * 1.5;
+  fs.forEach(f => {
+    const dx = Math.max(f.bbox[0] - lng, 0, lng - f.bbox[2]), dy = Math.max(f.bbox[1] - lat, 0, lat - f.bbox[3]);
+    const d = dx * dx + dy * dy;
+    if (d < bd) { bd = d; best = f; }
+  });
+  return best;
+}
+// State / province / UK region a point lies in (null for country-level points)
+function regionOf(p) {
+  if (!p || p.precision === 'country') return null;
+  if (p.precision === 'region') return { cc: p.cc, name: p.region };
+  const f = featureAt(GEO.regions[p.cc] || [], p.lat, p.lng);
+  return f ? { cc: p.cc, name: f.properties.name, f } : null;
+}
+function regionPoint(p) {
+  const r = regionOf(p);
+  if (!r || !r.f) return null;
+  return pt(r.name, r.f.label[0], r.f.label[1], 'region', p.cc, { region: r.name });
+}
+// South Gujarat district of a village-of-origin point
+function districtOf(p) {
+  if (!p || p.cc !== 'IN') return null;
+  if (p.district) return p.district;
+  const f = featureAt(GEO.districts, p.lat, p.lng);
+  return f ? f.properties.name : null;
+}
 
 // ── People → map records ─────────────────────────────────────
 const THIS_YEAR = new Date().getFullYear();
@@ -247,18 +329,28 @@ const nameOf = n => n.display_name || [n.first_name, n.last_name].filter(Boolean
 
 let people = [];   // { id, name, living, born, village, stops:[{kind, p}] }
 
-function buildPeople(nodes) {
-  const raw = nodes.map(n => ({ n, pl: placesOf(n) }));
-  // Living people's town-level birthplaces and homes only stay at town level
-  // when enough living relatives share that town.
-  const tally = {};
+function buildPeople(raw) {
+  // Living people's birthplaces and homes: town level when enough living
+  // relatives share that town, else state/region level when enough share
+  // that, else country level.
+  const towns = {}, regions = {};
+  const regionKey = p => { const r = regionOf(p); return r ? `${r.cc}|${r.name}` : null; };
   raw.forEach(({ n, pl }) => {
     if (isDeceased(n)) return;
-    ['birth', 'current'].forEach(k => { const p = pl[k]; if (p && p.precision !== 'country') tally[keyOf(p)] = (tally[keyOf(p)] || 0) + 1; });
+    ['birth', 'current'].forEach(k => {
+      const p = pl[k];
+      if (!p || p.precision === 'country') return;
+      towns[keyOf(p)] = (towns[keyOf(p)] || 0) + 1;
+      const rk = regionKey(p);
+      if (rk) regions[rk] = (regions[rk] || 0) + 1;
+    });
   });
   const coarsen = (n, p) => {
     if (!p || isDeceased(n) || p.precision === 'country') return p;
-    return (tally[keyOf(p)] || 0) >= MIN_LIVING_PER_TOWN ? p : countryPoint(p.cc);
+    if ((towns[keyOf(p)] || 0) >= MIN_LIVING_PER_TOWN) return p;
+    const rk = regionKey(p);
+    if (rk && regions[rk] >= MIN_LIVING_PER_TOWN) return regionPoint(p) || countryPoint(p.cc);
+    return countryPoint(p.cc);
   };
   people = raw.map(({ n, pl }) => {
     const birth = coarsen(n, pl.birth), current = coarsen(n, pl.current);
@@ -268,7 +360,7 @@ function buildPeople(nodes) {
       .filter(([, p]) => p).map(([kind, p]) => ({ kind, p }));
     stops = stops.filter(s => s.kind !== 'emigrated' || !stops.some(o => o !== s && o.p.cc === s.p.cc && o.kind !== 'village'));
     return { id: n.id, name: nameOf(n), living: !isDeceased(n), stub: !!n.is_stub, born: birthYear(n),
-             village: pl.village ? pl.village.label : '', stops };
+             village: pl.village ? pl.village.label : '', district: districtOf(pl.village), stops };
   });
 }
 
@@ -277,9 +369,11 @@ const map = L.map('map', { worldCopyJump: true, zoomSnap: 0.25, minZoom: 2 }).se
 const TILE = scheme => `https://{s}.basemaps.cartocdn.com/${scheme === 'dark' ? 'dark_all' : 'light_all'}/{z}/{x}/{y}{r}.png`;
 const tiles = L.tileLayer(TILE(getComputedStyle(document.documentElement).colorScheme), {
   subdomains: 'abcd', maxZoom: 12,
-  attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a> · places: <a href="https://www.geonames.org/">GeoNames</a>',
+  attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a> · places: <a href="https://www.geonames.org/">GeoNames</a> · borders: <a href="https://www.naturalearthdata.com/">Natural Earth</a>, districts &copy; <a href="https://www.geoboundaries.org/">geoBoundaries</a> (<a href="https://opendatacommons.org/licenses/odbl/">ODbL</a>)',
 }).addTo(map);
-const layers = { route: L.layerGroup().addTo(map), village: L.layerGroup().addTo(map),
+map.createPane('areas').style.zIndex = 350;   // shaded areas sit under routes and circles
+const layers = { area: L.layerGroup().addTo(map), district: L.layerGroup().addTo(map),
+                 route: L.layerGroup().addTo(map), village: L.layerGroup().addTo(map),
                  birth: L.layerGroup().addTo(map), home: L.layerGroup().addTo(map) };
 const css = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
 
@@ -378,8 +472,11 @@ function draw() {
     });
   });
 
+  drawAreas(list, groups.home);
+
   // Layer visibility, counts, stats
-  [['village', 'lyVillage'], ['birth', 'lyBirth'], ['home', 'lyHome'], ['route', 'lyRoute']].forEach(([k, id]) => {
+  [['village', 'lyVillage'], ['birth', 'lyBirth'], ['home', 'lyHome'], ['route', 'lyRoute'],
+   ['area', 'lyArea'], ['district', 'lyDistrict']].forEach(([k, id]) => {
     const on = document.getElementById(id).checked;
     if (on && !map.hasLayer(layers[k])) layers[k].addTo(map);
     if (!on && map.hasLayer(layers[k])) map.removeLayer(layers[k]);
@@ -392,8 +489,55 @@ function draw() {
   setText('stVillages', new Set(list.map(p => p.village).filter(Boolean)).size);
   setText('stCountries', new Set(list.flatMap(p => p.stops.map(s => s.p.cc))).size);
   drawDestinations(list);
-  if (state.selected) renderDetail(state.selected, list);
+  if (state.selected && state.selected.type !== 'area') renderDetail(state.selected, list);
   document.getElementById('emptyState').hidden = people.some(p => p.stops.length);
+}
+
+// Shaded areas: countries (and, zoomed in, states) by how many people settled
+// there; South Gujarat districts by how many people's village is there.
+function drawAreas(list, homes) {
+  layers.area.clearLayers(); layers.district.clearLayers();
+  const C = { area: css('--rust'), district: css('--gold'), line: css('--ink-soft') };
+  const byCountry = {}, byRegion = {}, byDistrict = {};
+  homes.forEach(g => g.people.forEach(person => {
+    (byCountry[g.p.cc] = byCountry[g.p.cc] || []).push(person);
+    const r = regionOf(g.p);
+    if (r) (byRegion[`${r.cc}|${r.name}`] = byRegion[`${r.cc}|${r.name}`] || []).push(person);
+  }));
+  list.forEach(person => { if (person.district) (byDistrict[person.district] = byDistrict[person.district] || []).push(person); });
+
+  const zoomedIn = map.getZoom() >= REGION_ZOOM;
+  const shade = (n, max, base) => 0.12 + 0.5 * Math.sqrt(n / Math.max(max, 1)) * (base || 1);
+  const add = (features, counts, keyFn, color, layer, kind, dim, dashed) => {
+    const max = Math.max(0, ...Object.values(counts).map(a => a.length));
+    const fs = features.filter(f => counts[keyFn(f)] && counts[keyFn(f)].length);
+    if (!fs.length) return 0;
+    L.geoJSON({ type: 'FeatureCollection', features: fs }, {
+      pane: 'areas',
+      style: f => ({ color: dashed ? color : C.line, weight: dashed ? 1.4 : 0.6, opacity: dashed ? 0.9 : 0.5,
+                     dashArray: dashed ? '4 3' : null, fillColor: color,
+                     fillOpacity: shade(counts[keyFn(f)].length, max, dim) }),
+      onEachFeature: (f, l) => {
+        const n = counts[keyFn(f)].length;
+        l.bindTooltip(`<b>${esc(f.properties.name)}</b> · ${n} ${kind}`, { className: 'place-tip', sticky: true });
+        l.on('click', ev => { L.DomEvent.stopPropagation(ev); select({ type: 'area', title: f.properties.name, sub: kind, key: keyFn(f), counts }); });
+      },
+    }).addTo(layer);
+    return fs.length;
+  };
+  const nc = add(GEO.countries, byCountry, f => f.properties.cc, C.area, layers.area, 'settled here', zoomedIn ? 0.45 : 1);
+  let nr = 0;
+  if (zoomedIn) Object.entries(GEO.regions).forEach(([cc, fs]) => {
+    nr += add(fs, byRegion, f => `${cc}|${f.properties.name}`, C.area, layers.area, 'settled here');
+  });
+  // All districts are outlined for context; those with villages of origin are shaded
+  L.geoJSON({ type: 'FeatureCollection', features: GEO.districts }, {
+    pane: 'areas', interactive: false,
+    style: { color: C.district, weight: 0.8, opacity: 0.6, dashArray: '3 3', fillOpacity: 0 },
+  }).addTo(layers.district);
+  const nd = add(GEO.districts, byDistrict, f => f.properties.name, C.district, layers.district, 'with their village (gaam) here', 1, true);
+  setText('cArea', (nc + nr) || '');
+  setText('cDistrict', nd || '');
 }
 
 function drawDestinations(list) {
@@ -427,6 +571,11 @@ function nameList(ps) {
 function renderDetail(sel, list) {
   const box = document.getElementById('detail');
   document.getElementById('detailSec').hidden = false;
+  if (sel.type === 'area') {
+    const ps = (sel.counts[sel.key] || []).filter(p => list.includes(p));
+    box.innerHTML = `<h3>${esc(sel.title)}</h3><div class="prec">${ps.length} ${esc(sel.sub)}</div>${ps.length ? nameList(ps) : ''}`;
+    return;
+  }
   if (sel.type === 'route') {
     const ps = list.filter(p => sel.r.people.has(p));
     box.innerHTML = `<h3>${esc(sel.r.a.label)} → ${esc(sel.r.b.label)}</h3>
@@ -436,14 +585,20 @@ function renderDetail(sel, list) {
   const k = keyOf(sel.p);
   const at = kinds => list.filter(p => p.stops.some(s => kinds.includes(s.kind) && keyOf(s.p) === k));
   const grp = (title, ps) => ps.length ? `<div class="grp"><b>${title} (${ps.length})</b>${nameList(ps)}</div>` : '';
-  const prec = { village: 'Village', district: `Approximate — shown at ${esc(sel.p.district || '')} district town`, city: 'Town or city', country: 'Country (no town given)' }[sel.p.precision] || '';
+  const prec = { village: 'Village', district: `Approximate — shown at ${esc(sel.p.district || '')} district town`, city: 'Town or city',
+                 region: 'State or region (shown at its centre)', country: 'Country (no town given)' }[sel.p.precision] || '';
   const body = grp('Village of origin', at(['village'])) + grp('Born here', at(['birth']))
              + grp('Live or lived here', at(['current'])) + grp('Emigrated here', at(['emigrated']));
   box.innerHTML = `<h3>${esc(sel.p.label)}</h3><div class="prec">${prec}</div>${body || '<p class="hint">Nobody here with the current filters.</p>'}`;
 }
 
 // ── Controls ─────────────────────────────────────────────────
-['lyVillage', 'lyBirth', 'lyHome', 'lyRoute'].forEach(id => document.getElementById(id).addEventListener('change', draw));
+['lyVillage', 'lyBirth', 'lyHome', 'lyRoute', 'lyArea', 'lyDistrict'].forEach(id => document.getElementById(id).addEventListener('change', draw));
+let lastZoomedIn = null;
+map.on('zoomend', () => {
+  const z = map.getZoom() >= REGION_ZOOM;
+  if (z !== lastZoomedIn) { lastZoomedIn = z; draw(); }
+});
 document.getElementById('villageSel').addEventListener('change', e => {
   state.village = e.target.value;
   draw();
@@ -482,8 +637,15 @@ function setText(id, t) { const el = document.getElementById(id); if (el) el.tex
 function esc(s) { return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
 
 // ── Init ─────────────────────────────────────────────────────
-loadTreeData().then(({ nodes }) => {
-  buildPeople(nodes);
+(async () => {
+  const [{ nodes }, countries, districts] = await Promise.all([
+    loadTreeData(), fetchFeatures('data/geo/countries.json'), fetchFeatures('data/geo/districts_south_gujarat.json')]);
+  GEO.countries = countries; GEO.districts = districts;
+  const raw = nodes.map(n => ({ n, pl: placesOf(n) }));
+  // States/provinces only for countries where someone has a town-level place
+  const ccs = new Set(raw.flatMap(({ pl }) => Object.values(pl).filter(p => p && p.precision !== 'country').map(p => p.cc)));
+  await Promise.all([...ccs].map(async cc => { GEO.regions[cc] = await fetchFeatures(`data/geo/admin1/${cc}.json`); }));
+  buildPeople(raw);
   const villages = {};
   people.forEach(p => { if (p.village) villages[p.village] = (villages[p.village] || 0) + 1; });
   const sel = document.getElementById('villageSel');
@@ -492,9 +654,10 @@ loadTreeData().then(({ nodes }) => {
   if (years.length) { slider.min = Math.floor(Math.min(...years) / 10) * 10; slider.max = THIS_YEAR; slider.value = THIS_YEAR; }
   const unmapped = people.filter(p => !p.stops.length && !p.stub).length;
   setText('unmapped', unmapped ? `${unmapped} ${unmapped === 1 ? 'person has' : 'people have'} no village or place recorded yet, so ${unmapped === 1 ? "isn't" : "aren't"} on the map.` : '');
+  lastZoomedIn = map.getZoom() >= REGION_ZOOM;
   draw();
   fitTo(people.filter(p => p.stops.length));
-});
+})();
 </script>
 </body>
 </html>

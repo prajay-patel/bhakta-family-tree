@@ -1,0 +1,10 @@
+{"type":"FeatureCollection", "features": [
+{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[-169.53,16.73],[-169.55,16.73],[-169.54,16.72],[-169.53,16.73]]]},"properties":{"cc":"UM","type":null,"ly":16.7273,"lx":-169.538,"name":"Johnston Atoll"}},
+{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[-160.03,-0.38],[-160.02,-0.39],[-160.01,-0.38],[-160.01,-0.37],[-160.03,-0.38]]]},"properties":{"cc":"UM","type":null,"ly":-0.380268,"lx":-160.018,"name":"Jarvis Island"}},
+{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[-176.49,0.2],[-176.48,0.19],[-176.48,0.2],[-176.49,0.2]]]},"properties":{"cc":"UM","type":null,"ly":0.194931,"lx":-176.479,"name":"Baker Island"}},
+{"type":"Feature","geometry":null,"properties":{"cc":"UM","type":null,"ly":0.80217,"lx":-176.638,"name":"Howland Island"}},
+{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[166.62,19.28],[166.64,19.28],[166.64,19.29],[166.62,19.28]]]},"properties":{"cc":"UM","type":null,"ly":19.2863,"lx":166.643,"name":"Wake Atoll"}},
+{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[-177.36,28.21],[-177.38,28.21],[-177.37,28.2],[-177.36,28.21]]]},"properties":{"cc":"UM","type":null,"ly":28.206,"lx":-177.376,"name":"Midway Islands"}},
+{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[-75.02,18.42],[-75.02,18.4],[-75,18.4],[-75.01,18.42],[-75.02,18.42]]]},"properties":{"cc":"UM","type":null,"ly":18.4043,"lx":-75.011,"name":"Navassa Island"}},
+{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[-162.06,5.89],[-162.09,5.88],[-162.09,5.87],[-162.06,5.87],[-162.06,5.89]]]},"properties":{"cc":"UM","type":null,"ly":5.88359,"lx":-162.076,"name":"Palmyra Atoll"}}
+]}

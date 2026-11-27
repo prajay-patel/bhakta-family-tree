@@ -1,0 +1,7 @@
+{"type":"FeatureCollection", "features": [
+{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[103.85,1.27],[103.81,1.32],[103.76,1.43],[103.65,1.31],[103.85,1.27]]]},"properties":{"cc":"SG","type":null,"ly":1.33718,"lx":103.705,"name":"South West"}},
+{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[103.9,1.31],[103.9,1.39],[103.91,1.41],[103.88,1.43],[103.81,1.32],[103.85,1.27],[103.9,1.31]]]},"properties":{"cc":"SG","type":null,"ly":1.31704,"lx":103.846,"name":"Central Singapore"}},
+{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[103.97,1.39],[103.9,1.39],[103.9,1.31],[103.97,1.39]]]},"properties":{"cc":"SG","type":null,"ly":1.33524,"lx":103.932,"name":"South East"}},
+{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[103.91,1.41],[103.9,1.39],[103.97,1.39],[103.91,1.41]]]},"properties":{"cc":"SG","type":null,"ly":1.38379,"lx":103.925,"name":"North East"}},
+{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[103.76,1.43],[103.81,1.32],[103.88,1.43],[103.76,1.43]]]},"properties":{"cc":"SG","type":null,"ly":1.41809,"lx":103.808,"name":"North West"}}
+]}

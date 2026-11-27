@@ -1,0 +1,16 @@
+{"type":"FeatureCollection", "features": [
+{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[166.93,-0.49],[166.94,-0.5],[166.94,-0.49],[166.93,-0.49]]]},"properties":{"cc":"NR","type":null,"ly":-0.494702,"lx":166.936,"name":"Anetan"}},
+{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[166.93,-0.5],[166.94,-0.51],[166.94,-0.5],[166.93,-0.49],[166.93,-0.5]]]},"properties":{"cc":"NR","type":null,"ly":-0.502076,"lx":166.934,"name":"Ewa"}},
+{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[166.92,-0.5],[166.94,-0.52],[166.94,-0.51],[166.93,-0.5],[166.92,-0.5]]]},"properties":{"cc":"NR","type":null,"ly":-0.500672,"lx":166.925,"name":"Baiti"}},
+{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[166.91,-0.5],[166.94,-0.52],[166.92,-0.5],[166.91,-0.5]]]},"properties":{"cc":"NR","type":null,"ly":-0.506992,"lx":166.924,"name":"Uaboe"}},
+{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[166.91,-0.51],[166.92,-0.52],[166.94,-0.53],[166.94,-0.52],[166.91,-0.5],[166.91,-0.51]]]},"properties":{"cc":"NR","type":null,"ly":-0.512961,"lx":166.921,"name":"Nibok"}},
+{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[166.91,-0.52],[166.92,-0.52],[166.91,-0.51],[166.91,-0.52]]]},"properties":{"cc":"NR","type":null,"ly":-0.520335,"lx":166.914,"name":"Denigomodu"}},
+{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[166.91,-0.54],[166.92,-0.54],[166.92,-0.52],[166.91,-0.52],[166.91,-0.54]]]},"properties":{"cc":"NR","type":null,"ly":-0.529816,"lx":166.913,"name":"Aiwo"}},
+{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[166.92,-0.55],[166.92,-0.54],[166.91,-0.54],[166.92,-0.55]]]},"properties":{"cc":"NR","type":null,"ly":-0.538594,"lx":166.916,"name":"Boe"}},
+{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[166.93,-0.55],[166.93,-0.53],[166.92,-0.54],[166.92,-0.55],[166.93,-0.55]]]},"properties":{"cc":"NR","type":null,"ly":-0.543159,"lx":166.925,"name":"Yaren"}},
+{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[166.95,-0.53],[166.94,-0.53],[166.93,-0.53],[166.93,-0.55],[166.95,-0.53]]]},"properties":{"cc":"NR","type":null,"ly":-0.539648,"lx":166.939,"name":"Meneng"}},
+{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[166.96,-0.51],[166.94,-0.5],[166.94,-0.51],[166.94,-0.52],[166.94,-0.53],[166.95,-0.53],[166.96,-0.51]]]},"properties":{"cc":"NR","type":null,"ly":-0.519984,"lx":166.947,"name":"Anibare"}},
+{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[166.96,-0.5],[166.94,-0.5],[166.96,-0.51],[166.96,-0.5]]]},"properties":{"cc":"NR","type":null,"ly":-0.504534,"lx":166.951,"name":"Ijuw"}},
+{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[166.94,-0.49],[166.94,-0.5],[166.96,-0.5],[166.94,-0.49]]]},"properties":{"cc":"NR","type":null,"ly":-0.497511,"lx":166.944,"name":"Anabar"}},
+{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[166.94,-0.53],[166.92,-0.52],[166.92,-0.54],[166.93,-0.53],[166.94,-0.53]]]},"properties":{"cc":"NR","type":null,"ly":-0.527877,"lx":166.925,"name":"Buada"}}
+]}

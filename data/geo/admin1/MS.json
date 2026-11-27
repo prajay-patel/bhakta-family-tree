@@ -1,0 +1,5 @@
+{"type":"FeatureCollection", "features": [
+{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[-62.23,16.75],[-62.19,16.74],[-62.17,16.78],[-62.23,16.75]]]},"properties":{"cc":"MS","type":"Parish","ly":16.7762,"lx":-62.2017,"name":"Saint Peter"}},
+{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[-62.15,16.72],[-62.19,16.74],[-62.23,16.75],[-62.15,16.72]]]},"properties":{"cc":"MS","type":"Parish","ly":16.7048,"lx":-62.1886,"name":"Saint Anthony"}},
+{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[-62.17,16.78],[-62.19,16.74],[-62.15,16.72],[-62.17,16.78]]]},"properties":{"cc":"MS","type":"Parish","ly":16.7442,"lx":-62.1671,"name":"Saint Georges"}}
+]}

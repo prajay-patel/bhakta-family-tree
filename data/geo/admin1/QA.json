@@ -1,0 +1,9 @@
+{"type":"FeatureCollection", "features": [
+{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[50.81,24.75],[50.98,24.57],[51.22,24.63],[51.22,24.64],[51.22,25.01],[51.46,25.16],[51.49,25.18],[51.54,25.22],[51.45,25.36],[51.3,25.38],[51.29,25.57],[51.21,25.73],[50.95,25.78],[50.78,25.53],[50.78,25.09],[50.85,24.89],[50.81,24.75]]]},"properties":{"cc":"QA","type":"Municipality","ly":25.1648,"lx":51.1605,"name":"Ar Rayyān"}},
+{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[51.61,25.24],[51.54,25.22],[51.49,25.18],[51.46,25.16],[51.22,25.01],[51.22,24.64],[51.44,24.68],[51.59,24.95],[51.61,25.24]]]},"properties":{"cc":"QA","type":"Municipality","ly":24.9661,"lx":51.4743,"name":"Al Wakrah"}},
+{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[51.52,25.38],[51.45,25.36],[51.54,25.22],[51.61,25.24],[51.52,25.38]]]},"properties":{"cc":"QA","type":"Municipality","ly":25.2686,"lx":51.5282,"name":"Ad Dawhah"}},
+{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[51.54,25.62],[51.4,25.55],[51.45,25.36],[51.52,25.38],[51.54,25.62]]]},"properties":{"cc":"QA","type":"Municipality","ly":25.4579,"lx":51.4671,"name":"Al Daayen"}},
+{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[51.42,25.95],[51.1,25.93],[50.97,25.83],[50.95,25.78],[51.21,25.73],[51.29,25.57],[51.4,25.55],[51.54,25.62],[51.58,25.88],[51.42,25.95]]]},"properties":{"cc":"QA","type":"Municipality","ly":25.7512,"lx":51.4212,"name":"Al Khawr"}},
+{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[50.97,25.83],[51.1,25.93],[51.42,25.95],[51.25,26.16],[51.05,26.05],[50.97,25.83]]]},"properties":{"cc":"QA","type":"Municipality","ly":26.0095,"lx":51.1832,"name":"Madinat ach Shamal"}},
+{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[51.29,25.57],[51.3,25.38],[51.45,25.36],[51.4,25.55],[51.29,25.57]]]},"properties":{"cc":"QA","type":"Municipality","ly":25.4594,"lx":51.3552,"name":"Umm Salal"}}
+]}

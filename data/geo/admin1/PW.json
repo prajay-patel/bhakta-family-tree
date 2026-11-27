@@ -1,0 +1,18 @@
+{"type":"FeatureCollection", "features": [
+{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[134.27,7.07],[134.24,7.01],[134.28,7.02],[134.27,7.07]]]},"properties":{"cc":"PW","type":null,"ly":7.02649,"lx":134.259,"name":"Peleliu"}},
+{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[134.46,7.29],[134.44,7.29],[134.4,7.25],[134.46,7.26],[134.46,7.29]]]},"properties":{"cc":"PW","type":null,"ly":7.26579,"lx":134.446,"name":"Koror"}},
+{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[134.53,7.52],[134.58,7.47],[134.59,7.51],[134.61,7.54],[134.62,7.57],[134.55,7.58],[134.53,7.52]]]},"properties":{"cc":"PW","type":null,"ly":7.53794,"lx":134.575,"name":"Ngeremlengui"}},
+{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[134.49,7.47],[134.57,7.43],[134.58,7.47],[134.53,7.52],[134.49,7.47]]]},"properties":{"cc":"PW","type":null,"ly":7.47929,"lx":134.552,"name":"Ngatpang"}},
+{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[134.51,7.4],[134.57,7.43],[134.49,7.47],[134.51,7.4]]]},"properties":{"cc":"PW","type":null,"ly":7.43236,"lx":134.533,"name":"Aimeliik"}},
+{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[134.59,7.42],[134.57,7.43],[134.51,7.4],[134.59,7.42]]]},"properties":{"cc":"PW","type":null,"ly":7.39952,"lx":134.571,"name":"Airai"}},
+{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[134.63,7.49],[134.59,7.51],[134.58,7.47],[134.57,7.43],[134.59,7.42],[134.63,7.49]]]},"properties":{"cc":"PW","type":null,"ly":7.46286,"lx":134.597,"name":"Ngchesar"}},
+{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[134.63,7.53],[134.61,7.54],[134.59,7.51],[134.63,7.49],[134.63,7.53]]]},"properties":{"cc":"PW","type":null,"ly":7.51682,"lx":134.613,"name":"Melekeok"}},
+{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[134.66,7.59],[134.62,7.6],[134.62,7.57],[134.61,7.54],[134.63,7.53],[134.66,7.59]]]},"properties":{"cc":"PW","type":null,"ly":7.57313,"lx":134.636,"name":"Ngiwal"}},
+{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[134.66,7.69],[134.64,7.68],[134.62,7.63],[134.62,7.6],[134.66,7.59],[134.66,7.69]]]},"properties":{"cc":"PW","type":null,"ly":7.65055,"lx":134.65,"name":"Ngaraard"}},
+{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[134.64,7.68],[134.66,7.69],[134.64,7.73],[134.62,7.72],[134.64,7.68]]]},"properties":{"cc":"PW","type":null,"ly":7.70686,"lx":134.641,"name":"Ngarchelong"}},
+{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[134.55,7.58],[134.62,7.57],[134.62,7.6],[134.62,7.63],[134.55,7.58]]]},"properties":{"cc":"PW","type":null,"ly":7.60128,"lx":134.597,"name":"Ngardmau"}},
+{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[131.14,3.05],[131.14,3.02],[131.18,3.03],[131.18,3.06],[131.14,3.05]]]},"properties":{"cc":"PW","type":null,"ly":2.96318,"lx":131.794,"name":"Hatobohei"}},
+{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[132.22,5.29],[132.23,5.3],[132.21,5.31],[132.22,5.29]]]},"properties":{"cc":"PW","type":null,"ly":5.28876,"lx":132.204,"name":"Sonsorol"}},
+{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[134.16,6.88],[134.17,6.92],[134.14,6.92],[134.16,6.88]]]},"properties":{"cc":"PW","type":null,"ly":6.91388,"lx":134.158,"name":"Angaur"}},
+{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[134.71,8.1],[134.69,8.08],[134.72,8.06],[134.73,8.08],[134.71,8.1]]]},"properties":{"cc":"PW","type":null,"ly":8.0705,"lx":134.711,"name":"Kayangel"}}
+]}

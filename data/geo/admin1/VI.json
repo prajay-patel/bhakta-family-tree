@@ -1,0 +1,5 @@
+{"type":"FeatureCollection", "features": [
+{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[-64.56,17.75],[-64.77,17.79],[-64.88,17.69],[-64.56,17.75]]]},"properties":{"cc":"VI","type":null,"ly":17.735,"lx":-64.7798,"name":"Saint Croix"}},
+{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[-64.7,18.34],[-64.75,18.37],[-64.79,18.35],[-64.74,18.32],[-64.7,18.34]]]},"properties":{"cc":"VI","type":null,"ly":18.3422,"lx":-64.7461,"name":"Saint John"}},
+{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[-64.87,18.31],[-64.85,18.34],[-64.93,18.38],[-64.94,18.34],[-64.87,18.31]]]},"properties":{"cc":"VI","type":null,"ly":18.3543,"lx":-64.9263,"name":"Saint Thomas"}}
+]}
