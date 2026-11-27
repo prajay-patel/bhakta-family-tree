@@ -372,7 +372,7 @@ const tiles = L.tileLayer(TILE(getComputedStyle(document.documentElement).colorS
   attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a> · places: <a href="https://www.geonames.org/">GeoNames</a> · borders: <a href="https://www.naturalearthdata.com/">Natural Earth</a>, districts &copy; <a href="https://www.geoboundaries.org/">geoBoundaries</a> (<a href="https://opendatacommons.org/licenses/odbl/">ODbL</a>)',
 }).addTo(map);
 map.createPane('areas').style.zIndex = 350;   // shaded areas sit under routes and circles
-const layers = { area: L.layerGroup().addTo(map), district: L.layerGroup().addTo(map),
+const layers = { base: L.layerGroup().addTo(map), area: L.layerGroup().addTo(map), district: L.layerGroup().addTo(map),
                  route: L.layerGroup().addTo(map), village: L.layerGroup().addTo(map),
                  birth: L.layerGroup().addTo(map), home: L.layerGroup().addTo(map) };
 const css = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
@@ -496,8 +496,8 @@ function draw() {
 // Shaded areas: countries (and, zoomed in, states) by how many people settled
 // there; South Gujarat districts by how many people's village is there.
 function drawAreas(list, homes) {
-  layers.area.clearLayers(); layers.district.clearLayers();
-  const C = { area: css('--rust'), district: css('--gold'), line: css('--ink-soft') };
+  layers.area.clearLayers(); layers.district.clearLayers(); layers.base.clearLayers();
+  const C = { area: css('--rust'), district: css('--gold'), line: css('--ink-soft'), grey: css('--mist') };
   const byCountry = {}, byRegion = {}, byDistrict = {};
   homes.forEach(g => g.people.forEach(person => {
     (byCountry[g.p.cc] = byCountry[g.p.cc] || []).push(person);
@@ -525,6 +525,12 @@ function drawAreas(list, homes) {
     }).addTo(layer);
     return fs.length;
   };
+  // Countries with no family connection at all: flat grey, no hover or click
+  const linked = new Set(list.flatMap(person => person.stops.map(s => s.p.cc)));
+  L.geoJSON({ type: 'FeatureCollection', features: GEO.countries.filter(f => !linked.has(f.properties.cc)) }, {
+    pane: 'areas', interactive: false,
+    style: { color: C.line, weight: 0.4, opacity: 0.35, fillColor: C.grey, fillOpacity: 0.38 },
+  }).addTo(layers.base);
   const nc = add(GEO.countries, byCountry, f => f.properties.cc, C.area, layers.area, 'settled here', zoomedIn ? 0.45 : 1);
   let nr = 0;
   if (zoomedIn) Object.entries(GEO.regions).forEach(([cc, fs]) => {
