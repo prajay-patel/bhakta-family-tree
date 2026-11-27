@@ -1,0 +1,13 @@
+{"type":"FeatureCollection", "features": [
+{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[20.28,60.14],[20.22,60.15],[20.2,60.09],[20.27,60.09],[20.28,60.14]]]},"properties":{"cc":"AX","type":null,"ly":60.1022,"lx":20.2285,"name":"Lumparland"}},
+{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[19.64,60.22],[19.51,60.18],[19.54,60.13],[19.67,60.16],[19.64,60.22]]]},"properties":{"cc":"AX","type":null,"ly":60.2169,"lx":19.5905,"name":"Eckerö"}},
+{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[20.43,60.27],[20.38,60.27],[20.39,60.2],[20.44,60.25],[20.43,60.27]]]},"properties":{"cc":"AX","type":null,"ly":60.2456,"lx":20.4053,"name":"Vårdö"}},
+{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[20.82,60.23],[20.85,60.27],[20.78,60.26],[20.82,60.23]]]},"properties":{"cc":"AX","type":null,"ly":60.2647,"lx":20.8067,"name":"Kumlinge"}},
+{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[19.91,60.1],[19.94,60.11],[19.97,60.09],[20.03,60.14],[19.94,60.19],[19.81,60.15],[19.91,60.1]]]},"properties":{"cc":"AX","type":null,"ly":60.1395,"lx":19.8953,"name":"Jomala"}},
+{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[19.97,60.09],[19.94,60.11],[19.91,60.1],[19.97,60.09]]]},"properties":{"cc":"AX","type":null,"ly":60.0903,"lx":19.9417,"name":"Mariehamn"}},
+{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[20.98,59.94],[20.93,59.96],[20.93,59.94],[20.98,59.94]]]},"properties":{"cc":"AX","type":null,"ly":59.923,"lx":20.8903,"name":"Kökar"}},
+{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[20.28,59.98],[20.4,59.98],[20.34,60.02],[20.28,59.98]]]},"properties":{"cc":"AX","type":null,"ly":60.0019,"lx":20.3479,"name":"Föglö"}},
+{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[20.68,60.13],[20.65,60.15],[20.64,60.13],[20.68,60.13]]]},"properties":{"cc":"AX","type":null,"ly":60.1333,"lx":20.6633,"name":"Sottunga"}},
+{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[20.03,60.06],[20.12,59.99],[20.19,60.07],[20.03,60.06]]]},"properties":{"cc":"AX","type":null,"ly":60.0449,"lx":20.1496,"name":"Lemland"}},
+{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[21.09,60.48],[21.06,60.47],[21.06,60.45],[21.1,60.46],[21.09,60.48]]]},"properties":{"cc":"AX","type":null,"ly":60.4104,"lx":21.048,"name":"Brändö"}}
+]}

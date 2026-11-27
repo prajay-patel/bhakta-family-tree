@@ -1,0 +1,5 @@
+{"type":"FeatureCollection", "features": [
+{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[6.12,50.12],[6.02,50.15],[5.71,49.88],[5.86,49.71],[6.04,49.82],[6.25,49.79],[6.3,49.85],[6.12,50.12]]]},"properties":{"cc":"LU","type":"District","ly":49.9763,"lx":6.00481,"name":"Diekirch"}},
+{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[6.3,49.85],[6.25,49.79],[6.25,49.49],[6.35,49.46],[6.35,49.53],[6.5,49.79],[6.3,49.85]]]},"properties":{"cc":"LU","type":"District","ly":49.6474,"lx":6.33835,"name":"Grevenmacher"}},
+{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[5.79,49.54],[5.93,49.48],[6.25,49.49],[6.25,49.79],[6.04,49.82],[5.86,49.71],[5.79,49.54]]]},"properties":{"cc":"LU","type":"District","ly":49.6376,"lx":6.05114,"name":"Luxembourg"}}
+]}

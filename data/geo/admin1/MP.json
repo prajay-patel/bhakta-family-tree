@@ -1,0 +1,6 @@
+{"type":"FeatureCollection", "features": [
+{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[145.21,14.18],[145.13,14.15],[145.21,14.11],[145.21,14.18]]]},"properties":{"cc":"MP","type":null,"ly":14.1465,"lx":145.205,"name":"Rota"}},
+{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[145.65,15.07],[145.58,15.02],[145.61,14.93],[145.67,14.98],[145.65,15.07]]]},"properties":{"cc":"MP","type":null,"ly":14.9995,"lx":145.622,"name":"Tinian"}},
+{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[145.79,15.27],[145.7,15.2],[145.74,15.14],[145.79,15.27]]]},"properties":{"cc":"MP","type":null,"ly":15.1921,"lx":145.744,"name":"Saipan"}},
+{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[145.77,18.18],[145.74,18.09],[145.84,18.13],[145.77,18.18]]]},"properties":{"cc":"MP","type":null,"ly":16.3573,"lx":145.674,"name":"Northern Islands"}}
+]}

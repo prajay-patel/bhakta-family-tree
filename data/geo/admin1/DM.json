@@ -1,0 +1,12 @@
+{"type":"FeatureCollection", "features": [
+{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[-61.25,15.33],[-61.31,15.32],[-61.36,15.25],[-61.36,15.24],[-61.35,15.21],[-61.25,15.33]]]},"properties":{"cc":"DM","type":"Parish","ly":15.2768,"lx":-61.3052,"name":"Saint Patrick"}},
+{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[-61.27,15.51],[-61.32,15.44],[-61.33,15.4],[-61.33,15.35],[-61.31,15.32],[-61.25,15.33],[-61.27,15.51]]]},"properties":{"cc":"DM","type":"Parish","ly":15.3956,"lx":-61.2919,"name":"Saint David"}},
+{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[-61.45,15.63],[-61.41,15.5],[-61.41,15.49],[-61.32,15.44],[-61.27,15.51],[-61.45,15.63]]]},"properties":{"cc":"DM","type":"Parish","ly":15.5378,"lx":-61.3589,"name":"Saint Andrew"}},
+{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[-61.48,15.53],[-61.41,15.5],[-61.45,15.63],[-61.48,15.53]]]},"properties":{"cc":"DM","type":"Parish","ly":15.5767,"lx":-61.4483,"name":"Saint John"}},
+{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[-61.46,15.47],[-61.41,15.49],[-61.41,15.5],[-61.48,15.53],[-61.46,15.47]]]},"properties":{"cc":"DM","type":"Parish","ly":15.4986,"lx":-61.4448,"name":"Saint Peter"}},
+{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[-61.42,15.39],[-61.33,15.4],[-61.32,15.44],[-61.41,15.49],[-61.46,15.47],[-61.42,15.39]]]},"properties":{"cc":"DM","type":"Parish","ly":15.4355,"lx":-61.3863,"name":"Saint Joseph"}},
+{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[-61.39,15.31],[-61.33,15.35],[-61.33,15.4],[-61.42,15.39],[-61.39,15.31]]]},"properties":{"cc":"DM","type":"Parish","ly":15.3529,"lx":-61.3717,"name":"Saint Paul"}},
+{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[-61.37,15.26],[-61.36,15.25],[-61.31,15.32],[-61.33,15.35],[-61.39,15.31],[-61.37,15.26]]]},"properties":{"cc":"DM","type":"Parish","ly":15.3,"lx":-61.3489,"name":"Saint George"}},
+{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[-61.37,15.24],[-61.36,15.24],[-61.36,15.25],[-61.37,15.26],[-61.37,15.24]]]},"properties":{"cc":"DM","type":"Parish","ly":15.2483,"lx":-61.3644,"name":"Saint Luke"}},
+{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[-61.35,15.21],[-61.36,15.24],[-61.37,15.24],[-61.35,15.21]]]},"properties":{"cc":"DM","type":"Parish","ly":15.2217,"lx":-61.3612,"name":"Saint Mark"}}
+]}

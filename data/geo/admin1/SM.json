@@ -1,0 +1,11 @@
+{"type":"FeatureCollection", "features": [
+{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[12.49,43.97],[12.43,43.97],[12.45,43.95],[12.49,43.97]]]},"properties":{"cc":"SM","type":null,"ly":43.9676,"lx":12.4721,"name":"Serravalle"}},
+{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[12.49,43.97],[12.45,43.95],[12.46,43.93],[12.49,43.95],[12.49,43.97]]]},"properties":{"cc":"SM","type":null,"ly":43.9466,"lx":12.4721,"name":"Domagnano"}},
+{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[12.49,43.95],[12.46,43.93],[12.46,43.92],[12.47,43.92],[12.48,43.92],[12.48,43.93],[12.49,43.95]]]},"properties":{"cc":"SM","type":null,"ly":43.9312,"lx":12.4761,"name":"Faetano"}},
+{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[12.48,43.92],[12.47,43.92],[12.46,43.9],[12.48,43.92]]]},"properties":{"cc":"SM","type":null,"ly":43.9134,"lx":12.4699,"name":"Montegiardino"}},
+{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[12.46,43.9],[12.47,43.92],[12.46,43.92],[12.44,43.91],[12.44,43.9],[12.44,43.89],[12.46,43.9]]]},"properties":{"cc":"SM","type":null,"ly":43.9021,"lx":12.4521,"name":"Fiorentino"}},
+{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[12.44,43.89],[12.44,43.9],[12.39,43.92],[12.42,43.9],[12.44,43.89]]]},"properties":{"cc":"SM","type":null,"ly":43.9069,"lx":12.4095,"name":"Chiesanuova"}},
+{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[12.39,43.92],[12.44,43.9],[12.44,43.91],[12.42,43.94],[12.39,43.92]]]},"properties":{"cc":"SM","type":null,"ly":43.9215,"lx":12.4243,"name":"San Marino"}},
+{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[12.39,43.92],[12.42,43.94],[12.42,43.96],[12.39,43.92]]]},"properties":{"cc":"SM","type":null,"ly":43.9425,"lx":12.4052,"name":"Acquaviva"}},
+{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[12.42,43.96],[12.42,43.94],[12.44,43.91],[12.46,43.92],[12.46,43.93],[12.45,43.95],[12.43,43.97],[12.42,43.96]]]},"properties":{"cc":"SM","type":null,"ly":43.9337,"lx":12.4389,"name":"Borgo Maggiore"}}
+]}

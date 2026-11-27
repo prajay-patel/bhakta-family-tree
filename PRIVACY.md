@@ -89,8 +89,11 @@ routes between them. It adds further protections:
 
 - **Living people are never named on the map** — they are only counted.
 - A living person's birthplace or current home is shown at town level only
-  when **at least 3 living relatives** share that town; otherwise only the
+  when **at least 3 living relatives** share that town; otherwise at state or
+  region level when at least 3 share that state or region; otherwise only the
   country is shown.
+- Shaded countries, states and districts show only **how many** relatives are
+  there, never who.
 - Places are only ever a village, town or country — never an address.
 - Place names are matched to map positions **offline** (from a built-in list
   derived from GeoNames), so no family place names are sent to any mapping or
@@ -144,7 +147,8 @@ any kind. The only external connection made when using this form is to
 Google's servers (to receive your submission) and to Google Fonts (to load
 the Playfair Display and Inter typefaces). The family map also loads map
 images from CARTO's map tile servers; those requests reveal only which part of
-the world is being viewed, never any family information.
+the world is being viewed, never any family information. Country, state and
+district borders are stored on this site itself.
 
 ---
 

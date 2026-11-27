@@ -1,0 +1,6 @@
+{"type":"FeatureCollection", "features": [
+{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[115.15,4.91],[115.03,4.82],[115.11,4.38],[115.32,4.31],[115.27,4.64],[115.15,4.91]]]},"properties":{"cc":"BN","type":"District","ly":4.60249,"lx":115.191,"name":"Temburong"}},
+{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[114.98,4.89],[114.76,4.9],[114.74,4.73],[114.98,4.89]]]},"properties":{"cc":"BN","type":"District","ly":4.90214,"lx":114.92,"name":"Brunei and Muara"}},
+{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[114.74,4.73],[114.76,4.9],[114.49,4.68],[114.79,4.3],[114.84,4.36],[114.74,4.73]]]},"properties":{"cc":"BN","type":"District","ly":4.64496,"lx":114.671,"name":"Tutong"}},
+{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[114,4.6],[114.25,4.48],[114.59,4.02],[114.77,4.13],[114.79,4.3],[114.49,4.68],[114.25,4.59],[114,4.6]]]},"properties":{"cc":"BN","type":"District","ly":4.45555,"lx":114.408,"name":"Belait"}}
+]}

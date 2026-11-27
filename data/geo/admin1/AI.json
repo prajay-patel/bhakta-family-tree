@@ -1,0 +1,17 @@
+{"type":"FeatureCollection", "features": [
+{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[-63.01,18.27],[-63,18.26],[-62.99,18.23],[-62.99,18.27],[-63,18.27],[-63.01,18.27]]]},"properties":{"cc":"AI","type":"District","ly":18.2622,"lx":-62.9852,"name":"East End"}},
+{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[-63.02,18.27],[-63.05,18.24],[-63.04,18.23],[-63.03,18.24],[-63,18.26],[-63.01,18.27],[-63.02,18.27]]]},"properties":{"cc":"AI","type":"District","ly":18.2387,"lx":-63.0368,"name":"Stoney Ground"}},
+{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[-63.06,18.25],[-63.05,18.24],[-63.02,18.27],[-63.06,18.25]]]},"properties":{"cc":"AI","type":"District","ly":18.2606,"lx":-63.033,"name":"North Side"}},
+{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[-63.07,18.23],[-63.05,18.23],[-63.04,18.23],[-63.05,18.24],[-63.06,18.25],[-63.07,18.23]]]},"properties":{"cc":"AI","type":"District","ly":18.2321,"lx":-63.052,"name":"The Valley"}},
+{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[-63.08,18.23],[-63.08,18.22],[-63.06,18.22],[-63.05,18.23],[-63.07,18.23],[-63.08,18.23]]]},"properties":{"cc":"AI","type":"District","ly":18.2243,"lx":-63.074,"name":"North Hill"}},
+{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[-63.1,18.21],[-63.08,18.22],[-63.08,18.23],[-63.1,18.21]]]},"properties":{"cc":"AI","type":"District","ly":18.2192,"lx":-63.0814,"name":"Sandy Ground"}},
+{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[-63.12,18.21],[-63.12,18.18],[-63.11,18.19],[-63.07,18.21],[-63.06,18.22],[-63.08,18.22],[-63.1,18.21],[-63.12,18.21]]]},"properties":{"cc":"AI","type":"District","ly":18.2083,"lx":-63.0881,"name":"South Hill"}},
+{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[-63.12,18.18],[-63.12,18.21],[-63.14,18.2],[-63.15,18.17],[-63.12,18.18]]]},"properties":{"cc":"AI","type":"District","ly":18.1865,"lx":-63.1384,"name":"West End"}},
+{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[-63.06,18.2],[-63.06,18.21],[-63.07,18.21],[-63.11,18.19],[-63.06,18.2]]]},"properties":{"cc":"AI","type":"District","ly":18.1889,"lx":-63.0943,"name":"Blowing Point"}},
+{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[-63.03,18.22],[-63.03,18.23],[-63.05,18.23],[-63.06,18.22],[-63.06,18.21],[-63.06,18.2],[-63.03,18.22]]]},"properties":{"cc":"AI","type":"District","ly":18.2173,"lx":-63.0439,"name":"The Farrington"}},
+{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[-62.99,18.23],[-63,18.26],[-63.03,18.24],[-63.03,18.23],[-63.03,18.22],[-62.99,18.23]]]},"properties":{"cc":"AI","type":"District","ly":18.2301,"lx":-63.0151,"name":"Sandy Hill"}},
+{"type":"Feature","geometry":null,"properties":{"cc":"AI","type":"District","ly":18.2705,"lx":-63.0028,"name":"Island Harbour"}},
+{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[-63.25,18.27],[-63.25,18.28],[-63.25,18.29],[-63.26,18.28],[-63.25,18.27]]]},"properties":{"cc":"AI","type":null,"ly":18.5982,"lx":-63.4262,"name":null}},
+{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[-63.07,18.21],[-63.06,18.21],[-63.06,18.22],[-63.07,18.21]]]},"properties":{"cc":"AI","type":"District","ly":18.2089,"lx":-63.066,"name":"George Hill"}},
+{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[-63.03,18.23],[-63.03,18.24],[-63.04,18.23],[-63.05,18.23],[-63.03,18.23]]]},"properties":{"cc":"AI","type":"District","ly":18.2299,"lx":-63.04,"name":"The Quarter"}}
+]}

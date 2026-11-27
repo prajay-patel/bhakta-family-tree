@@ -1,0 +1,9 @@
+{"type":"FeatureCollection", "features": [
+{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[1.6,42.62],[1.45,42.6],[1.56,42.56],[1.6,42.62]]]},"properties":{"cc":"AD","type":null,"ly":42.6036,"lx":1.52437,"name":"Ordino"}},
+{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[1.6,42.62],[1.56,42.56],[1.72,42.54],[1.76,42.57],[1.6,42.62]]]},"properties":{"cc":"AD","type":null,"ly":42.5842,"lx":1.60543,"name":"Canillo"}},
+{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[1.72,42.54],[1.56,42.56],[1.56,42.54],[1.66,42.5],[1.71,42.5],[1.72,42.54]]]},"properties":{"cc":"AD","type":null,"ly":42.5381,"lx":1.6441,"name":"Encamp"}},
+{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[1.43,42.6],[1.45,42.5],[1.49,42.52],[1.56,42.54],[1.56,42.56],[1.45,42.6],[1.43,42.6]]]},"properties":{"cc":"AD","type":null,"ly":42.55,"lx":1.47083,"name":"La Massana"}},
+{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[1.45,42.5],[1.57,42.45],[1.5,42.49],[1.49,42.52],[1.45,42.5]]]},"properties":{"cc":"AD","type":null,"ly":42.4511,"lx":1.47975,"name":"Sant Julià de Lòria"}},
+{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[1.66,42.5],[1.56,42.54],[1.5,42.49],[1.57,42.45],[1.66,42.5]]]},"properties":{"cc":"AD","type":null,"ly":42.495,"lx":1.59428,"name":"Escaldes-Engordany"}},
+{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[1.56,42.54],[1.49,42.52],[1.5,42.49],[1.56,42.54]]]},"properties":{"cc":"AD","type":null,"ly":42.5128,"lx":1.51066,"name":"Andorra la Vella"}}
+]}

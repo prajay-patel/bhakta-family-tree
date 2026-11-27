@@ -1,0 +1,7 @@
+{"type":"FeatureCollection", "features": [
+{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[50.5,26.24],[50.55,26.19],[50.59,26.24],[50.5,26.24]]]},"properties":{"cc":"BH","type":"Governorate","ly":26.2204,"lx":50.5777,"name":"Al Manāmah"}},
+{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[50.49,26.05],[50.52,26.13],[50.55,26.19],[50.5,26.24],[50.49,26.05]]]},"properties":{"cc":"BH","type":"Governorate","ly":26.1624,"lx":50.4868,"name":"Ash Shamālīyah"}},
+{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[50.62,26.1],[50.52,26.13],[50.49,26.05],[50.62,26.1]]]},"properties":{"cc":"BH","type":"Governorate","ly":25.9688,"lx":50.5622,"name":"Al Janūbīyah"}},
+{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[50.55,26.19],[50.52,26.13],[50.62,26.1],[50.55,26.19]]]},"properties":{"cc":"BH","type":"Governorate","ly":26.1373,"lx":50.5738,"name":"Al Wusţá"}},
+{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[50.6,26.28],[50.61,26.24],[50.65,26.24],[50.66,26.28],[50.6,26.28]]]},"properties":{"cc":"BH","type":"Governorate","ly":26.261,"lx":50.6376,"name":"Al Muḩarraq"}}
+]}

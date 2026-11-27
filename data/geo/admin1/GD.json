@@ -1,0 +1,9 @@
+{"type":"FeatureCollection", "features": [
+{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[-61.68,12.03],[-61.68,12.08],[-61.69,12.11],[-61.75,12.11],[-61.68,12.03]]]},"properties":{"cc":"GD","type":"Parish","ly":12.0681,"lx":-61.7226,"name":"Saint George"}},
+{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[-61.62,12.07],[-61.68,12.08],[-61.68,12.03],[-61.62,12.07]]]},"properties":{"cc":"GD","type":"Parish","ly":12.055,"lx":-61.6617,"name":"Saint David"}},
+{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[-61.6,12.18],[-61.66,12.18],[-61.66,12.16],[-61.69,12.11],[-61.68,12.08],[-61.62,12.07],[-61.6,12.18]]]},"properties":{"cc":"GD","type":"Parish","ly":12.1224,"lx":-61.6329,"name":"Saint Andrew"}},
+{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[-61.68,12.22],[-61.66,12.18],[-61.6,12.18],[-61.68,12.22]]]},"properties":{"cc":"GD","type":"Parish","ly":12.2147,"lx":-61.6342,"name":"Saint Patrick"}},
+{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[-61.72,12.18],[-61.66,12.16],[-61.66,12.18],[-61.68,12.22],[-61.72,12.18]]]},"properties":{"cc":"GD","type":"Parish","ly":12.189,"lx":-61.6749,"name":"Saint Mark"}},
+{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[-61.75,12.11],[-61.69,12.11],[-61.66,12.16],[-61.72,12.18],[-61.75,12.11]]]},"properties":{"cc":"GD","type":"Parish","ly":12.1446,"lx":-61.7094,"name":"Saint John"}},
+{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[-61.43,12.45],[-61.42,12.51],[-61.44,12.52],[-61.47,12.48],[-61.43,12.45]]]},"properties":{"cc":"GD","type":"Dependency","ly":12.4733,"lx":-61.4461,"name":"Carriacou and Petite Martinique"}}
+]}

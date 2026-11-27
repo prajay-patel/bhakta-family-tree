@@ -1,0 +1,16 @@
+{"type":"FeatureCollection", "features": [
+{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[-62.62,17.13],[-62.58,17.15],[-62.63,17.14],[-62.62,17.13]]]},"properties":{"cc":"KN","type":"Parish","ly":17.135,"lx":-62.6162,"name":"Saint Paul Charlestown"}},
+{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[-62.57,17.1],[-62.58,17.15],[-62.62,17.13],[-62.57,17.1]]]},"properties":{"cc":"KN","type":"Parish","ly":17.1162,"lx":-62.5949,"name":"Saint John Figtree"}},
+{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[-62.54,17.14],[-62.58,17.15],[-62.57,17.1],[-62.54,17.14]]]},"properties":{"cc":"KN","type":"Parish","ly":17.1301,"lx":-62.5571,"name":"Saint George Gingerland"}},
+{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[-62.61,17.19],[-62.58,17.15],[-62.54,17.14],[-62.61,17.19]]]},"properties":{"cc":"KN","type":"Parish","ly":17.1782,"lx":-62.5718,"name":"Saint James Windward"}},
+{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[-62.63,17.14],[-62.58,17.15],[-62.61,17.19],[-62.63,17.14]]]},"properties":{"cc":"KN","type":"Parish","ly":17.1597,"lx":-62.6064,"name":"Saint Thomas Lowland"}},
+{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[-62.86,17.38],[-62.81,17.37],[-62.82,17.41],[-62.86,17.38]]]},"properties":{"cc":"KN","type":"Parish","ly":17.3911,"lx":-62.8337,"name":"Saint Paul Capesterre"}},
+{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[-62.83,17.33],[-62.81,17.37],[-62.86,17.38],[-62.83,17.33]]]},"properties":{"cc":"KN","type":"Parish","ly":17.3574,"lx":-62.8369,"name":"Saint Anne Sandy Point"}},
+{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[-62.77,17.3],[-62.75,17.33],[-62.79,17.35],[-62.81,17.37],[-62.83,17.33],[-62.77,17.3]]]},"properties":{"cc":"KN","type":"Parish","ly":17.3279,"lx":-62.7943,"name":"Saint Thomas Middle Island"}},
+{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[-62.72,17.29],[-62.73,17.32],[-62.74,17.33],[-62.75,17.33],[-62.77,17.3],[-62.72,17.29]]]},"properties":{"cc":"KN","type":"Parish","ly":17.3074,"lx":-62.7483,"name":"Trinity Palmetto Point"}},
+{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[-62.68,17.3],[-62.73,17.32],[-62.72,17.29],[-62.68,17.3]]]},"properties":{"cc":"KN","type":"Parish","ly":17.2836,"lx":-62.6868,"name":"Saint George Basseterre"}},
+{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[-62.7,17.34],[-62.74,17.33],[-62.73,17.32],[-62.68,17.3],[-62.7,17.34]]]},"properties":{"cc":"KN","type":"Parish","ly":17.3221,"lx":-62.7065,"name":"Saint Peter Basseterre"}},
+{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[-62.73,17.36],[-62.75,17.33],[-62.74,17.33],[-62.7,17.34],[-62.73,17.36]]]},"properties":{"cc":"KN","type":"Parish","ly":17.3459,"lx":-62.7286,"name":"Saint Mary Cayon"}},
+{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[-62.77,17.39],[-62.79,17.35],[-62.75,17.33],[-62.73,17.36],[-62.77,17.39]]]},"properties":{"cc":"KN","type":"Parish","ly":17.364,"lx":-62.7582,"name":"Christ Church Nichola Town"}},
+{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[-62.82,17.41],[-62.81,17.37],[-62.79,17.35],[-62.77,17.39],[-62.82,17.41]]]},"properties":{"cc":"KN","type":"Parish","ly":17.382,"lx":-62.7967,"name":"Saint John Capesterre"}}
+]}

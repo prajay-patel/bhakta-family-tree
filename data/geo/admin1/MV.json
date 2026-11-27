@@ -1,0 +1,23 @@
+{"type":"FeatureCollection", "features": [
+{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[73.1,-0.6],[73.09,-0.6],[73.11,-0.64],[73.11,-0.62],[73.1,-0.6]]]},"properties":{"cc":"MV","type":"City","ly":-0.624137,"lx":73.1092,"name":"Addu"}},
+{"type":"Feature","geometry":null,"properties":{"cc":"MV","type":"Atoll","ly":-0.28897,"lx":73.4348,"name":"Gnaviyani"}},
+{"type":"Feature","geometry":null,"properties":{"cc":"MV","type":"Atoll","ly":0.22176,"lx":73.106,"name":"Gaafu Dhaalu"}},
+{"type":"Feature","geometry":null,"properties":{"cc":"MV","type":"Atoll","ly":0.764412,"lx":73.3741,"name":"Gaafu Alifu"}},
+{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[72.93,3.55],[72.92,3.55],[72.91,3.54],[72.93,3.55]]]},"properties":{"cc":"MV","type":"Atoll","ly":3.77293,"lx":72.9528,"name":"Alifu Dhaalu"}},
+{"type":"Feature","geometry":null,"properties":{"cc":"MV","type":"Atoll","ly":4.35708,"lx":73.6135,"name":"Kaafu"}},
+{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[72.96,4.44],[72.94,4.43],[72.96,4.42],[72.96,4.44]]]},"properties":{"cc":"MV","type":"Atoll","ly":4.26451,"lx":72.9528,"name":"Alifu Alifu"}},
+{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[72.98,4.9],[72.97,4.89],[72.97,4.88],[72.98,4.9]]]},"properties":{"cc":"MV","type":"Atoll","ly":4.88218,"lx":72.9751,"name":"Baa"}},
+{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[73.63,5.42],[73.63,5.41],[73.63,5.39],[73.64,5.4],[73.63,5.42]]]},"properties":{"cc":"MV","type":"Atoll","ly":5.2748,"lx":73.5816,"name":"Lhaviyani"}},
+{"type":"Feature","geometry":null,"properties":{"cc":"MV","type":"Atoll","ly":5.80628,"lx":72.9751,"name":"Raa"}},
+{"type":"Feature","geometry":null,"properties":{"cc":"MV","type":"Atoll","ly":6.28509,"lx":73.2145,"name":"Shaviyani"}},
+{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[73.55,1.93],[73.55,1.92],[73.54,1.89],[73.55,1.9],[73.55,1.91],[73.55,1.93]]]},"properties":{"cc":"MV","type":"Atoll","ly":1.83216,"lx":73.5114,"name":"Laamu"}},
+{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[73.35,2.44],[73.35,2.43],[73.36,2.38],[73.37,2.41],[73.35,2.44]]]},"properties":{"cc":"MV","type":"Atoll","ly":2.19286,"lx":73.1252,"name":"Thaa"}},
+{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[73.02,2.74],[73.03,2.74],[73.03,2.75],[73.02,2.74]]]},"properties":{"cc":"MV","type":"Atoll","ly":2.67806,"lx":72.9017,"name":"Dhaalu"}},
+{"type":"Feature","geometry":null,"properties":{"cc":"MV","type":"Atoll","ly":2.94938,"lx":73.5688,"name":"Meemu"}},
+{"type":"Feature","geometry":null,"properties":{"cc":"MV","type":"Atoll","ly":3.30689,"lx":72.8315,"name":"Faafu"}},
+{"type":"Feature","geometry":null,"properties":{"cc":"MV","type":"Atoll","ly":3.49522,"lx":73.5082,"name":"Vaavu"}},
+{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[73.55,4.24],[73.51,4.19],[73.54,4.18],[73.55,4.24]]]},"properties":{"cc":"MV","type":"Capital","ly":4.17219,"lx":73.5188,"name":"Malé"}},
+{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[73.39,5.74],[73.38,5.72],[73.38,5.71],[73.39,5.74]]]},"properties":{"cc":"MV","type":"Atoll","ly":5.78713,"lx":73.3837,"name":"Noonu"}},
+{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[73.16,6.79],[73.14,6.74],[73.17,6.78],[73.16,6.79]]]},"properties":{"cc":"MV","type":"Atoll","ly":6.62205,"lx":73.0473,"name":"Haa Dhaalu"}},
+{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[73.21,6.92],[73.2,6.91],[73.2,6.89],[73.21,6.89],[73.21,6.92]]]},"properties":{"cc":"MV","type":"Atoll","ly":7.02774,"lx":72.9797,"name":"Haa Alifu"}}
+]}

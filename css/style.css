@@ -209,6 +209,8 @@ legend{font-size:.75rem;font-weight:600;text-transform:uppercase;letter-spacing:
 
 /* Responsive */
 @media(max-width:560px){
+  .header-inner{flex-wrap:wrap;row-gap:.6rem}
+  .header-text{flex:1 1 calc(100% - 3.5rem)}   /* glyph + title on row 1, buttons wrap below */
   .phase{padding:1.3rem 1rem 1.1rem}
   .field-row,.field-row.triple{grid-template-columns:1fr}
   .dyn-row{grid-template-columns:1fr auto}
