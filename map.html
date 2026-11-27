@@ -43,6 +43,8 @@ body{display:flex;flex-direction:column}
 .sw.birth{border-color:var(--forest);background:var(--forest)}
 .sw.home{border-color:var(--rust);background:var(--rust)}
 .sw.area{border:none;border-radius:3px;width:16px;height:12px;background:linear-gradient(90deg,color-mix(in srgb,var(--rust) 15%,transparent),color-mix(in srgb,var(--rust) 70%,transparent))}
+.sw.past{border:none;border-radius:3px;width:16px;height:12px;background:linear-gradient(90deg,color-mix(in srgb,var(--forest) 32%,transparent),color-mix(in srgb,var(--forest) 60%,transparent))}
+.layer.sub{padding-left:1.45rem;cursor:default;color:var(--ink-soft)}
 .sw.district{border:none;border-radius:3px;width:16px;height:12px;background:linear-gradient(90deg,color-mix(in srgb,var(--gold) 15%,transparent),color-mix(in srgb,var(--gold) 75%,transparent));outline:1px dashed var(--gold);outline-offset:-1px}
 .sw.route{border:none;border-radius:2px;height:4px;background:repeating-linear-gradient(90deg,var(--gold) 0 6px,transparent 6px 10px)}
 .layer small{color:var(--mist);margin-left:auto}
@@ -129,7 +131,8 @@ select.ctl:focus{border-color:var(--forest)}
       <label class="layer"><input type="checkbox" id="lyBirth" checked/><span class="sw birth"></span>Birthplaces<small id="cBirth"></small></label>
       <label class="layer"><input type="checkbox" id="lyHome" checked/><span class="sw home"></span>Where they settled or live now<small id="cHome"></small></label>
       <label class="layer"><input type="checkbox" id="lyRoute" checked/><span class="sw route"></span>Migration routes<small id="cRoute"></small></label>
-      <label class="layer"><input type="checkbox" id="lyArea" checked/><span class="sw area"></span>Shaded countries &amp; states<small id="cArea"></small></label>
+      <label class="layer"><input type="checkbox" id="lyArea" checked/><span class="sw area"></span>Countries &amp; states where they settled<small id="cArea"></small></label>
+      <div class="layer sub"><span class="sw past"></span>Countries they lived in before moving on<small id="cPast"></small></div>
       <label class="layer"><input type="checkbox" id="lyDistrict" checked/><span class="sw district"></span>Gujarat districts of origin<small id="cDistrict"></small></label>
       <p class="hint">Bigger circles, thicker lines and darker shading mean more people. Dashes move in the direction of travel. Zoom in to see states and provinces.</p>
     </div>
@@ -497,7 +500,7 @@ function draw() {
 // there; South Gujarat districts by how many people's village is there.
 function drawAreas(list, homes) {
   layers.area.clearLayers(); layers.district.clearLayers(); layers.base.clearLayers();
-  const C = { area: css('--rust'), district: css('--gold'), line: css('--ink-soft'), grey: css('--mist') };
+  const C = { area: css('--rust'), past: css('--forest'), district: css('--gold'), line: css('--ink-soft'), grey: css('--ink-soft') };
   const byCountry = {}, byRegion = {}, byDistrict = {};
   homes.forEach(g => g.people.forEach(person => {
     (byCountry[g.p.cc] = byCountry[g.p.cc] || []).push(person);
@@ -507,8 +510,8 @@ function drawAreas(list, homes) {
   list.forEach(person => { if (person.district) (byDistrict[person.district] = byDistrict[person.district] || []).push(person); });
 
   const zoomedIn = map.getZoom() >= REGION_ZOOM;
-  const shade = (n, max, base) => 0.12 + 0.5 * Math.sqrt(n / Math.max(max, 1)) * (base || 1);
-  const add = (features, counts, keyFn, color, layer, kind, dim, dashed) => {
+  const shade = (n, max, base, floor) => (floor ?? 0.12) + 0.5 * Math.sqrt(n / Math.max(max, 1)) * (base || 1);
+  const add = (features, counts, keyFn, color, layer, kind, dim, dashed, floor) => {
     const max = Math.max(0, ...Object.values(counts).map(a => a.length));
     const fs = features.filter(f => counts[keyFn(f)] && counts[keyFn(f)].length);
     if (!fs.length) return 0;
@@ -516,7 +519,7 @@ function drawAreas(list, homes) {
       pane: 'areas',
       style: f => ({ color: dashed ? color : C.line, weight: dashed ? 1.4 : 0.6, opacity: dashed ? 0.9 : 0.5,
                      dashArray: dashed ? '4 3' : null, fillColor: color,
-                     fillOpacity: shade(counts[keyFn(f)].length, max, dim) }),
+                     fillOpacity: shade(counts[keyFn(f)].length, max, dim, floor) }),
       onEachFeature: (f, l) => {
         const n = counts[keyFn(f)].length;
         l.bindTooltip(`<b>${esc(f.properties.name)}</b> · ${n} ${kind}`, { className: 'place-tip', sticky: true });
@@ -529,8 +532,18 @@ function drawAreas(list, homes) {
   const linked = new Set(list.flatMap(person => person.stops.map(s => s.p.cc)));
   L.geoJSON({ type: 'FeatureCollection', features: GEO.countries.filter(f => !linked.has(f.properties.cc)) }, {
     pane: 'areas', interactive: false,
-    style: { color: C.line, weight: 0.4, opacity: 0.35, fillColor: C.grey, fillOpacity: 0.38 },
+    style: { color: C.line, weight: 0.4, opacity: 0.3, fillColor: C.grey, fillOpacity: 0.2 },
   }).addTo(layers.base);
+  // Countries people were born or lived in before moving on (no one settled
+  // there): a lighter tint of the theme's primary colour
+  const byPast = {};
+  list.forEach(person => {
+    new Set(person.stops.slice(0, -1).map(s => s.p.cc)).forEach(cc => {
+      if (!byCountry[cc]) (byPast[cc] = byPast[cc] || []).push(person);
+    });
+  });
+  const np = add(GEO.countries, byPast, f => f.properties.cc, C.past, layers.area, 'lived here before moving on', 0.36, false, 0.32);
+  setText('cPast', np || '');
   const nc = add(GEO.countries, byCountry, f => f.properties.cc, C.area, layers.area, 'settled here', zoomedIn ? 0.45 : 1);
   let nr = 0;
   if (zoomedIn) Object.entries(GEO.regions).forEach(([cc, fs]) => {
